@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/url"
 	"reflect"
 
 	"github.com/pkg/errors"
@@ -18,6 +19,31 @@ import (
 // If you add non-reference types to your configuration struct, be sure to rewrite Clone as a deep
 // copy appropriate for your types.
 type configuration struct {
+	ProvisioningServerURL string
+	InstallationDNS       string
+	AllowedEmailDomain    string
+
+	// SAML
+	IDPCertADFS          string
+	PrivateKeyADFS       string
+	PublicCertADFS       string
+	SAMLSettingsADFS     string
+	IDPCertOneLogin      string
+	PrivateKeyOneLogin   string
+	PublicCertOneLogin   string
+	SAMLSettingsOneLogin string
+	IDPCertOkta          string
+	PrivateKeyOkta       string
+	PublicCertOkta       string
+	SAMLSettingsOkta     string
+
+	// LDAP
+	LDAPSettings string
+
+	// OAuth
+	OAuthGitLabSettings    string
+	OAuthGoogleSettings    string
+	OAuthOffice365Settings string
 }
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if
@@ -25,6 +51,11 @@ type configuration struct {
 func (c *configuration) Clone() *configuration {
 	var clone = *c
 	return &clone
+}
+
+func (c *configuration) IsValid() error {
+	_, err := url.Parse(c.ProvisioningServerURL)
+	return err
 }
 
 // getConfiguration retrieves the active configuration under lock, making it safe to use

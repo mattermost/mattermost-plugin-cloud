@@ -11,12 +11,28 @@
             "windows-amd64": "server/dist/plugin-windows-amd64.exe"
         }
     },
-    "webapp": {
-        "bundle_path": "webapp/dist/main.js"
-    },
     "settings_schema": {
         "header": "",
         "footer": "",
-        "settings": []
+        "settings": [
+            {
+                "key": "ProvisioningServerURL",
+                "display_name": "Provisioning Server URL",
+                "type": "text",
+                "help_text": "The URL of the Mattermost Private Cloud provisioning server."
+            },
+            {
+                "key": "InstallationDNS",
+                "display_name": "Installation DNS",
+                "type": "text",
+                "help_text": "The domain name to create the installations with. e.g. test.mattermost.cloud"
+            },
+            {
+                "key": "AllowedEmailDomain",
+                "display_name": "Allowed Email Domain",
+                "type": "text",
+                "help_text": "(Optional) When set, users must have an email ending in this domain to use the cloud slash command."
+            }
+        ]
     }
 }
