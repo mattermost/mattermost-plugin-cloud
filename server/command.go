@@ -18,6 +18,7 @@ func init() {
 	createFlagSet = flag.NewFlagSet("create", flag.ContinueOnError)
 	createFlagSet.String("size", "100users", "Size of the Mattermost installation e.g. `100users` or `1000users`")
 	createFlagSet.String("version", "", "Mattermost version or Docker image e.g. `5.12.4` or `mattermost/mattermost-enterprise-edition:5.12.5-rc1`")
+	createFlagSet.String("affinity", "multitenant", "Whether the installation is isolated in it's own cluster or shares ones. Can be `isolated` or `multitenant`")
 	createFlagSet.String("saml", "", "Set to `onelogin`, `okta` or `adfs` to configure SAML auth")
 	createFlagSet.Bool("ldap", false, "Set to `true` to configure LDAP auth")
 	createFlagSet.String("oauth", "", "Set to `gitlab`, `google` or `office365` to configure OAuth 2.0 auth")
@@ -27,7 +28,9 @@ func init() {
 func getHelp() string {
 	help := `Available Commands:
 
-create [name]
+create [name] [flags]
+
+Available flags:
 `
 	help += createFlagSet.FlagUsages()
 	return help
@@ -75,11 +78,26 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	command := stringArgs[1]
 	p.API.LogDebug("Command: " + command)
 
+	var resp *model.CommandResponse
+	var isUserError bool
+	var err error
+
 	switch command {
 	case "create":
-		return p.runCreateCommand(stringArgs[2:], args), nil
+		resp, isUserError, err = p.runCreateCommand(stringArgs[2:], args)
 	}
 
+	if resp != nil {
+		return resp, nil
+	}
+
+	if err != nil {
+		if isUserError {
+			return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, err.Error()+"\n\n"+getHelp()), nil
+		}
+		p.API.LogError(err.Error())
+		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "An unknown error occurred. Please talk to your system administrator for help."), nil
+	}
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, getHelp()), nil
 }
 
@@ -90,6 +108,10 @@ func parseCreateArgs(install *Installation) error {
 		return err
 	}
 	install.Version, err = createFlagSet.GetString("version")
+	if err != nil {
+		return err
+	}
+	install.Affinity, err = createFlagSet.GetString("affinity")
 	if err != nil {
 		return err
 	}
@@ -112,28 +134,27 @@ func parseCreateArgs(install *Installation) error {
 	return nil
 }
 
-func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) *model.CommandResponse {
+func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
 	install := &Installation{}
 
-	for _, arg := range args {
-		if !strings.HasPrefix(arg, "--") {
-			install.Name = arg
-		}
+	if len(args) == 0 {
+		return nil, true, fmt.Errorf("must provide an installation name")
 	}
 
-	if install.Name == "" {
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Please specify a name.\n\n"+getHelp())
+	install.Name = args[0]
+
+	if install.Name == "" || strings.HasPrefix(install.Name, "--") {
+		return nil, true, fmt.Errorf("must provide an installation name")
 	}
 
 	err := createFlagSet.Parse(args)
 	if err != nil {
-		p.API.LogError(err.Error())
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, err.Error())
+		return nil, false, err
 	}
 
-	err = parseCreateArgs(install)	
+	err = parseCreateArgs(install)
 	if err != nil {
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, err.Error())
+		return nil, false, err
 	}
 
 	config := p.getConfiguration()
@@ -148,23 +169,20 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) *mode
 
 	cloudInstallation, err := p.cloudClient.CreateInstallation(req)
 	if err != nil {
-		p.API.LogError(err.Error())
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, err.Error())
+		return nil, false, err
 	}
 
 	install.Installation = *cloudInstallation
 
 	err = p.storeInstallation(install)
 	if err != nil {
-		p.API.LogError(err.Error())
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, err.Error())
+		return nil, false, err
 	}
 
 	data, err := json.Marshal(cloudInstallation)
 	if err != nil {
-		p.API.LogError(err.Error())
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, err.Error())
+		return nil, false, err
 	}
 
-	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, string(data))
+	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Installation being created. You will receive a notification when it is ready.\n\n"+string(data)), false, nil
 }

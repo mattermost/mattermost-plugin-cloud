@@ -30,6 +30,10 @@ func (p *Plugin) storeInstallation(install *Installation) error {
 			return err
 		}
 
+		if len(originalJSONInstalls) == 0 {
+			originalJSONInstalls = []byte("[]")
+		}
+
 		var installs []*Installation
 		jsonErr := json.Unmarshal(originalJSONInstalls, &installs)
 		if jsonErr != nil {

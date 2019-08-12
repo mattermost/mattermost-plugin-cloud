@@ -13,7 +13,7 @@ import (
 type Plugin struct {
 	plugin.MattermostPlugin
 
-	cloudClient *cloud.Client
+	cloudClient CloudClient
 
 	// configurationLock synchronizes access to the configuration.
 	configurationLock sync.RWMutex
@@ -21,6 +21,10 @@ type Plugin struct {
 	// configuration is the active plugin configuration. Consult getConfiguration and
 	// setConfiguration for usage.
 	configuration *configuration
+}
+
+type CloudClient interface {
+	CreateInstallation(request *cloud.CreateInstallationRequest) (*cloud.Installation, error)
 }
 
 func (p *Plugin) OnActivate() error {
