@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/url"
 	"reflect"
 
@@ -54,7 +55,18 @@ func (c *configuration) Clone() *configuration {
 }
 
 func (c *configuration) IsValid() error {
+	if len(c.ProvisioningServerURL) == 0 {
+		return fmt.Errorf("must specify ProvisioningServerURL")
+	}
 	_, err := url.Parse(c.ProvisioningServerURL)
+	if err != nil {
+		return errors.Wrap(err, "invalid ProvisioningServerURL")
+	}
+
+	if len(c.InstallationDNS) == 0 {
+		return fmt.Errorf("must specify InstallationDNS")
+	}
+
 	return err
 }
 

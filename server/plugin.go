@@ -1,11 +1,14 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
+	"io/ioutil"
+	"path/filepath"
 	"sync"
 
+	"github.com/pkg/errors"
+
 	cloud "github.com/mattermost/mattermost-cloud/model"
+	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin"
 )
 
@@ -14,6 +17,8 @@ type Plugin struct {
 	plugin.MattermostPlugin
 
 	cloudClient CloudClient
+
+	BotUserID string
 
 	// configurationLock synchronizes access to the configuration.
 	configurationLock sync.RWMutex
@@ -25,6 +30,7 @@ type Plugin struct {
 
 type CloudClient interface {
 	CreateInstallation(request *cloud.CreateInstallationRequest) (*cloud.Installation, error)
+	GetInstallation(installationID string) (*cloud.Installation, error)
 }
 
 func (p *Plugin) OnActivate() error {
@@ -33,11 +39,31 @@ func (p *Plugin) OnActivate() error {
 		return err
 	}
 
+	botID, err := p.Helpers.EnsureBot(&model.Bot{
+		Username:    "cloud",
+		DisplayName: "Cloud",
+		Description: "Created by the Mattermost Private Cloud plugin.",
+	})
+	if err != nil {
+		return errors.Wrap(err, "failed to ensure github bot")
+	}
+	p.BotUserID = botID
+
+	bundlePath, err := p.API.GetBundlePath()
+	if err != nil {
+		return errors.Wrap(err, "couldn't get bundle path")
+	}
+
+	profileImage, err := ioutil.ReadFile(filepath.Join(bundlePath, "assets", "profile.png"))
+	if err != nil {
+		return errors.Wrap(err, "couldn't read profile image")
+	}
+
+	appErr := p.API.SetProfileImage(botID, profileImage)
+	if appErr != nil {
+		return errors.Wrap(appErr, "couldn't set profile image")
+	}
+
 	p.cloudClient = cloud.NewClient(config.ProvisioningServerURL)
 	return p.API.RegisterCommand(getCommand())
-}
-
-// ServeHTTP demonstrates a plugin that handles HTTP requests by greeting the world.
-func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello, cloud!")
 }
