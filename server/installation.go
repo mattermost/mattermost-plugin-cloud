@@ -106,3 +106,19 @@ func (p *Plugin) getInstallations() ([]*Installation, []byte, error) {
 
 	return installs, originalJSONInstalls, nil
 }
+
+func (p *Plugin) getInstallationsForUser(userID string) ([]*Installation, error) {
+	installs, _ , err := p.getInstallations()
+	if err != nil {
+		return nil, err
+	}
+
+	installsForUser := []*Installation{}
+	for _, install := range installs {
+		if install.OwnerID == userID {
+			installsForUser = append(installsForUser, install)
+		}
+	}
+
+	return installsForUser, nil
+}

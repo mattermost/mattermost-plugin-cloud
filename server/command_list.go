@@ -7,16 +7,9 @@ import (
 )
 
 func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
-	installs, _, err := p.getInstallations()
+	installsForUser, err := p.getInstallationsForUser(extra.UserId)
 	if err != nil {
 		return nil, false, err
-	}
-
-	installsForUser := []*Installation{}
-	for _, install := range installs {
-		if install.OwnerID == extra.UserId {
-			installsForUser = append(installsForUser, install)
-		}
 	}
 
 	if len(installsForUser) == 0 {
