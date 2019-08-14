@@ -26,6 +26,6 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 }
 
 func (p *Plugin) handleWebhook(w http.ResponseWriter, r *http.Request) {
-	// TODO: handle webhook from provisioing server
+	// TODO: handle webhook from provisioning server
 	w.WriteHeader(http.StatusNotImplemented)
 }
