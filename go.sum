@@ -265,6 +265,7 @@ github.com/mattermost/mattermost-cloud v0.0.0-20190718173553-c1d44e952482/go.mod
 github.com/mattermost/mattermost-mattermod v0.0.0-20190718124140-f9ed1a92db14 h1:OFgpXPLz24efeAP1AQm8yXDA4ec73l3fU3UDkKKTVxU=
 github.com/mattermost/mattermost-mattermod v0.0.0-20190718124140-f9ed1a92db14/go.mod h1:GL3XYfonNyJJhCe7c2kREzBG+VQbUlf08Hdlx/RnADY=
 github.com/mattermost/mattermost-operator v0.0.0-20190710123602-6a20f0845534/go.mod h1:Rinpkr6ordw53vU23itYjIaypS117QJwCGKr3YiriNI=
+github.com/mattermost/mattermost-server v5.11.1+incompatible h1:LPzKY0+2Tic/ik67qIg6VrydRCgxNXZQXOeaiJ2rMBY=
 github.com/mattermost/mattermost-server v5.12.0+incompatible h1:Glsf3vGsceqzaDa9BQfO5Wsj0cNxagwuBhy3pCN/AT0=
 github.com/mattermost/mattermost-server v5.12.0+incompatible/go.mod h1:O3Tfw/SymCK+cYdFSMjQZyP4VndjcfVeT6ZoJjglByw=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0/go.mod h1:nV5bfVpT//+B1RPD2JvRnxbkLmJEYXmRaaVl15fsXjs=
