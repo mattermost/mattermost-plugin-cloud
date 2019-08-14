@@ -56,7 +56,7 @@ func (c *configuration) Clone() *configuration {
 
 func (c *configuration) IsValid() error {
 	if len(c.ProvisioningServerURL) == 0 {
-		return fmt.Errorf("must specify ProvisioningServerURL")
+		return errors.New("must specify ProvisioningServerURL")
 	}
 	_, err := url.Parse(c.ProvisioningServerURL)
 	if err != nil {
