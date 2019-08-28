@@ -19,6 +19,9 @@ example: /cloud create myinstallation --saml onelogin --test-data
 
 list
 	Lists the Mattermost installations created by you.
+
+delete [name]
+	Deletes a Mattermost installation.
 `
 	return fmt.Sprintf(
 		help,
@@ -31,8 +34,8 @@ func getCommand() *model.Command {
 		Trigger:          "cloud",
 		DisplayName:      "Mattermost Private Cloud",
 		Description:      "This command allows spinning up and down Mattermost installations using Mattermost Private Cloud.",
-		AutoComplete:     true,
-		AutoCompleteDesc: "Available commands: create, list, upgrade, delete",
+		AutoComplete:     false,
+		AutoCompleteDesc: "Available commands: create, list, delete",
 		AutoCompleteHint: "[command]",
 	}
 }
@@ -42,6 +45,7 @@ func getCommandResponse(responseType, text string) *model.CommandResponse {
 		ResponseType: responseType,
 		Text:         text,
 		Username:     "cloud",
+		IconURL:      fmt.Sprintf("/plugins/%s/profile.png", manifest.ID),
 	}
 }
 
@@ -74,6 +78,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		handler = p.runCreateCommand
 	case "list":
 		handler = p.runListCommand
+	case "delete":
+		handler = p.runDeleteCommand
 	}
 
 	if handler == nil {

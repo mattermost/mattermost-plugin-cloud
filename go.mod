@@ -6,7 +6,7 @@ require (
 	github.com/braintree/manners v0.0.0-20160418043613-82a8879fc5fd // indirect
 	github.com/cpanato/golang-jenkins v0.0.0-20181010175751-6a66fc16d07d // indirect
 	github.com/google/go-github v17.0.0+incompatible
-	github.com/mattermost/mattermost-cloud v0.0.0-20190718173553-c1d44e952482
+	github.com/mattermost/mattermost-cloud v0.3.0
 	github.com/mattermost/mattermost-mattermod v0.0.0-20190718124140-f9ed1a92db14 // indirect
 	github.com/mattermost/mattermost-server v5.12.0+incompatible
 	github.com/pkg/errors v0.8.1

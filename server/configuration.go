@@ -24,6 +24,13 @@ type configuration struct {
 	InstallationDNS       string
 	AllowedEmailDomain    string
 
+	// License
+	E10License string
+	E20License string
+
+	// Email
+	EmailSettings string
+
 	// SAML
 	IDPCertADFS          string
 	PrivateKeyADFS       string

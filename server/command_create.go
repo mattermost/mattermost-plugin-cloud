@@ -11,6 +11,19 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
+const (
+	SAMLOptionADFS     = "adfs"
+	SAMLOptionOneLogin = "onelogin"
+	SAMLOptionOkta     = "okta"
+
+	LicenseOptionE10 = "e10"
+	LicenseOptionE20 = "e20"
+
+	OAuthOptionGitLab    = "gitlab"
+	OAuthOptionGoogle    = "google"
+	OAuthOptionOffice365 = "office365"
+)
+
 var createFlagSet *flag.FlagSet
 
 func init() {
@@ -18,6 +31,7 @@ func init() {
 	createFlagSet.String("size", "100users", "Size of the Mattermost installation e.g. '100users' or '1000users'")
 	createFlagSet.String("version", "", "Mattermost version or Docker image e.g. '5.12.4' or 'mattermost/mattermost-enterprise-edition:5.12.5-rc1'")
 	createFlagSet.String("affinity", "multitenant", "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
+	createFlagSet.String("license", "e20", "The enterprise license to use. Can be 'e10' or 'e20'")
 	createFlagSet.String("saml", "", "Set to 'onelogin', 'okta' or 'adfs' to configure SAML auth")
 	createFlagSet.Bool("ldap", false, "Set to configure LDAP auth")
 	createFlagSet.String("oauth", "", "Set to 'gitlab', 'google' or 'office365' to configure OAuth 2.0 auth")
@@ -35,6 +49,10 @@ func parseCreateArgs(install *Installation) error {
 		return err
 	}
 	install.Affinity, err = createFlagSet.GetString("affinity")
+	if err != nil {
+		return err
+	}
+	install.License, err = createFlagSet.GetString("license")
 	if err != nil {
 		return err
 	}
@@ -82,12 +100,18 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 
 	config := p.getConfiguration()
 
+	license := config.E20License
+	if install.License == LicenseOptionE10 {
+		license = config.E10License
+	}
+
 	req := &cloud.CreateInstallationRequest{
 		OwnerID:  extra.UserId,
 		DNS:      fmt.Sprintf("%s.%s", install.Name, config.InstallationDNS),
 		Version:  install.Version,
 		Size:     install.Size,
 		Affinity: install.Affinity,
+		License:  license,
 	}
 
 	cloudInstallation, err := p.cloudClient.CreateInstallation(req)
@@ -107,5 +131,5 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, false, err
 	}
 
-	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Installation being created. You will receive a notification when it is ready.\n\n"+string(data)), false, nil
+	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Installation being created. You will receive a notification when it is ready. Use `/cloud list` to check on the status of your installations.\n\n"+prettyPrintJSON(string(data))), false, nil
 }
