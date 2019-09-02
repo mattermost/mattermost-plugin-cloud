@@ -23,12 +23,16 @@ func (mc *MockClient) GetInstallation(installataionID string) (*cloud.Installati
 	return &cloud.Installation{ID: "someid", OwnerID: "joramid"}, nil
 }
 
+func (mc *MockClient) DeleteInstallation(installationID string) error {
+	return nil
+}
+
 func TestCreateCommand(t *testing.T) {
 	plugin := Plugin{}
 	plugin.cloudClient = &MockClient{}
 
 	api := &plugintest.API{}
-	api.On("KVGet", mock.AnythingOfType("string")).Return([]byte{}, nil)
+	api.On("KVGet", mock.AnythingOfType("string")).Return(nil, nil)
 	api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
 
 	plugin.SetAPI(api)
@@ -70,7 +74,7 @@ func TestListCommand(t *testing.T) {
 	})
 
 	t.Run("no installations", func(t *testing.T) {
-		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte{}, nil)
+		api.On("KVGet", mock.AnythingOfType("string")).Return(nil, nil)
 
 		resp, isUserError, err := plugin.runListCommand([]string{}, &model.CommandArgs{})
 		require.Nil(t, err)
@@ -116,7 +120,7 @@ func TestDeleteCommand(t *testing.T) {
 	})
 
 	t.Run("no installations", func(t *testing.T) {
-		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte{}, nil)
+		api.On("KVGet", mock.AnythingOfType("string")).Return(nil, nil)
 
 		resp, isUserError, err := plugin.runDeleteCommand([]string{"joramsinstall"}, &model.CommandArgs{UserId: "joramid2"})
 		require.NotNil(t, err)

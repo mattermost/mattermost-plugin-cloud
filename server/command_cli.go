@@ -4,9 +4,20 @@ import (
 	"encoding/json"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 )
 
-func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
+func (p *Plugin) runCLICommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
+	if len(args) == 0 {
+		return nil, true, errors.New("must provide an installation name")
+	}
+
+	name := args[0]
+
+	if name == "" {
+		return nil, true, errors.New("must provide an installation name")
+	}
+
 	installsForUser, err := p.getInstallationsForUser(extra.UserId)
 	if err != nil {
 		return nil, false, err

@@ -35,5 +35,10 @@ func (p *Plugin) runDeleteCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, false, err
 	}
 
+	err = p.cloudClient.DeleteInstallation(installToDelete.ID)
+	if err != nil {
+		return nil, false, err
+	}
+
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, fmt.Sprintf("Installation %s deleted.", name)), false, nil
 }

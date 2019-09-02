@@ -31,6 +31,7 @@ type Plugin struct {
 type CloudClient interface {
 	CreateInstallation(request *cloud.CreateInstallationRequest) (*cloud.Installation, error)
 	GetInstallation(installationID string) (*cloud.Installation, error)
+	DeleteInstallation(installationID string) error
 }
 
 func (p *Plugin) OnActivate() error {
