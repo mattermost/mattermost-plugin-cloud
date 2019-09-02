@@ -14,8 +14,17 @@ func prettyPrintJSON(in string) string {
 	return out.String()
 }
 
-func NewBool(b bool) *bool       { return &b }
-func NewInt(n int) *int          { return &n }
-func NewInt64(n int64) *int64    { return &n }
-func NewInt32(n int32) *int32    { return &n }
+// NewBool returns a pointer to a given bool.
+func NewBool(b bool) *bool { return &b }
+
+// NewInt returns a pointer to a given int.
+func NewInt(n int) *int { return &n }
+
+// NewInt32 returns a pointer to a given int32.
+func NewInt32(n int32) *int32 { return &n }
+
+// NewInt64 returns a pointer to a given int64.
+func NewInt64(n int64) *int64 { return &n }
+
+// NewString returns a pointer to a given string.
 func NewString(s string) *string { return &s }

@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 
+	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/model"
 )
 
@@ -16,8 +17,9 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "No installations found."), false, nil
 	}
 
+	var updatedInstall *cloud.Installation
 	for _, install := range installsForUser {
-		updatedInstall, err := p.cloudClient.GetInstallation(install.ID)
+		updatedInstall, err = p.cloudClient.GetInstallation(install.ID)
 		if err != nil {
 			p.API.LogError("could not get updated installation %s", install.ID)
 		}
