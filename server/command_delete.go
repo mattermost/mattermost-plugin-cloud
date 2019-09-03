@@ -30,12 +30,13 @@ func (p *Plugin) runDeleteCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, true, fmt.Errorf("no installation with the name %s found", name)
 	}
 
-	err = p.deleteInstallation(installToDelete.ID)
+	// Delete the installation first. If this succeeds then we can remove it from the DB.
+	err = p.cloudClient.DeleteInstallation(installToDelete.ID)
 	if err != nil {
 		return nil, false, err
 	}
 
-	err = p.cloudClient.DeleteInstallation(installToDelete.ID)
+	err = p.deleteInstallation(installToDelete.ID)
 	if err != nil {
 		return nil, false, err
 	}
