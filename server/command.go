@@ -49,6 +49,7 @@ func getCommandResponse(responseType, text string) *model.CommandResponse {
 	}
 }
 
+// ExecuteCommand executes a given command and returns a command response.
 func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	config := p.getConfiguration()
 

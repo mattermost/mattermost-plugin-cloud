@@ -11,9 +11,9 @@ import (
 )
 
 const (
-	DefaultAdminUsername = "sysadmin"
-	DefaultAdminPassword = "Sys@dmin123"
-	DefaultAdminEmail    = "success+sysadmin@simulator.amazonses.com"
+	defaultAdminUsername = "sysadmin"
+	defaultAdminPassword = "Sys@dmin123"
+	defaultAdminEmail    = "success+sysadmin@simulator.amazonses.com"
 )
 
 func (p *Plugin) setupInstallation(install *Installation) error {
@@ -52,12 +52,12 @@ func (p *Plugin) waitForDNS(client *model.Client4) error {
 }
 
 func (p *Plugin) createAndLoginAdminUser(client *model.Client4) error {
-	_, resp := client.CreateUser(&model.User{Username: DefaultAdminUsername, Password: DefaultAdminPassword, Email: DefaultAdminEmail})
+	_, resp := client.CreateUser(&model.User{Username: defaultAdminUsername, Password: defaultAdminPassword, Email: defaultAdminEmail})
 	if resp.Error != nil {
 		return resp.Error
 	}
 
-	_, resp = client.Login(DefaultAdminUsername, DefaultAdminPassword)
+	_, resp = client.Login(defaultAdminUsername, defaultAdminPassword)
 	if resp.Error != nil {
 		return resp.Error
 	}
@@ -104,17 +104,17 @@ func (p *Plugin) configureSAML(client *model.Client4, config *model.Config, inst
 	publicCert := ""
 
 	switch install.SAML {
-	case SAMLOptionADFS:
+	case samlOptionADFS:
 		samlSettings = pluginConfig.SAMLSettingsADFS
 		idpCert = pluginConfig.IDPCertADFS
 		privateKey = pluginConfig.PrivateKeyADFS
 		publicCert = pluginConfig.PublicCertADFS
-	case SAMLOptionOneLogin:
+	case samlOptionOneLogin:
 		samlSettings = pluginConfig.SAMLSettingsOneLogin
 		idpCert = pluginConfig.IDPCertOneLogin
 		privateKey = pluginConfig.PrivateKeyOneLogin
 		publicCert = pluginConfig.PublicCertOneLogin
-	case SAMLOptionOkta:
+	case samlOptionOkta:
 		samlSettings = pluginConfig.SAMLSettingsOkta
 		idpCert = pluginConfig.IDPCertOkta
 		privateKey = pluginConfig.PrivateKeyOkta
@@ -172,21 +172,21 @@ func (p *Plugin) configureLDAP(config *model.Config, install *Installation, plug
 }
 
 func (p *Plugin) configureOAuth(config *model.Config, install *Installation, pluginConfig *configuration) {
-	if install.OAuth == OAuthOptionGitLab && pluginConfig.OAuthGitLabSettings != "" {
+	if install.OAuth == oAuthOptionGitLab && pluginConfig.OAuthGitLabSettings != "" {
 		err := json.Unmarshal([]byte(pluginConfig.OAuthGitLabSettings), &config.GitLabSettings)
 		if err != nil {
 			p.API.LogError("unable to unmarshal gitlab settings err=%s", err.Error())
 		}
 	}
 
-	if install.OAuth == OAuthOptionGoogle && pluginConfig.OAuthGoogleSettings != "" {
+	if install.OAuth == oAuthOptionGoogle && pluginConfig.OAuthGoogleSettings != "" {
 		err := json.Unmarshal([]byte(pluginConfig.OAuthGoogleSettings), &config.GoogleSettings)
 		if err != nil {
 			p.API.LogError("unable to unmarshal google settings err=%s", err.Error())
 		}
 	}
 
-	if install.OAuth == OAuthOptionOffice365 && pluginConfig.OAuthOffice365Settings != "" {
+	if install.OAuth == oAuthOptionOffice365 && pluginConfig.OAuthOffice365Settings != "" {
 		err := json.Unmarshal([]byte(pluginConfig.OAuthOffice365Settings), &config.Office365Settings)
 		if err != nil {
 			p.API.LogError("unable to unmarshal office365 settings err=%s", err.Error())
