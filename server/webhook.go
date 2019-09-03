@@ -84,7 +84,7 @@ Login with:
 
 Installation details:
 %s
-`, install.Name, install.DNS, DefaultAdminUsername, DefaultAdminPassword, install.ToPrettyJSON())
+`, install.Name, install.DNS, defaultAdminUsername, defaultAdminPassword, install.ToPrettyJSON())
 
 	p.PostBotDM(install.OwnerID, message)
 

@@ -6,6 +6,7 @@ import (
 	"github.com/mattermost/mattermost-server/model"
 )
 
+// PostBotDM posts a DM as the cloud bot user.
 func (p *Plugin) PostBotDM(userID string, message string) error {
 	channel, appError := p.API.GetDirectChannel(userID, p.BotUserID)
 	if appError != nil {

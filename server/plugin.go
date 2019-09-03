@@ -28,12 +28,15 @@ type Plugin struct {
 	configuration *configuration
 }
 
+// CloudClient is the interface for managing cloud installations.
 type CloudClient interface {
 	CreateInstallation(request *cloud.CreateInstallationRequest) (*cloud.Installation, error)
 	GetInstallation(installationID string) (*cloud.Installation, error)
 	DeleteInstallation(installationID string) error
 }
 
+// OnActivate runs when the plugin activates and ensures the plugin is properly
+// configured.
 func (p *Plugin) OnActivate() error {
 	config := p.getConfiguration()
 	if err := config.IsValid(); err != nil {

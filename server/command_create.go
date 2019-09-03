@@ -12,16 +12,16 @@ import (
 )
 
 const (
-	SAMLOptionADFS     = "adfs"
-	SAMLOptionOneLogin = "onelogin"
-	SAMLOptionOkta     = "okta"
+	samlOptionADFS     = "adfs"
+	samlOptionOneLogin = "onelogin"
+	samlOptionOkta     = "okta"
 
-	LicenseOptionE10 = "e10"
-	LicenseOptionE20 = "e20"
+	licenseOptionE10 = "e10"
+	licenseOptionE20 = "e20"
 
-	OAuthOptionGitLab    = "gitlab"
-	OAuthOptionGoogle    = "google"
-	OAuthOptionOffice365 = "office365"
+	oAuthOptionGitLab    = "gitlab"
+	oAuthOptionGoogle    = "google"
+	oAuthOptionOffice365 = "office365"
 )
 
 var createFlagSet *flag.FlagSet
@@ -101,7 +101,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 	config := p.getConfiguration()
 
 	license := config.E20License
-	if install.License == LicenseOptionE10 {
+	if install.License == licenseOptionE10 {
 		license = config.E10License
 	}
 
