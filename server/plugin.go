@@ -32,6 +32,7 @@ type Plugin struct {
 type CloudClient interface {
 	CreateInstallation(request *cloud.CreateInstallationRequest) (*cloud.Installation, error)
 	GetInstallation(installationID string) (*cloud.Installation, error)
+	UpgradeInstallation(installationID, version, license string) error
 	DeleteInstallation(installationID string) error
 }
 

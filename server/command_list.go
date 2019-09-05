@@ -32,5 +32,5 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 		return nil, false, err
 	}
 
-	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, prettyPrintJSON(string(data))), false, nil
+	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, jsonCodeBlock(prettyPrintJSON(string(data)))), false, nil
 }

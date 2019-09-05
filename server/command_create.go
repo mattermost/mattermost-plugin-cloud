@@ -16,9 +16,6 @@ const (
 	samlOptionOneLogin = "onelogin"
 	samlOptionOkta     = "okta"
 
-	licenseOptionE10 = "e10"
-	licenseOptionE20 = "e20"
-
 	oAuthOptionGitLab    = "gitlab"
 	oAuthOptionGoogle    = "google"
 	oAuthOptionOffice365 = "office365"
@@ -28,8 +25,8 @@ var createFlagSet *flag.FlagSet
 
 func init() {
 	createFlagSet = flag.NewFlagSet("create", flag.ContinueOnError)
-	createFlagSet.String("size", "100users", "Size of the Mattermost installation e.g. '100users' or '1000users'")
-	createFlagSet.String("version", "", "Mattermost version or Docker image e.g. '5.12.4' or 'mattermost/mattermost-enterprise-edition:5.12.5-rc1'")
+	createFlagSet.String("size", "miniSingleton", "Size of the Mattermost installation e.g. '100users' or '1000users'")
+	createFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
 	createFlagSet.String("affinity", "multitenant", "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
 	createFlagSet.String("license", "e20", "The enterprise license to use. Can be 'e10' or 'e20'")
 	createFlagSet.String("saml", "", "Set to 'onelogin', 'okta' or 'adfs' to configure SAML auth")
@@ -56,6 +53,9 @@ func parseCreateArgs(install *Installation) error {
 	if err != nil {
 		return err
 	}
+	if !validLicenseOption(install.License) {
+		return fmt.Errorf("invalid license option, must be %s or %s", licenseOptionE10, licenseOptionE20)
+	}
 	install.SAML, err = createFlagSet.GetString("saml")
 	if err != nil {
 		return err
@@ -72,17 +72,18 @@ func parseCreateArgs(install *Installation) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
 func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
-	install := &Installation{}
-
 	if len(args) == 0 {
 		return nil, true, fmt.Errorf("must provide an installation name")
 	}
 
-	install.Name = args[0]
+	install := &Installation{
+		Name: args[0],
+	}
 
 	if install.Name == "" || strings.HasPrefix(install.Name, "--") {
 		return nil, true, fmt.Errorf("must provide an installation name")
@@ -131,5 +132,5 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, false, err
 	}
 
-	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Installation being created. You will receive a notification when it is ready. Use `/cloud list` to check on the status of your installations.\n\n"+prettyPrintJSON(string(data))), false, nil
+	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Installation being created. You will receive a notification when it is ready. Use `/cloud list` to check on the status of your installations.\n\n"+jsonCodeBlock(prettyPrintJSON(string(data)))), false, nil
 }

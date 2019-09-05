@@ -23,6 +23,10 @@ func (mc *MockClient) GetInstallation(installataionID string) (*cloud.Installati
 	return &cloud.Installation{ID: "someid", OwnerID: "joramid"}, nil
 }
 
+func (mc *MockClient) UpgradeInstallation(installataionID, version, license string) error {
+	return nil
+}
+
 func (mc *MockClient) DeleteInstallation(installationID string) error {
 	return nil
 }
@@ -89,6 +93,68 @@ func TestListCommand(t *testing.T) {
 		require.Nil(t, err)
 		assert.False(t, isUserError)
 		assert.False(t, strings.Contains(resp.Text, "someid"))
+	})
+}
+
+func TestUpgradeCommand(t *testing.T) {
+	plugin := Plugin{}
+	plugin.cloudClient = &MockClient{}
+
+	api := &plugintest.API{}
+	api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
+	plugin.SetAPI(api)
+
+	t.Run("upgrade installation successfully", func(t *testing.T) {
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
+
+		resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--version", "5.13.1"}, &model.CommandArgs{UserId: "gabeid"})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, "Upgrade of installation")
+	})
+
+	t.Run("no version", func(t *testing.T) {
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
+
+		resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall"}, &model.CommandArgs{UserId: "gabeid"})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must specify a version")
+		assert.True(t, isUserError)
+		assert.Nil(t, resp)
+	})
+
+	t.Run("invalid license", func(t *testing.T) {
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
+
+		resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--version", "5.13.1", "--license", "e30"}, &model.CommandArgs{UserId: "gabeid"})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid license option")
+		assert.True(t, isUserError)
+		assert.Nil(t, resp)
+	})
+
+	t.Run("no installations", func(t *testing.T) {
+		api.On("KVGet", mock.AnythingOfType("string")).Return(nil, nil)
+
+		resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall2", "--version", "5.13.1"}, &model.CommandArgs{UserId: "gabeid2"})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "no installation with the name gabesinstall2 found")
+		assert.True(t, isUserError)
+		assert.Nil(t, resp)
+	})
+
+	t.Run("no name provided", func(t *testing.T) {
+		resp, isUserError, err := plugin.runUpgradeCommand([]string{}, &model.CommandArgs{UserId: "gabeid"})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must provide an installation name")
+		assert.True(t, isUserError)
+		assert.Nil(t, resp)
+
+		resp, isUserError, err = plugin.runUpgradeCommand([]string{""}, &model.CommandArgs{UserId: "gabeid"})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "must provide an installation name")
+		assert.True(t, isUserError)
+		assert.Nil(t, resp)
 	})
 }
 

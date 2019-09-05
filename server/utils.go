@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 )
 
 func prettyPrintJSON(in string) string {
@@ -12,6 +13,14 @@ func prettyPrintJSON(in string) string {
 		return in
 	}
 	return out.String()
+}
+
+func jsonCodeBlock(in string) string {
+	return fmt.Sprintf("``` json\n%s\n```", in)
+}
+
+func validLicenseOption(license string) bool {
+	return license == licenseOptionE10 || license == licenseOptionE20
 }
 
 // NewBool returns a pointer to a given bool.
