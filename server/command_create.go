@@ -25,7 +25,7 @@ var createFlagSet *flag.FlagSet
 
 func init() {
 	createFlagSet = flag.NewFlagSet("create", flag.ContinueOnError)
-	createFlagSet.String("size", "miniSingleton", "Size of the Mattermost installation e.g. '100users' or '1000users'")
+	createFlagSet.String("size", "miniSingleton", "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'")
 	createFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
 	createFlagSet.String("affinity", "multitenant", "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
 	createFlagSet.String("license", "e20", "The enterprise license to use. Can be 'e10' or 'e20'")
