@@ -31,7 +31,7 @@ delete [name]
 `
 	return fmt.Sprintf(
 		help,
-		createFlagSet.FlagUsages(),
+		getCreateFlagSet().FlagUsages(),
 		getUpgradeFlagSet().FlagUsages(),
 	)
 }
