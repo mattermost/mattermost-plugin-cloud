@@ -44,11 +44,12 @@ func (p *Plugin) waitForDNS(client *model.Client4) error {
 			return nil
 		}
 		if resp.Error != nil {
-			p.API.LogError(resp.Error.Error())
+			p.API.LogDebug(resp.Error.Error())
 		}
 		time.Sleep(time.Second * 10)
 	}
-	return errors.New("unable to ping installation")
+
+	return errors.New("timed out waiting for installation DNS")
 }
 
 func (p *Plugin) createAndLoginAdminUser(client *model.Client4) error {
@@ -84,7 +85,7 @@ func (p *Plugin) setupInstallationConfiguration(client *model.Client4, install *
 
 	_, resp = client.UpdateConfig(config)
 	if resp.Error != nil {
-		return resp.Error
+		return errors.Wrap(resp.Error, "unable to update installation config")
 	}
 
 	return nil
@@ -93,15 +94,12 @@ func (p *Plugin) setupInstallationConfiguration(client *model.Client4, install *
 func (p *Plugin) configureEmail(config *model.Config, pluginConfig *configuration) {
 	err := json.Unmarshal([]byte(pluginConfig.EmailSettings), &config.EmailSettings)
 	if err != nil {
-		p.API.LogError("unable to unmarshal email settings err=%s", err.Error())
+		p.API.LogError(errors.Wrap(err, "unable to unmarshal email settings").Error())
 	}
 }
 
 func (p *Plugin) configureSAML(client *model.Client4, config *model.Config, install *Installation, pluginConfig *configuration) {
-	samlSettings := ""
-	idpCert := ""
-	privateKey := ""
-	publicCert := ""
+	var samlSettings, idpCert, privateKey, publicCert string
 
 	switch install.SAML {
 	case samlOptionADFS:
@@ -119,9 +117,7 @@ func (p *Plugin) configureSAML(client *model.Client4, config *model.Config, inst
 		idpCert = pluginConfig.IDPCertOkta
 		privateKey = pluginConfig.PrivateKeyOkta
 		publicCert = pluginConfig.PublicCertOkta
-	}
-
-	if samlSettings == "" {
+	default:
 		return
 	}
 

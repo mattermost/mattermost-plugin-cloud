@@ -11,7 +11,7 @@ import (
 	"github.com/mattermost/mattermost-server/plugin"
 )
 
-// ServeHTTP demonstrates a plugin that handles HTTP requests by greeting the world.
+// ServeHTTP handles HTTP requests to the plugin.
 func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 	config := p.getConfiguration()
 
@@ -40,39 +40,62 @@ func (p *Plugin) handleWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Respond to the cloud server that we have accepted the webhook event.
+	w.WriteHeader(http.StatusOK)
+
 	str, _ := payload.ToJSON()
 	p.API.LogDebug(str)
 
 	if payload.Type != "installation" {
-		w.WriteHeader(http.StatusOK)
 		return
 	}
 
-	if payload.OldState != cloud.InstallationStateCreationRequested || payload.NewState != cloud.InstallationStateStable {
-		w.WriteHeader(http.StatusOK)
+	if payload.NewState != cloud.InstallationStateStable {
 		return
 	}
 
 	install, err := p.getInstallation(payload.ID)
 	if err != nil {
 		p.API.LogError(err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	if install == nil {
-		w.WriteHeader(http.StatusOK)
 		return
 	}
 
-	err = p.setupInstallation(install)
-	if err != nil {
-		p.API.LogError(err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
+	var installation *cloud.Installation
 
-	message := fmt.Sprintf(`
-Installation %s Ready!
+	switch payload.OldState {
+	case cloud.InstallationStateUpgradeRequested,
+		cloud.InstallationStateUpgradeInProgress,
+		cloud.InstallationStateUpgradeFailed:
+		installation, err = p.cloudClient.GetInstallation(payload.ID)
+		if err != nil {
+			p.API.LogError(err.Error())
+			return
+		}
+
+		install.Installation = *installation
+
+		message := fmt.Sprintf(`
+Installation %s has been upgraded!
+
+Installation details:
+%s
+`, install.Name, jsonCodeBlock(install.ToPrettyJSON()))
+
+		p.PostBotDM(install.OwnerID, message)
+	case cloud.InstallationStateCreationRequested,
+		cloud.InstallationStateCreationDNS,
+		cloud.InstallationStateCreationFailed:
+		err = p.setupInstallation(install)
+		if err != nil {
+			p.API.LogError(err.Error())
+			return
+		}
+
+		message := fmt.Sprintf(`
+Installation %s is ready!
 
 Access at: https://%s
 
@@ -84,11 +107,10 @@ Login with:
 
 Installation details:
 %s
-`, install.Name, install.DNS, defaultAdminUsername, defaultAdminPassword, install.ToPrettyJSON())
+`, install.Name, install.DNS, defaultAdminUsername, defaultAdminPassword, jsonCodeBlock(install.ToPrettyJSON()))
 
-	p.PostBotDM(install.OwnerID, message)
-
-	w.WriteHeader(http.StatusOK)
+		p.PostBotDM(install.OwnerID, message)
+	}
 }
 
 func (p *Plugin) handleProfileImage(w http.ResponseWriter, r *http.Request) {

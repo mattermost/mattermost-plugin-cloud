@@ -20,12 +20,19 @@ example: /cloud create myinstallation --saml onelogin --test-data
 list
 	Lists the Mattermost installations created by you.
 
+upgrade [name] [flags]
+	Upgades a Mattermost installaton.
+	Flags:
+%s
+example: /cloud upgrade myinstallation --version 5.13.2
+
 delete [name]
 	Deletes a Mattermost installation.
 `
 	return fmt.Sprintf(
 		help,
 		createFlagSet.FlagUsages(),
+		getUpgradeFlagSet().FlagUsages(),
 	)
 }
 
@@ -79,6 +86,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		handler = p.runCreateCommand
 	case "list":
 		handler = p.runListCommand
+	case "upgrade":
+		handler = p.runUpgradeCommand
 	case "delete":
 		handler = p.runDeleteCommand
 	}
