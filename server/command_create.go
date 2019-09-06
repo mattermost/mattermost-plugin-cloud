@@ -21,10 +21,8 @@ const (
 	oAuthOptionOffice365 = "office365"
 )
 
-var createFlagSet *flag.FlagSet
-
-func init() {
-	createFlagSet = flag.NewFlagSet("create", flag.ContinueOnError)
+func getCreateFlagSet() *flag.FlagSet {
+	createFlagSet := flag.NewFlagSet("create", flag.ContinueOnError)
 	createFlagSet.String("size", "miniSingleton", "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'")
 	createFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
 	createFlagSet.String("affinity", "multitenant", "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
@@ -33,10 +31,17 @@ func init() {
 	createFlagSet.Bool("ldap", false, "Set to configure LDAP auth")
 	createFlagSet.String("oauth", "", "Set to 'gitlab', 'google' or 'office365' to configure OAuth 2.0 auth")
 	createFlagSet.Bool("test-data", false, "Set to pre-load the server with test data")
+
+	return createFlagSet
 }
 
-func parseCreateArgs(install *Installation) error {
-	var err error
+func parseCreateArgs(args []string, install *Installation) error {
+	createFlagSet := getCreateFlagSet()
+	err := createFlagSet.Parse(args)
+	if err != nil {
+		return err
+	}
+
 	install.Size, err = createFlagSet.GetString("size")
 	if err != nil {
 		return err
@@ -54,7 +59,7 @@ func parseCreateArgs(install *Installation) error {
 		return err
 	}
 	if !validLicenseOption(install.License) {
-		return fmt.Errorf("invalid license option, must be %s or %s", licenseOptionE10, licenseOptionE20)
+		return fmt.Errorf("invalid license option %s, must be %s or %s", install.License, licenseOptionE10, licenseOptionE20)
 	}
 	install.SAML, err = createFlagSet.GetString("saml")
 	if err != nil {
@@ -89,14 +94,9 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, true, fmt.Errorf("must provide an installation name")
 	}
 
-	err := createFlagSet.Parse(args)
+	err := parseCreateArgs(args, install)
 	if err != nil {
-		return nil, false, err
-	}
-
-	err = parseCreateArgs(install)
-	if err != nil {
-		return nil, false, err
+		return nil, true, err
 	}
 
 	config := p.getConfiguration()

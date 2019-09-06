@@ -43,21 +43,31 @@ func TestCreateCommand(t *testing.T) {
 
 	t.Run("create installation successfully", func(t *testing.T) {
 		resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest"}, &model.CommandArgs{})
-		require.Nil(t, err)
+		require.NoError(t, err)
 		assert.False(t, isUserError)
-		assert.True(t, strings.Contains(resp.Text, "Installation being created."))
+		assert.Contains(t, resp.Text, "Installation being created.")
+	})
+
+	t.Run("invalid license", func(t *testing.T) {
+		resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--license", "e30"}, &model.CommandArgs{})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid license option")
+		assert.True(t, isUserError)
+		assert.Nil(t, resp)
 	})
 
 	t.Run("missing installation name", func(t *testing.T) {
-		_, isUserError, err := plugin.runCreateCommand([]string{""}, &model.CommandArgs{})
-		require.NotNil(t, err)
+		resp, isUserError, err := plugin.runCreateCommand([]string{""}, &model.CommandArgs{})
+		require.Error(t, err)
 		assert.Equal(t, "must provide an installation name", err.Error())
 		assert.True(t, isUserError)
+		assert.Nil(t, resp)
 
-		_, isUserError, err = plugin.runCreateCommand([]string{"--blargh"}, &model.CommandArgs{})
-		require.NotNil(t, err)
+		resp, isUserError, err = plugin.runCreateCommand([]string{"--blargh"}, &model.CommandArgs{})
+		require.Error(t, err)
 		assert.Equal(t, "must provide an installation name", err.Error())
 		assert.True(t, isUserError)
+		assert.Nil(t, resp)
 	})
 }
 
