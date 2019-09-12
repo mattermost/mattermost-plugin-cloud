@@ -15,7 +15,7 @@ create [name] [flags]
 	Creates a Mattermost installation.
 	Flags:
 %s
-example: /cloud create myinstallation --saml onelogin --test-data
+	example: /cloud create myinstallation --saml onelogin --test-data
 
 list
 	Lists the Mattermost installations created by you.
@@ -24,16 +24,22 @@ upgrade [name] [flags]
 	Upgades a Mattermost installaton.
 	Flags:
 %s
-example: /cloud upgrade myinstallation --version 5.13.2
+	example: /cloud upgrade myinstallation --version 5.13.2
+
+mmcli [name] [mattermost-subcommand]
+	Runs Mattermost CLI commands on an installation.
+
+	example: /cloud mmcli myinstallation version
+		(equivalent to running 'mattermost version' on myinstallation)
 
 delete [name]
 	Deletes a Mattermost installation.
 `
-	return fmt.Sprintf(
+	return codeBlock(fmt.Sprintf(
 		help,
 		getCreateFlagSet().FlagUsages(),
 		getUpgradeFlagSet().FlagUsages(),
-	)
+	))
 }
 
 func getCommand() *model.Command {
@@ -42,7 +48,7 @@ func getCommand() *model.Command {
 		DisplayName:      "Mattermost Private Cloud",
 		Description:      "This command allows spinning up and down Mattermost installations using Mattermost Private Cloud.",
 		AutoComplete:     false,
-		AutoCompleteDesc: "Available commands: create, list, delete",
+		AutoCompleteDesc: "Available commands: create, list, upgrade, mmcli, delete",
 		AutoCompleteHint: "[command]",
 	}
 }
@@ -84,6 +90,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	switch command {
 	case "create":
 		handler = p.runCreateCommand
+	case "mmcli":
+		handler = p.runMattermostCLICommand
 	case "list":
 		handler = p.runListCommand
 	case "upgrade":

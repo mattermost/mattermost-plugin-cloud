@@ -37,6 +37,9 @@ type CloudClient interface {
 	GetInstallations(*cloud.GetInstallationsRequest) ([]*cloud.Installation, error)
 	UpgradeInstallation(installationID, version, license string) error
 	DeleteInstallation(installationID string) error
+
+	GetClusterInstallations(request *cloud.GetClusterInstallationsRequest) ([]*cloud.ClusterInstallation, error)
+	RunMattermostCLICommandOnClusterInstallation(clusterInstallationID string, subcommand []string) ([]byte, error)
 }
 
 // OnActivate runs when the plugin activates and ensures the plugin is properly
