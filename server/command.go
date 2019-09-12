@@ -90,6 +90,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		handler = p.runUpgradeCommand
 	case "delete":
 		handler = p.runDeleteCommand
+	case "status":
+		handler = p.runStatusCommand
 	}
 
 	if handler == nil {

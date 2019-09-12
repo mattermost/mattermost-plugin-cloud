@@ -8,29 +8,7 @@ import (
 	"path/filepath"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
-	"github.com/mattermost/mattermost-server/plugin"
 )
-
-// ServeHTTP handles HTTP requests to the plugin.
-func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-	config := p.getConfiguration()
-
-	if err := config.IsValid(); err != nil {
-		http.Error(w, "This plugin is not configured.", http.StatusNotImplemented)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-
-	switch path := r.URL.Path; path {
-	case "/webhook":
-		p.handleWebhook(w, r)
-	case "/profile.png":
-		p.handleProfileImage(w, r)
-	default:
-		http.NotFound(w, r)
-	}
-}
 
 func (p *Plugin) handleWebhook(w http.ResponseWriter, r *http.Request) {
 	payload, err := cloud.WebhookPayloadFromReader(r.Body)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/model"
@@ -32,7 +33,7 @@ func (p *Plugin) runCLICommand(args []string, extra *model.CommandArgs) (*model.
 	for _, install := range installsForUser {
 		updatedInstall, err = p.cloudClient.GetInstallation(install.ID)
 		if err != nil {
-			p.API.LogError("could not get updated installation %s", install.ID)
+			p.API.LogError(fmt.Sprintf("could not get updated installation %s", install.ID))
 		}
 
 		install.Installation = *updatedInstall

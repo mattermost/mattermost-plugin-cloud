@@ -30,8 +30,11 @@ type Plugin struct {
 
 // CloudClient is the interface for managing cloud installations.
 type CloudClient interface {
+	GetClusters(*cloud.GetClustersRequest) ([]*cloud.Cluster, error)
+
 	CreateInstallation(request *cloud.CreateInstallationRequest) (*cloud.Installation, error)
 	GetInstallation(installationID string) (*cloud.Installation, error)
+	GetInstallations(*cloud.GetInstallationsRequest) ([]*cloud.Installation, error)
 	UpgradeInstallation(installationID, version, license string) error
 	DeleteInstallation(installationID string) error
 }

@@ -7,13 +7,23 @@ import (
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
+	"github.com/pkg/errors"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
-type MockClient struct{}
+type MockClient struct {
+	mockedCloudClusters      []*cloud.Cluster
+	mockedCloudInstallations []*cloud.Installation
+
+	err error
+}
+
+func (mc *MockClient) GetClusters(request *cloud.GetClustersRequest) ([]*cloud.Cluster, error) {
+	return mc.mockedCloudClusters, mc.err
+}
 
 func (mc *MockClient) CreateInstallation(request *cloud.CreateInstallationRequest) (*cloud.Installation, error) {
 	return &cloud.Installation{ID: "someid"}, nil
@@ -21,6 +31,10 @@ func (mc *MockClient) CreateInstallation(request *cloud.CreateInstallationReques
 
 func (mc *MockClient) GetInstallation(installataionID string) (*cloud.Installation, error) {
 	return &cloud.Installation{ID: "someid", OwnerID: "joramid"}, nil
+}
+
+func (mc *MockClient) GetInstallations(request *cloud.GetInstallationsRequest) ([]*cloud.Installation, error) {
+	return mc.mockedCloudInstallations, mc.err
 }
 
 func (mc *MockClient) UpgradeInstallation(installataionID, version, license string) error {
@@ -216,6 +230,60 @@ func TestDeleteCommand(t *testing.T) {
 		require.NotNil(t, err)
 		assert.True(t, strings.Contains(err.Error(), "must provide an installation name"))
 		assert.True(t, isUserError)
+		assert.Nil(t, resp)
+	})
+}
+
+func TestStatusCommand(t *testing.T) {
+	mockedCloudClient := &MockClient{}
+	plugin := Plugin{cloudClient: mockedCloudClient}
+
+	t.Run("no clusters or installations", func(t *testing.T) {
+		resp, isUserError, err := plugin.runStatusCommand([]string{""}, &model.CommandArgs{UserId: "gabeid"})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, clusterTableHeader)
+		assert.Contains(t, resp.Text, installationTableHeader)
+	})
+
+	t.Run("clusters and installations", func(t *testing.T) {
+		cluster1 := &cloud.Cluster{
+			ID:    cloud.NewID(),
+			Size:  cloud.SizeAlef1000,
+			State: cloud.ClusterStateStable,
+		}
+		mockedCloudClient.mockedCloudClusters = []*cloud.Cluster{cluster1}
+
+		installation1 := &cloud.Installation{
+			ID:      cloud.NewID(),
+			DNS:     "https://greatawesome.com",
+			Size:    "superextralarge",
+			Version: "v7.1.44",
+			State:   cloud.InstallationStateCreationDNS,
+		}
+		mockedCloudClient.mockedCloudInstallations = []*cloud.Installation{installation1}
+
+		resp, isUserError, err := plugin.runStatusCommand([]string{""}, &model.CommandArgs{UserId: "gabeid"})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, clusterTableHeader)
+		assert.Contains(t, resp.Text, installationTableHeader)
+		assert.Contains(t, resp.Text, cluster1.ID)
+		assert.Contains(t, resp.Text, cluster1.Size)
+		assert.Contains(t, resp.Text, cluster1.State)
+		assert.Contains(t, resp.Text, installation1.ID)
+		assert.Contains(t, resp.Text, installation1.DNS)
+		assert.Contains(t, resp.Text, installation1.Size)
+		assert.Contains(t, resp.Text, installation1.Version)
+		assert.Contains(t, resp.Text, installation1.State)
+	})
+
+	t.Run("error", func(t *testing.T) {
+		mockedCloudClient.err = errors.New("an error was enountered")
+
+		resp, isUserError, err := plugin.runStatusCommand([]string{""}, &model.CommandArgs{UserId: "gabeid"})
+		require.Error(t, err)
+		assert.False(t, isUserError)
 		assert.Nil(t, resp)
 	})
 }
