@@ -21,17 +21,17 @@ func (p *Plugin) setupInstallation(install *Installation) error {
 
 	err := p.waitForDNS(client)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "encountered an error waiting for installation DNS")
 	}
 
 	err = p.createAndLoginAdminUser(client)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "encountered an error creating installation admin account")
 	}
 
 	err = p.setupInstallationConfiguration(client, install)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "encountered an error configuring the installation")
 	}
 
 	return nil
@@ -86,6 +86,11 @@ func (p *Plugin) setupInstallationConfiguration(client *model.Client4, install *
 	_, resp = client.UpdateConfig(config)
 	if resp.Error != nil {
 		return errors.Wrap(resp.Error, "unable to update installation config")
+	}
+
+	err := p.createTestData(install)
+	if err != nil {
+		return errors.Wrap(err, "unable to generate installation sample data")
 	}
 
 	return nil
@@ -188,4 +193,14 @@ func (p *Plugin) configureOAuth(config *model.Config, install *Installation, plu
 			p.API.LogError("unable to unmarshal office365 settings err=%s", err.Error())
 		}
 	}
+}
+
+func (p *Plugin) createTestData(install *Installation) error {
+	if !install.TestData {
+		return nil
+	}
+
+	_, err := p.execMattermostCLI(install.ID, []string{"sampledata"})
+
+	return err
 }

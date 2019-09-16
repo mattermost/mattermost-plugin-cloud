@@ -8,11 +8,6 @@ class Plugin {
 
         registry.registerPopoverUserAttributesComponent(UserAttribute);
     }
-
-    deinitialize() {
-        //eslint-disable-next-line no-console
-        console.log('Shutting down cloud plugin');
-    }
 }
 
 global.window.registerPlugin(pluginId, new Plugin());

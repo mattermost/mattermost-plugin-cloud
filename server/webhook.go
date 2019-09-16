@@ -18,9 +18,12 @@ func (p *Plugin) handleWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Respond to the cloud server that we have accepted the webhook event.
-	w.WriteHeader(http.StatusOK)
+	go p.processWebhookEvent(payload)
 
+	w.WriteHeader(http.StatusOK)
+}
+
+func (p *Plugin) processWebhookEvent(payload *cloud.WebhookPayload) {
 	str, _ := payload.ToJSON()
 	p.API.LogDebug(str)
 
@@ -34,7 +37,7 @@ func (p *Plugin) handleWebhook(w http.ResponseWriter, r *http.Request) {
 
 	install, err := p.getInstallation(payload.ID)
 	if err != nil {
-		p.API.LogError(err.Error())
+		p.API.LogError(err.Error(), "installation", install.Name)
 		return
 	}
 	if install == nil {
@@ -49,7 +52,7 @@ func (p *Plugin) handleWebhook(w http.ResponseWriter, r *http.Request) {
 		cloud.InstallationStateUpgradeFailed:
 		installation, err = p.cloudClient.GetInstallation(payload.ID)
 		if err != nil {
-			p.API.LogError(err.Error())
+			p.API.LogError(err.Error(), "installation", install.Name)
 			return
 		}
 
@@ -68,7 +71,7 @@ Installation details:
 		cloud.InstallationStateCreationFailed:
 		err = p.setupInstallation(install)
 		if err != nil {
-			p.API.LogError(err.Error())
+			p.API.LogError(err.Error(), "installation", install.Name)
 			return
 		}
 
