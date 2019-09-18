@@ -18,9 +18,6 @@ const (
 type Installation struct {
 	cloud.Installation
 	Name     string
-	SAML     string
-	LDAP     bool
-	OAuth    string
 	TestData bool
 }
 
