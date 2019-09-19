@@ -96,6 +96,7 @@ func (p *Plugin) setupInstallationConfiguration(client *model.Client4, install *
 func (p *Plugin) configureEmail(config *model.Config, pluginConfig *configuration) {
 	if pluginConfig.EmailSettings == "" {
 		p.API.LogWarn("emailsettings is blank; skipping email configuration")
+		return
 	}
 
 	err := json.Unmarshal([]byte(pluginConfig.EmailSettings), &config.EmailSettings)

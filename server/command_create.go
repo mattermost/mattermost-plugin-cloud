@@ -82,6 +82,18 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		license = config.E10License
 	}
 
+	if install.Version != "" {
+		var exists bool
+		repository := "mattermost/mattermost-enterprise-edition"
+		exists, err = p.dockerClient.ValidTag(install.Version, repository)
+		if err != nil {
+			p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", repository, install.Version).Error())
+		}
+		if !exists {
+			return nil, true, fmt.Errorf("%s is not a valid docker tag for repository %s", install.Version, repository)
+		}
+	}
+
 	req := &cloud.CreateInstallationRequest{
 		OwnerID:  extra.UserId,
 		DNS:      fmt.Sprintf("%s.%s", install.Name, config.InstallationDNS),

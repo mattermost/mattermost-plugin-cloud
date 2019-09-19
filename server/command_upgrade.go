@@ -70,6 +70,15 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 		return nil, true, err
 	}
 
+	repository := "mattermost/mattermost-enterprise-edition"
+	exists, err := p.dockerClient.ValidTag(version, repository)
+	if err != nil {
+		p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", repository, version).Error())
+	}
+	if !exists {
+		return nil, true, fmt.Errorf("%s is not a valid docker tag for repository %s", version, repository)
+	}
+
 	config := p.getConfiguration()
 
 	// Only change the license if a value was provided.

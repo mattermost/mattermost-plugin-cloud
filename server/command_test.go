@@ -55,8 +55,11 @@ func (mc *MockClient) RunMattermostCLICommandOnClusterInstallation(clusterInstal
 }
 
 func TestCreateCommand(t *testing.T) {
-	plugin := Plugin{}
-	plugin.cloudClient = &MockClient{}
+	dockerClient := &MockedDockerClient{tagExists: true}
+	plugin := Plugin{
+		cloudClient:  &MockClient{},
+		dockerClient: dockerClient,
+	}
 
 	api := &plugintest.API{}
 	api.On("KVGet", mock.AnythingOfType("string")).Return(nil, nil)
@@ -69,6 +72,27 @@ func TestCreateCommand(t *testing.T) {
 		require.NoError(t, err)
 		assert.False(t, isUserError)
 		assert.Contains(t, resp.Text, "Installation being created.")
+	})
+
+	t.Run("docker tag", func(t *testing.T) {
+
+		t.Run("valid", func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--version", "totallyisreal"}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created.")
+		})
+
+		t.Run("invalid", func(t *testing.T) {
+			dockerClient.tagExists = false
+			defer func() { dockerClient.tagExists = true }()
+
+			resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--version", "totallyisnotreal"}, &model.CommandArgs{})
+			require.Error(t, err)
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+		})
+
 	})
 
 	t.Run("invalid license", func(t *testing.T) {
@@ -130,8 +154,11 @@ func TestListCommand(t *testing.T) {
 }
 
 func TestUpgradeCommand(t *testing.T) {
-	plugin := Plugin{}
-	plugin.cloudClient = &MockClient{}
+	dockerClient := &MockedDockerClient{tagExists: true}
+	plugin := Plugin{
+		cloudClient:  &MockClient{},
+		dockerClient: dockerClient,
+	}
 
 	api := &plugintest.API{}
 	api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
@@ -154,6 +181,30 @@ func TestUpgradeCommand(t *testing.T) {
 		assert.Contains(t, err.Error(), "must specify a version")
 		assert.True(t, isUserError)
 		assert.Nil(t, resp)
+	})
+
+	t.Run("docker tag", func(t *testing.T) {
+
+		t.Run("valid", func(t *testing.T) {
+			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
+
+			resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--version", "5.13.1"}, &model.CommandArgs{UserId: "gabeid"})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Upgrade of installation")
+		})
+
+		t.Run("invalid", func(t *testing.T) {
+			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
+			dockerClient.tagExists = false
+			defer func() { dockerClient.tagExists = true }()
+
+			resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--version", "5.13.1"}, &model.CommandArgs{UserId: "gabeid"})
+			require.Error(t, err)
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+		})
+
 	})
 
 	t.Run("invalid license", func(t *testing.T) {
