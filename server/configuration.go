@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"reflect"
 
+	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/pkg/errors"
 )
 
@@ -35,28 +36,6 @@ type configuration struct {
 
 	// Email
 	EmailSettings string
-
-	// SAML
-	IDPCertADFS          string
-	PrivateKeyADFS       string
-	PublicCertADFS       string
-	SAMLSettingsADFS     string
-	IDPCertOneLogin      string
-	PrivateKeyOneLogin   string
-	PublicCertOneLogin   string
-	SAMLSettingsOneLogin string
-	IDPCertOkta          string
-	PrivateKeyOkta       string
-	PublicCertOkta       string
-	SAMLSettingsOkta     string
-
-	// LDAP
-	LDAPSettings string
-
-	// OAuth
-	OAuthGitLabSettings    string
-	OAuthGoogleSettings    string
-	OAuthOffice365Settings string
 }
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if
@@ -130,6 +109,12 @@ func (p *Plugin) OnConfigurationChange() error {
 	// Load the public configuration fields from the Mattermost server configuration.
 	if err := p.API.LoadPluginConfiguration(configuration); err != nil {
 		return errors.Wrap(err, "failed to load plugin configuration")
+	}
+
+	if p.configuration != nil {
+		if configuration.ProvisioningServerURL != p.configuration.ProvisioningServerURL {
+			p.cloudClient = cloud.NewClient(configuration.ProvisioningServerURL)
+		}
 	}
 
 	p.setConfiguration(configuration)

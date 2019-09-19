@@ -55,6 +55,9 @@ func (p *Plugin) processWebhookEvent(payload *cloud.WebhookPayload) {
 			p.API.LogError(err.Error(), "installation", install.Name)
 			return
 		}
+		if installation == nil {
+			p.API.LogError(fmt.Sprintf("could not find installation %s", install.ID))
+		}
 
 		install.Installation = *installation
 

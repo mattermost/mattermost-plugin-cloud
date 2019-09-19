@@ -15,7 +15,7 @@ create [name] [flags]
 	Creates a Mattermost installation.
 	Flags:
 %s
-	example: /cloud create myinstallation --saml onelogin --test-data
+	example: /cloud create myinstallation --license e10 --test-data
 
 list
 	Lists the Mattermost installations created by you.

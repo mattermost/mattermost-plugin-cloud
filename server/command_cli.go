@@ -41,6 +41,12 @@ func (p *Plugin) runMattermostCLICommand(args []string, extra *model.CommandArgs
 		return nil, true, fmt.Errorf("no installation with the name %s found", name)
 	}
 
+	p.API.SendEphemeralPost(extra.UserId, &model.Post{
+		UserId:    p.BotUserID,
+		ChannelId: extra.ChannelId,
+		Message:   fmt.Sprintf("Running the command `mattermost %s` now. Please wait as this may take a while.", strings.Join(subcommand, " ")),
+	})
+
 	output, err := p.execMattermostCLI(installToExec.ID, subcommand)
 	if err != nil {
 		return nil, false, err

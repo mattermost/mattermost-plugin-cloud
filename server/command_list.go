@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/model"
@@ -38,7 +39,9 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, erro
 		if err != nil {
 			return nil, errors.Wrapf(err, "could not get updated installation %s", install.ID)
 		}
-
+		if updatedInstall == nil {
+			return nil, fmt.Errorf("could not find installation %s", install.ID)
+		}
 		install.Installation = *updatedInstall
 	}
 

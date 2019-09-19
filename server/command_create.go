@@ -7,18 +7,9 @@ import (
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 
 	flag "github.com/spf13/pflag"
-)
-
-const (
-	samlOptionADFS     = "adfs"
-	samlOptionOneLogin = "onelogin"
-	samlOptionOkta     = "okta"
-
-	oAuthOptionGitLab    = "gitlab"
-	oAuthOptionGoogle    = "google"
-	oAuthOptionOffice365 = "office365"
 )
 
 func getCreateFlagSet() *flag.FlagSet {
@@ -27,9 +18,6 @@ func getCreateFlagSet() *flag.FlagSet {
 	createFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
 	createFlagSet.String("affinity", "multitenant", "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
 	createFlagSet.String("license", "e20", "The enterprise license to use. Can be 'e10' or 'e20'")
-	createFlagSet.String("saml", "", "Set to 'onelogin', 'okta' or 'adfs' to configure SAML auth")
-	createFlagSet.Bool("ldap", false, "Set to configure LDAP auth")
-	createFlagSet.String("oauth", "", "Set to 'gitlab', 'google' or 'office365' to configure OAuth 2.0 auth")
 	createFlagSet.Bool("test-data", false, "Set to pre-load the server with test data")
 
 	return createFlagSet
@@ -60,18 +48,6 @@ func parseCreateArgs(args []string, install *Installation) error {
 	}
 	if !validLicenseOption(install.License) {
 		return fmt.Errorf("invalid license option %s, must be %s or %s", install.License, licenseOptionE10, licenseOptionE20)
-	}
-	install.SAML, err = createFlagSet.GetString("saml")
-	if err != nil {
-		return err
-	}
-	install.LDAP, err = createFlagSet.GetBool("ldap")
-	if err != nil {
-		return err
-	}
-	install.OAuth, err = createFlagSet.GetString("oauth")
-	if err != nil {
-		return err
 	}
 	install.TestData, err = createFlagSet.GetBool("test-data")
 	if err != nil {
@@ -117,7 +93,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 
 	cloudInstallation, err := p.cloudClient.CreateInstallation(req)
 	if err != nil {
-		return nil, false, err
+		return nil, false, errors.Wrap(err, "failed to create installation")
 	}
 
 	install.Installation = *cloudInstallation

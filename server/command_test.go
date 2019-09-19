@@ -197,6 +197,7 @@ func TestMattermostCLICommand(t *testing.T) {
 
 	api := &plugintest.API{}
 	api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
+	api.On("SendEphemeralPost", mock.AnythingOfType("string"), mock.Anything).Return(nil)
 	plugin.SetAPI(api)
 
 	ci1 := &cloud.ClusterInstallation{
