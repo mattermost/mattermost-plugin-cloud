@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/pkg/errors"
 )
 
 // ServeHTTP handles HTTP requests to the plugin.
@@ -30,6 +31,11 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 	}
 }
 
+// CloudUserRequest is the request type to obtain installs for a given user.
+type CloudUserRequest struct {
+	UserID string `json:"user_id"`
+}
+
 func (p *Plugin) handleUserInstalls(w http.ResponseWriter, r *http.Request) {
 	userID := r.Header.Get("Mattermost-User-ID")
 	if userID == "" {
@@ -37,7 +43,18 @@ func (p *Plugin) handleUserInstalls(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	installsForUser, err := p.getUpdatedInstallsForUser(userID)
+	req := &CloudUserRequest{}
+	err := json.NewDecoder(r.Body).Decode(&req)
+	if err != nil || req.UserID == "" {
+		if err != nil {
+			p.API.LogError(errors.Wrap(err, "Unable to decode cloud user request").Error())
+		}
+
+		http.Error(w, "Please provide a JSON object with a non-blank user_id field", http.StatusBadRequest)
+		return
+	}
+
+	installsForUser, err := p.getUpdatedInstallsForUser(req.UserID)
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
