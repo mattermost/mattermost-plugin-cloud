@@ -16,7 +16,8 @@ import (
 type Plugin struct {
 	plugin.MattermostPlugin
 
-	cloudClient CloudClient
+	cloudClient  CloudClient
+	dockerClient DockerClientInterface
 
 	BotUserID string
 
@@ -40,6 +41,11 @@ type CloudClient interface {
 
 	GetClusterInstallations(request *cloud.GetClusterInstallationsRequest) ([]*cloud.ClusterInstallation, error)
 	RunMattermostCLICommandOnClusterInstallation(clusterInstallationID string, subcommand []string) ([]byte, error)
+}
+
+// DockerClientInterface is the interface for interacting with docker.
+type DockerClientInterface interface {
+	ValidTag(desiredTag, repository string) (bool, error)
 }
 
 // OnActivate runs when the plugin activates and ensures the plugin is properly
@@ -76,5 +82,6 @@ func (p *Plugin) OnActivate() error {
 	}
 
 	p.cloudClient = cloud.NewClient(config.ProvisioningServerURL)
+	p.dockerClient = NewDockerClient()
 	return p.API.RegisterCommand(getCommand())
 }
