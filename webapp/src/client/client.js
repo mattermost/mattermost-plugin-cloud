@@ -5,8 +5,8 @@ export default class Client {
         this.url = '/plugins/com.mattermost.cloud/api/v1';
     }
 
-    getUserInstalls = async () => {
-        return this.doGet(`${this.url}/userinstalls`);
+    getUserInstalls = async (userID) => {
+        return this.doPost(`${this.url}/userinstalls`, {user_id: userID});
     }
 
     doGet = async (url, body, headers = {}) => {
