@@ -36,7 +36,7 @@ type CloudClient interface {
 	CreateInstallation(request *cloud.CreateInstallationRequest) (*cloud.Installation, error)
 	GetInstallation(installationID string) (*cloud.Installation, error)
 	GetInstallations(*cloud.GetInstallationsRequest) ([]*cloud.Installation, error)
-	UpgradeInstallation(installationID, version, license string) error
+	UpgradeInstallation(installationID string, request *cloud.UpgradeInstallationRequest) error
 	DeleteInstallation(installationID string) error
 
 	GetClusterInstallations(request *cloud.GetClusterInstallationsRequest) ([]*cloud.ClusterInstallation, error)
@@ -81,7 +81,7 @@ func (p *Plugin) OnActivate() error {
 		return errors.Wrap(appErr, "couldn't set profile image")
 	}
 
-	p.cloudClient = cloud.NewClient(config.ProvisioningServerURL)
+	p.setCloudClient()
 	p.dockerClient = NewDockerClient()
 	return p.API.RegisterCommand(getCommand())
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
@@ -90,7 +91,12 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 		}
 	}
 
-	err = p.cloudClient.UpgradeInstallation(installToUpgrade.ID, version, license)
+	upgradeRequest := &cloud.UpgradeInstallationRequest{
+		Version: version,
+		License: license,
+	}
+
+	err = p.cloudClient.UpgradeInstallation(installToUpgrade.ID, upgradeRequest)
 	if err != nil {
 		return nil, false, err
 	}

@@ -111,6 +111,11 @@ func (p *Plugin) createTestData(install *Installation) error {
 	}
 
 	_, err := p.execMattermostCLI(install.ID, []string{"sampledata"})
+	if err != nil {
+		// This probably won't complete before the AWS API Gateway timeout so
+		// log and move on.
+		p.API.LogWarn(errors.Wrapf(err, "Unable to finish generating test data for cloud installation %s", install.Name).Error())
+	}
 
-	return err
+	return nil
 }
