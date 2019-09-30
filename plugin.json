@@ -2,7 +2,7 @@
     "id": "com.mattermost.cloud",
     "name": "Mattermost Private Cloud",
     "description": "This plugin allows spinning up and down Mattermost installations using Mattermost Private Cloud.",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "min_server_version": "5.12.0",
     "server": {
         "executables": {
@@ -23,6 +23,12 @@
                 "display_name": "Provisioning Server URL",
                 "type": "text",
                 "help_text": "The URL of the Mattermost Private Cloud provisioning server."
+            },
+            {
+                "key": "ProvisioningServerAuthToken",
+                "display_name": "Provisioning Server Auth Token",
+                "type": "text",
+                "help_text": "The token required for authenticating with the AWS API Gateway."
             },
             {
                 "key": "InstallationDNS",
@@ -53,102 +59,6 @@
                 "display_name": "Email Settings",
                 "type": "longtext",
                 "help_text": "The JSON EmailSettings section for Mattermost."
-            },
-            {
-                "key": "IDPCertADFS",
-                "display_name": "IDP Certificate for ADFS",
-                "type": "longtext",
-                "help_text": "The contents of the SAML IDP Certificate for ADFS."
-            },
-            {
-                "key": "PrivateKeyADFS",
-                "display_name": "Private Key for ADFS",
-                "type": "longtext",
-                "help_text": "The contents of the SAML Private Key for ADFS."
-            },
-            {
-                "key": "PublicCertADFS",
-                "display_name": "Public Certificate for ADFS",
-                "type": "longtext",
-                "help_text": "The contents of the SAML Public Certificate for ADFS."
-            },
-            {
-                "key": "SAMLSettingsADFS",
-                "display_name": "SAML Settings for ADFS",
-                "type": "longtext",
-                "help_text": "The JSON SamlSettings section of the Mattermost config for ADFS."
-            },
-            {
-                "key": "IDPCertOneLogin",
-                "display_name": "IDP Certificate for OneLogin",
-                "type": "longtext",
-                "help_text": "The contents of the SAML IDP Certificate for OneLogin."
-            },
-            {
-                "key": "PrivateKeyOneLogin",
-                "display_name": "Private Key for OneLogin",
-                "type": "longtext",
-                "help_text": "The contents of the SAML Private Key for OneLogin."
-            },
-            {
-                "key": "PublicCertOneLogin",
-                "display_name": "Public Certificate for OneLogin",
-                "type": "longtext",
-                "help_text": "The contents of the SAML Public Certificate for OneLogin."
-            },
-            {
-                "key": "SAMLSettingsOneLogin",
-                "display_name": "SAML Settings for OneLogin",
-                "type": "longtext",
-                "help_text": "The JSON SamlSettings section of the Mattermost config for OneLogin."
-            },
-            {
-                "key": "IDPCertOkta",
-                "display_name": "IDP Certificate for Okta",
-                "type": "longtext",
-                "help_text": "The contents of the SAML IDP Certificate for Okta."
-            },
-            {
-                "key": "PrivateKeyOkta",
-                "display_name": "Private Key for Okta",
-                "type": "longtext",
-                "help_text": "The contents of the SAML Private Key for Okta."
-            },
-            {
-                "key": "PublicCertOkta",
-                "display_name": "Public Certificate for Okta",
-                "type": "longtext",
-                "help_text": "The contents of the SAML Public Certificate for Okta."
-            },
-            {
-                "key": "SAMLSettingsOkta",
-                "display_name": "SAML Settings for Okta",
-                "type": "longtext",
-                "help_text": "The JSON SamlSettings section of the Mattermost config for Okta."
-            },
-            {
-                "key": "LDAPSettings",
-                "display_name": "LDAP Settings",
-                "type": "longtext",
-                "help_text": "The JSON LdapSettings section of the Mattermost config."
-            },
-            {
-                "key": "OAuthGitLabSettings",
-                "display_name": "OAuth GitLab Settings",
-                "type": "longtext",
-                "help_text": "The JSON GitLab section of the Mattermost config."
-            },
-            {
-                "key": "OAuthGoogleSettings",
-                "display_name": "OAuth Google Settings",
-                "type": "longtext",
-                "help_text": "The JSON Google section of the Mattermost config."
-            },
-            {
-                "key": "OAuthOffice365Settings",
-                "display_name": "OAuth Office365 Settings",
-                "type": "longtext",
-                "help_text": "The JSON Office365 section of the Mattermost config."
             }
         ]
     }

@@ -26,9 +26,10 @@ const (
 // If you add non-reference types to your configuration struct, be sure to rewrite Clone as a deep
 // copy appropriate for your types.
 type configuration struct {
-	ProvisioningServerURL string
-	InstallationDNS       string
-	AllowedEmailDomain    string
+	ProvisioningServerURL       string
+	ProvisioningServerAuthToken string
+	InstallationDNS             string
+	AllowedEmailDomain          string
 
 	// License
 	E10License string
@@ -112,12 +113,22 @@ func (p *Plugin) OnConfigurationChange() error {
 	}
 
 	if p.configuration != nil {
-		if configuration.ProvisioningServerURL != p.configuration.ProvisioningServerURL {
-			p.cloudClient = cloud.NewClient(configuration.ProvisioningServerURL)
-		}
+		p.setCloudClient()
 	}
 
 	p.setConfiguration(configuration)
 
 	return nil
+}
+
+func (p *Plugin) setCloudClient() {
+	configuration := p.getConfiguration()
+
+	if configuration.ProvisioningServerAuthToken == "" {
+		p.cloudClient = cloud.NewClient(configuration.ProvisioningServerURL)
+		return
+	}
+
+	authHeaders := map[string]string{"x-api-key": configuration.ProvisioningServerAuthToken}
+	p.cloudClient = cloud.NewClientWithHeaders(configuration.ProvisioningServerURL, authHeaders)
 }

@@ -44,7 +44,7 @@ func (p *Plugin) runMattermostCLICommand(args []string, extra *model.CommandArgs
 	p.API.SendEphemeralPost(extra.UserId, &model.Post{
 		UserId:    p.BotUserID,
 		ChannelId: extra.ChannelId,
-		Message:   fmt.Sprintf("Running the command `mattermost %s` now. Please wait as this may take a while.", strings.Join(subcommand, " ")),
+		Message:   fmt.Sprintf("Running the command `mattermost %s` on `%s` now. Please wait as this may take a while.", strings.Join(subcommand, " "), installToExec.Name),
 	})
 
 	output, err := p.execMattermostCLI(installToExec.ID, subcommand)
@@ -77,7 +77,13 @@ func (p *Plugin) execMattermostCLI(installationID string, subcommand []string) (
 	}
 
 	output, err := p.cloudClient.RunMattermostCLICommandOnClusterInstallation(clusterInstallations[0].ID, subcommand)
-	if err != nil {
+	if err != nil && err.Error() == "failed with status code 504" {
+		// TODO: make this not gross.
+		// Return an error type that can be checked or allow us to pass in
+		// something with a timeout that we can control.
+		p.API.LogWarn(errors.Wrapf(err, "Command %s didn't complete before the connection was closed", strings.Join(subcommand, " ")).Error())
+		return []byte(fmt.Sprintf("Command %s didn't complete before the connection was closed. It will continue running until it is completed.", strings.Join(subcommand, " "))), nil
+	} else if err != nil {
 		return nil, err
 	}
 

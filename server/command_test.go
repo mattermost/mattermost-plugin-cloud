@@ -38,7 +38,7 @@ func (mc *MockClient) GetInstallations(request *cloud.GetInstallationsRequest) (
 	return mc.mockedCloudInstallations, mc.err
 }
 
-func (mc *MockClient) UpgradeInstallation(installataionID, version, license string) error {
+func (mc *MockClient) UpgradeInstallation(installationID string, request *cloud.UpgradeInstallationRequest) error {
 	return nil
 }
 
