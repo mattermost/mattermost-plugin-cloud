@@ -38,7 +38,7 @@ func (p *Plugin) setupInstallation(install *Installation) error {
 }
 
 func (p *Plugin) waitForDNS(client *model.Client4) error {
-	for i := 0; i < 20; i++ {
+	for i := 0; i < 60; i++ {
 		_, resp := client.GetPing()
 		if resp.StatusCode == http.StatusOK {
 			return nil
