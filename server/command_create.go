@@ -115,6 +115,8 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, false, err
 	}
 
+	cloudInstallation.License = "hidden"
+
 	data, err := json.Marshal(cloudInstallation)
 	if err != nil {
 		return nil, false, err

@@ -85,7 +85,7 @@ func (p *Plugin) setupInstallationConfiguration(client *model.Client4, install *
 		return errors.Wrap(resp.Error, "unable to update installation config")
 	}
 
-	err := p.createTestData(install)
+	err := p.createTestData(client, install)
 	if err != nil {
 		return errors.Wrap(err, "unable to generate installation sample data")
 	}
@@ -105,7 +105,7 @@ func (p *Plugin) configureEmail(config *model.Config, pluginConfig *configuratio
 	}
 }
 
-func (p *Plugin) createTestData(install *Installation) error {
+func (p *Plugin) createTestData(client *model.Client4, install *Installation) error {
 	if !install.TestData {
 		return nil
 	}
@@ -115,6 +115,12 @@ func (p *Plugin) createTestData(install *Installation) error {
 		// This probably won't complete before the AWS API Gateway timeout so
 		// log and move on.
 		p.API.LogWarn(errors.Wrapf(err, "Unable to finish generating test data for cloud installation %s", install.Name).Error())
+	}
+
+	// Test data generation overrides the sysadmin password, so need to reset
+	_, err = p.execMattermostCLI(install.ID, []string{"user", "password", defaultAdminUsername, defaultAdminPassword})
+	if err != nil {
+		return err
 	}
 
 	return nil

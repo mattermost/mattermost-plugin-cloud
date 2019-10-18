@@ -78,6 +78,8 @@ Installation details:
 			return
 		}
 
+		install.License = "hidden"
+
 		message := fmt.Sprintf(`
 Installation %s is ready!
 

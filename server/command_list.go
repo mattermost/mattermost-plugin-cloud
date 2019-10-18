@@ -43,6 +43,7 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, erro
 			return nil, fmt.Errorf("could not find installation %s", install.ID)
 		}
 		install.Installation = *updatedInstall
+		install.License = "hidden"
 	}
 
 	return installsForUser, nil
