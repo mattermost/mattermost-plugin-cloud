@@ -32,5 +32,5 @@ This plugin allows for the creation and management of Mattermost kubernetes inst
   | Installation DNS | dev.cloud.mattermost.com |
   | Mattermost E10 License | `E10 license file contents` |
   | Mattermost E20 License | `E20 license file contents` |
-
+8. Enable the plugin
 The plugin is now usable. Make changes to your plugin and run `make deploy` again to run those changes on your local Mattermost server.
