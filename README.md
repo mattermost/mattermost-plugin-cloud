@@ -28,7 +28,7 @@ This plugin allows for the creation and management of Mattermost kubernetes inst
 
   | Setting | Value |
   | - | - |
-  | Provisioning Server URL | http:/localhost:8075 |
+  | Provisioning Server URL | http://localhost:8075 |
   | Installation DNS | dev.cloud.mattermost.com |
   | Mattermost E10 License | `E10 license file contents` |
   | Mattermost E20 License | `E20 license file contents` |
