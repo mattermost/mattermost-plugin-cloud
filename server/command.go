@@ -34,6 +34,9 @@ mmcli [name] [mattermost-subcommand]
 
 delete [name]
 	Deletes a Mattermost installation.
+
+info
+	Shows basic cloud plugin information.
 `
 	return codeBlock(fmt.Sprintf(
 		help,
@@ -100,6 +103,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		handler = p.runDeleteCommand
 	case "status":
 		handler = p.runStatusCommand
+	case "info":
+		handler = p.runInfoCommand
 	}
 
 	if handler == nil {
@@ -117,4 +122,12 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	}
 
 	return resp, nil
+}
+
+func (p *Plugin) runInfoCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
+	resp := fmt.Sprintf("Mattermost Cloud plugin version: %s, "+
+		"[%s](https://github.com/mattermost/mattermost-plugin-cloud/commit/%s), built %s\n",
+		manifest.Version, BuildHashShort, BuildHash, BuildDate)
+
+	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, resp), false, nil
 }
