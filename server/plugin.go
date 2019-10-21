@@ -48,6 +48,15 @@ type DockerClientInterface interface {
 	ValidTag(desiredTag, repository string) (bool, error)
 }
 
+// BuildHash is the full git hash of the build.
+var BuildHash string
+
+// BuildHashShort is the short git hash of the build.
+var BuildHashShort string
+
+// BuildDate is the build date of the build.
+var BuildDate string
+
 // OnActivate runs when the plugin activates and ensures the plugin is properly
 // configured.
 func (p *Plugin) OnActivate() error {

@@ -416,3 +416,15 @@ func TestStatusCommand(t *testing.T) {
 		assert.Nil(t, resp)
 	})
 }
+
+func TestInfoCommand(t *testing.T) {
+	mockedCloudClient := &MockClient{}
+	plugin := Plugin{cloudClient: mockedCloudClient}
+
+	t.Run("success", func(t *testing.T) {
+		resp, isUserError, err := plugin.runInfoCommand([]string{""}, &model.CommandArgs{UserId: "gabeid"})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, manifest.Version)
+	})
+}
