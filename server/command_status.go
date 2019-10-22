@@ -56,7 +56,7 @@ func (p *Plugin) runStatusCommand(args []string, extra *model.CommandArgs) (*mod
 
 	status := installationTableHeader
 	for _, installation := range installations {
-		status += fmt.Sprintf("| %s | %s | %s | %s | %s |\n", installation.ID, installation.DNS, installation.Size, installation.Version, installation.State)
+		status += fmt.Sprintf("| `%s` | [%s](https://%s) | %s | %s | %s |\n", installation.ID, installation.DNS, installation.DNS, installation.Size, installation.Version, installation.State)
 	}
 
 	if !includeClusters {
@@ -75,7 +75,7 @@ func (p *Plugin) runStatusCommand(args []string, extra *model.CommandArgs) (*mod
 	status += "\n"
 	status += clusterTableHeader
 	for _, cluster := range clusters {
-		status += fmt.Sprintf("| %s | %s | %s |\n", cluster.ID, cluster.Size, cluster.State)
+		status += fmt.Sprintf("| `%s` | %s | %s |\n", cluster.ID, cluster.Size, cluster.State)
 	}
 
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, status), false, nil
