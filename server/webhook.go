@@ -70,7 +70,10 @@ Installation details:
 
 		p.PostBotDM(install.OwnerID, message)
 	case cloud.InstallationStateCreationRequested,
+		cloud.InstallationStateCreationPreProvisioning,
+		cloud.InstallationStateCreationInProgress,
 		cloud.InstallationStateCreationDNS,
+		cloud.InstallationStateCreationNoCompatibleClusters,
 		cloud.InstallationStateCreationFailed:
 		err = p.setupInstallation(install)
 		if err != nil {

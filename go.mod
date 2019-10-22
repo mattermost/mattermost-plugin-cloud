@@ -10,8 +10,8 @@ require (
 	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/heroku/docker-registry-client v0.0.0-20190909225348-afc9e1acc3d5
 	github.com/mailru/easyjson v0.7.0 // indirect
-	github.com/mattermost/mattermost-cloud v0.6.2-0.20190925185911-5d1ba14091a6
-	github.com/mattermost/mattermost-operator v0.6.1 // indirect
+	github.com/mattermost/mattermost-cloud v0.6.2-0.20191018130017-04565f8ae5b1
+	github.com/mattermost/mattermost-operator v0.7.0 // indirect
 	github.com/mattermost/mattermost-server v1.4.1-0.20190926112648-af3ffeed1a4a
 	github.com/pkg/errors v0.8.1
 	github.com/spf13/pflag v1.0.3
