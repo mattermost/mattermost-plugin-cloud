@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/model"
@@ -10,13 +11,13 @@ import (
 
 const (
 	clusterTableHeader = `
-| Cluster | Size | State |
-| -- | -- | -- |
+| Cluster | Size | State | Created |
+| -- | -- | -- | -- |
 `
 
 	installationTableHeader = `
-| Installation | DNS | Size | Version | State |
-| -- | -- | -- | -- | -- |
+| Installation | DNS | Size | Version | State | Created |
+| -- | -- | -- | -- | -- | -- |
 `
 )
 
@@ -56,7 +57,14 @@ func (p *Plugin) runStatusCommand(args []string, extra *model.CommandArgs) (*mod
 
 	status := installationTableHeader
 	for _, installation := range installations {
-		status += fmt.Sprintf("| `%s` | [%s](https://%s) | %s | %s | %s |\n", installation.ID, installation.DNS, installation.DNS, installation.Size, installation.Version, installation.State)
+		status += fmt.Sprintf("| `%s` | [%s](https://%s) | %s | %s | %s | %s |\n",
+			installation.ID,
+			installation.DNS, installation.DNS,
+			installation.Size,
+			installation.Version,
+			installation.State,
+			getTimeFromMillis(installation.CreateAt).Format("Jan-02-2006"),
+		)
 	}
 
 	if !includeClusters {
@@ -75,8 +83,17 @@ func (p *Plugin) runStatusCommand(args []string, extra *model.CommandArgs) (*mod
 	status += "\n"
 	status += clusterTableHeader
 	for _, cluster := range clusters {
-		status += fmt.Sprintf("| `%s` | %s | %s |\n", cluster.ID, cluster.Size, cluster.State)
+		status += fmt.Sprintf("| `%s` | %s | %s | %s |\n",
+			cluster.ID,
+			cluster.Size,
+			cluster.State,
+			getTimeFromMillis(cluster.CreateAt).Format("Jan-02-2006"),
+		)
 	}
 
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, status), false, nil
+}
+
+func getTimeFromMillis(millis int64) time.Time {
+	return time.Unix(millis/1000, 0)
 }
