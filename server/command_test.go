@@ -456,3 +456,34 @@ func TestInfoCommand(t *testing.T) {
 		assert.Contains(t, resp.Text, manifest.Version)
 	})
 }
+
+func TestValidInstallationName(t *testing.T) {
+	tests := []struct {
+		name  string
+		valid bool
+	}{
+		{"abc", true},
+		{"abc123", true},
+		{"abcABC123", true},
+		{"123", true},
+		{"A1", true},
+		{"A1-", true},
+		{"A1-abc", true},
+		{"realllllllllllllllllylongname123123123123123", true},
+		{"bad.", false},
+		{"bad\\", false},
+		{"bad/", false},
+		{"bad,", false},
+		{"bad:", false},
+		{"bad;", false},
+		{"bad_", false},
+		{"123.,", false},
+		{".", false},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			assert.Equal(t, test.valid, validInstallationName(test.name))
+		})
+	}
+}
