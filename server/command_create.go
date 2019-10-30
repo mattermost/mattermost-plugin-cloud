@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"regexp"
 	"strings"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
@@ -11,6 +12,8 @@ import (
 
 	flag "github.com/spf13/pflag"
 )
+
+var installationNameMatcher = regexp.MustCompile(`^[a-zA-Z0-9-]*$`)
 
 func getCreateFlagSet() *flag.FlagSet {
 	createFlagSet := flag.NewFlagSet("create", flag.ContinueOnError)
@@ -69,6 +72,9 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 	if install.Name == "" || strings.HasPrefix(install.Name, "--") {
 		return nil, true, fmt.Errorf("must provide an installation name")
 	}
+	if !validInstallationName(install.Name) {
+		return nil, true, fmt.Errorf("installation name %s is invalid: only letters, numbers, and hyphens are permitted", install.Name)
+	}
 
 	err := parseCreateArgs(args, install)
 	if err != nil {
@@ -123,4 +129,8 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 	}
 
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Installation being created. You will receive a notification when it is ready. Use `/cloud list` to check on the status of your installations.\n\n"+jsonCodeBlock(prettyPrintJSON(string(data)))), false, nil
+}
+
+func validInstallationName(name string) bool {
+	return installationNameMatcher.MatchString(name)
 }
