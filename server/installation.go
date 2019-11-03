@@ -2,6 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
+	"time"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/pkg/errors"
@@ -32,21 +34,28 @@ func (i *Installation) ToPrettyJSON() string {
 
 func (p *Plugin) storeInstallation(install *Installation) error {
 	for i := 0; i < StoreInstallRetries; i++ {
+		// Use the retry count value to build an increasing backoff that has no
+		// delay on the first attempt.
+		time.Sleep(time.Duration(i) * time.Second)
+
 		installs, originalJSONInstalls, err := p.getInstallations()
 		if err != nil {
-			return err
+			p.API.LogWarn(errors.Wrap(err, "unable to get installations").Error())
+			continue
 		}
 
 		installs = append(installs, install)
 
-		newJSONInstalls, jsonErr := json.Marshal(installs)
-		if jsonErr != nil {
-			return jsonErr
+		newJSONInstalls, err := json.Marshal(installs)
+		if err != nil {
+			p.API.LogWarn(errors.Wrap(err, "unable to marshal installations").Error())
+			continue
 		}
 
 		ok, appErr := p.API.KVCompareAndSet(StoreInstallsKey, originalJSONInstalls, newJSONInstalls)
 		if appErr != nil {
-			return err
+			p.API.LogWarn(errors.Wrap(appErr, "unable to store install").Error())
+			continue
 		}
 
 		// If err is nil but ok is false, then something else updated the installs between the get and set above
@@ -54,16 +63,22 @@ func (p *Plugin) storeInstallation(install *Installation) error {
 		if ok {
 			return nil
 		}
+		p.API.LogWarn("unable to store installs due to another process making an update first")
 	}
 
-	return errors.New("unable to store installation")
+	return fmt.Errorf("failed %d times to store installation %s", StoreInstallRetries, install.ID)
 }
 
 func (p *Plugin) updateInstallation(install *Installation) error {
 	for i := 0; i < StoreInstallRetries; i++ {
+		// Use the retry count value to build an increasing backoff that has no
+		// delay on the first attempt.
+		time.Sleep(time.Duration(i) * time.Second)
+
 		installs, originalJSONInstalls, err := p.getInstallations()
 		if err != nil {
-			return err
+			p.API.LogWarn(errors.Wrap(err, "unable to get installations").Error())
+			continue
 		}
 
 		found := false
@@ -79,14 +94,16 @@ func (p *Plugin) updateInstallation(install *Installation) error {
 			return errors.New("installation does not exist")
 		}
 
-		newJSONInstalls, jsonErr := json.Marshal(installs)
-		if jsonErr != nil {
-			return jsonErr
+		newJSONInstalls, err := json.Marshal(installs)
+		if err != nil {
+			p.API.LogWarn(errors.Wrap(err, "unable to marshal installations").Error())
+			continue
 		}
 
 		ok, appErr := p.API.KVCompareAndSet(StoreInstallsKey, originalJSONInstalls, newJSONInstalls)
 		if appErr != nil {
-			return err
+			p.API.LogWarn(errors.Wrap(appErr, "unable to store install").Error())
+			continue
 		}
 
 		// If err is nil but ok is false, then something else updated the installs between the get and set above
@@ -94,16 +111,22 @@ func (p *Plugin) updateInstallation(install *Installation) error {
 		if ok {
 			return nil
 		}
+		p.API.LogWarn("unable to store installs due to another process making an update first")
 	}
 
-	return errors.New("unable to update installation")
+	return fmt.Errorf("failed %d times to store updated installation %s", StoreInstallRetries, install.ID)
 }
 
 func (p *Plugin) deleteInstallation(installationID string) error {
 	for i := 0; i < StoreInstallRetries; i++ {
+		// Use the retry count value to build an increasing backoff that has no
+		// delay on the first attempt.
+		time.Sleep(time.Duration(i) * time.Second)
+
 		installs, originalJSONInstalls, err := p.getInstallations()
 		if err != nil {
-			return err
+			p.API.LogWarn(errors.Wrap(err, "unable to get installations").Error())
+			continue
 		}
 
 		indexToDelete := -1
@@ -115,24 +138,27 @@ func (p *Plugin) deleteInstallation(installationID string) error {
 
 		installs = append(installs[:indexToDelete], installs[indexToDelete+1:]...)
 
-		newJSONInstalls, jsonErr := json.Marshal(installs)
-		if jsonErr != nil {
-			return jsonErr
+		newJSONInstalls, err := json.Marshal(installs)
+		if err != nil {
+			p.API.LogWarn(errors.Wrap(err, "unable to marshal installations").Error())
+			continue
 		}
 
 		ok, appErr := p.API.KVCompareAndSet(StoreInstallsKey, originalJSONInstalls, newJSONInstalls)
 		if appErr != nil {
-			return err
+			p.API.LogWarn(errors.Wrap(appErr, "unable to store install").Error())
+			continue
 		}
 
 		// If err is nil but ok is false, then something else updated the installs between the get and set above
 		// so we need to try again, otherwise we can break
 		if ok {
-			break
+			return nil
 		}
+		p.API.LogWarn("unable to store installs due to another process making an update first")
 	}
 
-	return nil
+	return fmt.Errorf("failed %d times to delete installation %s", StoreInstallRetries, installationID)
 }
 
 func (p *Plugin) getInstallations() ([]*Installation, []byte, error) {
