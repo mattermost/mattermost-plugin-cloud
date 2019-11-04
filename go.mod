@@ -21,8 +21,3 @@ require (
 	k8s.io/api v0.0.0-20190923155552-eac758366a00 // indirect
 	k8s.io/kube-openapi v0.0.0-20190918143330-0270cf2f1c1d // indirect
 )
-
-// Workaround for https://github.com/golang/go/issues/30831 and fallout.
-replace github.com/golang/lint => github.com/golang/lint v0.0.0-20190227174305-8f45f776aaf1
-
-replace git.apache.org/thrift.git => github.com/apache/thrift v0.0.0-20180902110319-2566ecd5d999
