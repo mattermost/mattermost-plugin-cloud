@@ -24,7 +24,7 @@ func codeBlock(in string) string {
 }
 
 func validLicenseOption(license string) bool {
-	return license == licenseOptionE10 || license == licenseOptionE20
+	return license == licenseOptionE10 || license == licenseOptionE20 || license == licenseOptionTE
 }
 
 // NewBool returns a pointer to a given bool.
