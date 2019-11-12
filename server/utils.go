@@ -23,6 +23,10 @@ func codeBlock(in string) string {
 	return fmt.Sprintf("```\n%s\n```", in)
 }
 
+func inlineCode(in string) string {
+	return fmt.Sprintf("`%s`", in)
+}
+
 func validLicenseOption(license string) bool {
 	return license == licenseOptionE10 || license == licenseOptionE20
 }

@@ -59,6 +59,44 @@
                 "display_name": "Email Settings",
                 "type": "longtext",
                 "help_text": "The JSON EmailSettings section for Mattermost."
+            },
+            {
+                "key": "ClusterWebhookAlertsEnable",
+                "display_name": "Enable Cluster Webhook Alerts",
+                "type": "bool",
+                "help_text": "Enable or disable the plugin from sending alerts to the channel defined below when cluster webhooks are received from the provisioner.",
+                "default": false
+            },
+            {
+                "key": "ClusterWebhookAlertsTeam",
+                "display_name": "Cluster Webhook Alerts Team",
+                "type": "text",
+                "help_text": "The team to send cluster webhook alerts to when enabled. This team must exist for alerts to be sent."
+            },
+            {
+                "key": "ClusterWebhookAlertsChannel",
+                "display_name": "Cluster Webhook Alerts Channel",
+                "type": "text",
+                "help_text": "The channel to send cluster webhook alerts to when enabled. This channel must exist for alerts to be sent."
+            },
+            {
+                "key": "InstallationWebhookAlertsEnable",
+                "display_name": "Enable Installation Webhook Alerts",
+                "type": "bool",
+                "help_text": "Enable or disable the plugin from sending alerts to the channel defined below when installation webhooks are received from the provisioner.",
+                "default": false
+            },
+            {
+                "key": "InstallationWebhookAlertsTeam",
+                "display_name": "Installation Webhook Alerts Team",
+                "type": "text",
+                "help_text": "The team to send installation webhook alerts to when enabled. This team must exist for alerts to be sent."
+            },
+            {
+                "key": "InstallationWebhookAlertsChannel",
+                "display_name": "Installation Webhook Alerts Channel",
+                "type": "text",
+                "help_text": "The channel to send installation webhook alerts to when enabled. This channel must exist for alerts to be sent."
             }
         ]
     }

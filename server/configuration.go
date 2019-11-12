@@ -37,6 +37,15 @@ type configuration struct {
 
 	// Email
 	EmailSettings string
+
+	// Webhook Alerts
+	ClusterWebhookAlertsEnable  bool
+	ClusterWebhookAlertsTeam    string
+	ClusterWebhookAlertsChannel string
+
+	InstallationWebhookAlertsEnable  bool
+	InstallationWebhookAlertsTeam    string
+	InstallationWebhookAlertsChannel string
 }
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if
@@ -59,7 +68,25 @@ func (c *configuration) IsValid() error {
 		return fmt.Errorf("must specify InstallationDNS")
 	}
 
-	return err
+	if c.ClusterWebhookAlertsEnable {
+		if len(c.ClusterWebhookAlertsTeam) == 0 {
+			return fmt.Errorf("must specify a cluster alerts team when cluster alerts are enabled")
+		}
+		if len(c.ClusterWebhookAlertsChannel) == 0 {
+			return fmt.Errorf("must specify a cluster alerts channel when cluster alerts are enabled")
+		}
+	}
+
+	if c.InstallationWebhookAlertsEnable {
+		if len(c.InstallationWebhookAlertsTeam) == 0 {
+			return fmt.Errorf("must specify an installation alerts team when installation alerts are enabled")
+		}
+		if len(c.InstallationWebhookAlertsChannel) == 0 {
+			return fmt.Errorf("must specify an installation alerts channel when installation alerts are enabled")
+		}
+	}
+
+	return nil
 }
 
 // getConfiguration retrieves the active configuration under lock, making it safe to use

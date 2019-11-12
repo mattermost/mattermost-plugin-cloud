@@ -24,10 +24,29 @@ func (p *Plugin) handleWebhook(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Plugin) processWebhookEvent(payload *cloud.WebhookPayload) {
-	str, _ := payload.ToJSON()
+	str, err := payload.ToJSON()
+	if err != nil {
+		p.API.LogError(err.Error())
+		return
+	}
 	p.API.LogDebug(str)
 
-	if payload.Type != "installation" {
+	switch payload.Type {
+	case cloud.TypeCluster:
+		err = p.handleClusterWebhook(payload)
+		if err != nil {
+			p.API.LogError(err.Error())
+		}
+
+		return
+	case cloud.TypeInstallation:
+		err = p.handleInstallationWebhook(payload)
+		if err != nil {
+			p.API.LogError(err.Error())
+		}
+
+		// Don't return so that any installation finalization can be processed.
+	default:
 		return
 	}
 
@@ -100,6 +119,44 @@ Installation details:
 
 		p.PostBotDM(install.OwnerID, message)
 	}
+}
+
+func (p *Plugin) handleClusterWebhook(payload *cloud.WebhookPayload) error {
+	if !p.configuration.ClusterWebhookAlertsEnable {
+		return nil
+	}
+
+	if payload.Type != cloud.TypeCluster {
+		return fmt.Errorf("Unable to process payload type %s in 'handleClusterWebhook'", payload.Type)
+	}
+
+	message := fmt.Sprintf(`
+[ Cloud Webhook ] Cluster
+---
+ID: %s
+State: from %s to %s
+`, inlineCode(payload.ID), inlineCode(payload.OldState), inlineCode(payload.NewState))
+
+	return p.PostToChannelByNameForTeamNameAsBot(p.configuration.ClusterWebhookAlertsTeam, p.configuration.ClusterWebhookAlertsChannel, message)
+}
+
+func (p *Plugin) handleInstallationWebhook(payload *cloud.WebhookPayload) error {
+	if !p.configuration.InstallationWebhookAlertsEnable {
+		return nil
+	}
+
+	if payload.Type != cloud.TypeInstallation {
+		return fmt.Errorf("Unable to process payload type %s in 'handleInstallationWebhook'", payload.Type)
+	}
+
+	message := fmt.Sprintf(`
+[ Cloud Webhook ] Installation
+---
+ID: %s
+State: from %s to %s
+`, inlineCode(payload.ID), inlineCode(payload.OldState), inlineCode(payload.NewState))
+
+	return p.PostToChannelByNameForTeamNameAsBot(p.configuration.InstallationWebhookAlertsTeam, p.configuration.InstallationWebhookAlertsChannel, message)
 }
 
 func (p *Plugin) handleProfileImage(w http.ResponseWriter, r *http.Request) {
