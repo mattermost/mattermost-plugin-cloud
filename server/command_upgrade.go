@@ -42,7 +42,7 @@ func parseUpgradeArgs(args []string) (string, string, error) {
 	return version, license, nil
 }
 
-// runUpdagradeCommand requests an upgrade and returns the response, an error, and a boolean set to true if a non-nil error is returned due to user error, and false if the error was caused by something else.
+// runUpgradeCommand requests an upgrade and returns the response, an error, and a boolean set to true if a non-nil error is returned due to user error, and false if the error was caused by something else.
 func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
 	if len(args) == 0 || len(args[0]) == 0 {
 		return nil, true, fmt.Errorf("must provide an installation name")
