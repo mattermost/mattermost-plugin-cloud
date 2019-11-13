@@ -86,8 +86,16 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 	license := ""
 	if install.License == licenseOptionE10 {
 		license = config.E10License
+		if license == "" {
+			p.API.LogWarn("E10License was empty; applying placeholder.")
+			license = "E10 license placeholder"
+		}
 	} else if install.License == licenseOptionE20 {
 		license = config.E20License
+		if license == "" {
+			p.API.LogWarn("E20License was empty; applying placeholder.")
+			license = "E20 license placeholder"
+		}
 	}
 
 	if install.Version != "" {
