@@ -68,16 +68,10 @@
                 "default": false
             },
             {
-                "key": "ClusterWebhookAlertsTeam",
-                "display_name": "Cluster Webhook Alerts Team",
+                "key": "ClusterWebhookAlertsChannelID",
+                "display_name": "Cluster Webhook Alerts Channel ID",
                 "type": "text",
-                "help_text": "The team to send cluster webhook alerts to when enabled. This team must exist for alerts to be sent."
-            },
-            {
-                "key": "ClusterWebhookAlertsChannel",
-                "display_name": "Cluster Webhook Alerts Channel",
-                "type": "text",
-                "help_text": "The channel to send cluster webhook alerts to when enabled. This channel must exist for alerts to be sent."
+                "help_text": "The channel ID to send cluster webhook alerts to when enabled. This channel must exist for alerts to be sent."
             },
             {
                 "key": "InstallationWebhookAlertsEnable",
@@ -87,16 +81,10 @@
                 "default": false
             },
             {
-                "key": "InstallationWebhookAlertsTeam",
-                "display_name": "Installation Webhook Alerts Team",
+                "key": "InstallationWebhookAlertsChannelID",
+                "display_name": "Installation Webhook Alerts Channel ID",
                 "type": "text",
-                "help_text": "The team to send installation webhook alerts to when enabled. This team must exist for alerts to be sent."
-            },
-            {
-                "key": "InstallationWebhookAlertsChannel",
-                "display_name": "Installation Webhook Alerts Channel",
-                "type": "text",
-                "help_text": "The channel to send installation webhook alerts to when enabled. This channel must exist for alerts to be sent."
+                "help_text": "The channel ID to send installation webhook alerts to when enabled. This channel must exist for alerts to be sent."
             }
         ]
     }

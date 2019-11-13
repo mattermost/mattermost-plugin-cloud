@@ -33,15 +33,11 @@ func TestConfigurationIsValid(t *testing.T) {
 	t.Run("cluster alerts", func(t *testing.T) {
 		config := baseConfiguration
 		config.ClusterWebhookAlertsEnable = true
-		t.Run("no team or channel", func(t *testing.T) {
-			require.Error(t, config.IsValid())
-		})
-		t.Run("no channel", func(t *testing.T) {
-			config.ClusterWebhookAlertsTeam = "team1"
+		t.Run("no channel ID", func(t *testing.T) {
 			require.Error(t, config.IsValid())
 		})
 		t.Run("valid", func(t *testing.T) {
-			config.ClusterWebhookAlertsChannel = "channel1"
+			config.ClusterWebhookAlertsChannelID = "channel1"
 			require.NoError(t, config.IsValid())
 		})
 	})
@@ -49,15 +45,11 @@ func TestConfigurationIsValid(t *testing.T) {
 	t.Run("installation alerts", func(t *testing.T) {
 		config := baseConfiguration
 		config.InstallationWebhookAlertsEnable = true
-		t.Run("no team or channel", func(t *testing.T) {
-			require.Error(t, config.IsValid())
-		})
-		t.Run("no channel", func(t *testing.T) {
-			config.InstallationWebhookAlertsTeam = "team1"
+		t.Run("no channel ID", func(t *testing.T) {
 			require.Error(t, config.IsValid())
 		})
 		t.Run("valid", func(t *testing.T) {
-			config.InstallationWebhookAlertsChannel = "channel1"
+			config.InstallationWebhookAlertsChannelID = "channel1"
 			require.NoError(t, config.IsValid())
 		})
 	})

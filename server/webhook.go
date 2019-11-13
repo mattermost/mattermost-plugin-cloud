@@ -137,7 +137,7 @@ ID: %s
 State: from %s to %s
 `, inlineCode(payload.ID), inlineCode(payload.OldState), inlineCode(payload.NewState))
 
-	return p.PostToChannelByNameForTeamNameAsBot(p.configuration.ClusterWebhookAlertsTeam, p.configuration.ClusterWebhookAlertsChannel, message)
+	return p.PostToChannelByIDAsBot(p.configuration.ClusterWebhookAlertsChannelID, message)
 }
 
 func (p *Plugin) handleInstallationWebhook(payload *cloud.WebhookPayload) error {
@@ -156,7 +156,7 @@ ID: %s
 State: from %s to %s
 `, inlineCode(payload.ID), inlineCode(payload.OldState), inlineCode(payload.NewState))
 
-	return p.PostToChannelByNameForTeamNameAsBot(p.configuration.InstallationWebhookAlertsTeam, p.configuration.InstallationWebhookAlertsChannel, message)
+	return p.PostToChannelByIDAsBot(p.configuration.InstallationWebhookAlertsChannelID, message)
 }
 
 func (p *Plugin) handleProfileImage(w http.ResponseWriter, r *http.Request) {

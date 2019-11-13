@@ -25,19 +25,11 @@ func (p *Plugin) PostBotDM(userID, message string) error {
 	return appError
 }
 
-// PostToChannelByNameForTeamNameAsBot posts a message to the provided team + channel as the bot.
-func (p *Plugin) PostToChannelByNameForTeamNameAsBot(teamName, channelName, message string) error {
-	channel, appError := p.API.GetChannelByNameForTeamName(teamName, channelName, false)
-	if appError != nil {
-		return appError
-	}
-	if channel == nil {
-		return fmt.Errorf("channel %s for team %s is nil", channelName, teamName)
-	}
-
-	_, appError = p.API.CreatePost(&model.Post{
+// PostToChannelByIDAsBot posts a message to the provided channel.
+func (p *Plugin) PostToChannelByIDAsBot(channelID, message string) error {
+	_, appError := p.API.CreatePost(&model.Post{
 		UserId:    p.BotUserID,
-		ChannelId: channel.Id,
+		ChannelId: channelID,
 		Message:   message,
 	})
 	if appError != nil {
