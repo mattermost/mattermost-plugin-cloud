@@ -59,6 +59,32 @@
                 "display_name": "Email Settings",
                 "type": "longtext",
                 "help_text": "The JSON EmailSettings section for Mattermost."
+            },
+            {
+                "key": "ClusterWebhookAlertsEnable",
+                "display_name": "Enable Cluster Webhook Alerts",
+                "type": "bool",
+                "help_text": "Enable or disable the plugin from sending alerts to the channel defined below when cluster webhooks are received from the provisioner.",
+                "default": false
+            },
+            {
+                "key": "ClusterWebhookAlertsChannelID",
+                "display_name": "Cluster Webhook Alerts Channel ID",
+                "type": "text",
+                "help_text": "The channel ID to send cluster webhook alerts to when enabled. This channel must exist for alerts to be sent."
+            },
+            {
+                "key": "InstallationWebhookAlertsEnable",
+                "display_name": "Enable Installation Webhook Alerts",
+                "type": "bool",
+                "help_text": "Enable or disable the plugin from sending alerts to the channel defined below when installation webhooks are received from the provisioner.",
+                "default": false
+            },
+            {
+                "key": "InstallationWebhookAlertsChannelID",
+                "display_name": "Installation Webhook Alerts Channel ID",
+                "type": "text",
+                "help_text": "The channel ID to send installation webhook alerts to when enabled. This channel must exist for alerts to be sent."
             }
         ]
     }
