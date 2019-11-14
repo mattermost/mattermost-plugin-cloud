@@ -86,27 +86,13 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 	license := ""
 	if install.License == licenseOptionE10 {
 		license = config.E10License
-		if license == "" {
-			p.API.LogWarn("E10License was empty; applying placeholder.")
-			license = "E10 license placeholder"
-		}
 	} else if install.License == licenseOptionE20 {
 		license = config.E20License
-		if license == "" {
-			p.API.LogWarn("E20License was empty; applying placeholder.")
-			license = "E20 license placeholder"
-		}
 	}
 
 	if install.Version != "" {
 		var exists bool
-		var repository string
-		if install.License == licenseOptionTE {
-			repository = "mattermost/mattermost-team-edition"
-		} else {
-			repository = "mattermost/mattermost-enterprise-edition"
-		}
-
+		repository := "mattermost/mattermost-enterprise-edition"
 		exists, err = p.dockerClient.ValidTag(install.Version, repository)
 		if err != nil {
 			p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", repository, install.Version).Error())

@@ -12,7 +12,7 @@ import (
 func getUpgradeFlagSet() *flag.FlagSet {
 	upgradeFlagSet := flag.NewFlagSet("upgrade", flag.ContinueOnError)
 	upgradeFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
-	upgradeFlagSet.String("license", "", "The enterprise license to use. Can be 'e10' or 'e20' for Enterprise, or 'te' for Team Edition. Leave blank for no change.")
+	upgradeFlagSet.String("license", "", "The enterprise license to use. Can be 'e10' or 'e20'")
 
 	return upgradeFlagSet
 }
@@ -88,13 +88,6 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 	if newLicense != "" {
 		if newLicense == licenseOptionE10 {
 			license = config.E10License
-		} else if newLicense == licenseOptionE20 {
-			license = config.E20License
-		} else if newLicense == licenseOptionTE {
-			license = ""
-			repository = "mattermost/mattermost-team-edition"
-		} else {
-			return nil, true, fmt.Errorf("an invalid license option %s was requested", newLicense)
 		}
 	}
 
