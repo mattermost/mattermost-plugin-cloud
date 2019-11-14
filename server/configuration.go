@@ -12,6 +12,9 @@ import (
 const (
 	licenseOptionE10 = "e10"
 	licenseOptionE20 = "e20"
+
+	storageOptionAWS      = "cloud"
+	storageOptionOperator = "local"
 )
 
 // configuration captures the plugin's external configuration as exposed in the Mattermost server

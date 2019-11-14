@@ -21,11 +21,13 @@ func getCreateFlagSet() *flag.FlagSet {
 	createFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
 	createFlagSet.String("affinity", "multitenant", "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
 	createFlagSet.String("license", "e20", "The enterprise license to use. Can be 'e10' or 'e20'")
+	createFlagSet.String("storage", "cloud", "Specify the backing database stores. Can be 'cloud' to use Amazon RDS and S3 or 'local' to use the MySQL and Minio Operators inside the cluster")
 	createFlagSet.Bool("test-data", false, "Set to pre-load the server with test data")
 
 	return createFlagSet
 }
 
+// parseCreateArgs is responsible for reading in arguments and basic input validity checking
 func parseCreateArgs(args []string, install *Installation) error {
 	createFlagSet := getCreateFlagSet()
 	err := createFlagSet.Parse(args)
@@ -49,9 +51,20 @@ func parseCreateArgs(args []string, install *Installation) error {
 	if err != nil {
 		return err
 	}
+
 	if !validLicenseOption(install.License) {
 		return fmt.Errorf("invalid license option %s, must be %s or %s", install.License, licenseOptionE10, licenseOptionE20)
 	}
+
+	install.StorageType, err = createFlagSet.GetString("storage")
+	if err != nil {
+		return err
+	}
+
+	if !validStorageOption(install.StorageType) {
+		return fmt.Errorf("invalid storage option %s; must be %s or %s", install.StorageType, storageOptionAWS, storageOptionOperator)
+	}
+
 	install.TestData, err = createFlagSet.GetBool("test-data")
 	if err != nil {
 		return err
@@ -100,13 +113,31 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		}
 	}
 
+	// determine filestore and database type
+	// TODO break this into a helper func if it ever gets more complex
+	var filestore string
+	var database string
+	switch install.StorageType {
+	case storageOptionAWS:
+		filestore = cloud.InstallationFilestoreAwsS3
+		database = cloud.InstallationDatabaseAwsRDS
+	case storageOptionOperator:
+		filestore = cloud.InstallationFilestoreMinioOperator
+		database = cloud.InstallationDatabaseMysqlOperator
+	default:
+		// Nota bene: it shouldn't be possible to have an invalid storage type here, as long as validation on available types was properly performed in parseCreateArgs. Hitting this error probably means there was a regression!
+		return nil, false, fmt.Errorf("storage type %s is not valid", install.StorageType)
+	}
+
 	req := &cloud.CreateInstallationRequest{
-		OwnerID:  extra.UserId,
-		DNS:      fmt.Sprintf("%s.%s", install.Name, config.InstallationDNS),
-		Version:  install.Version,
-		Size:     install.Size,
-		Affinity: install.Affinity,
-		License:  license,
+		Affinity:  install.Affinity,
+		DNS:       fmt.Sprintf("%s.%s", install.Name, config.InstallationDNS),
+		Database:  database,
+		Filestore: filestore,
+		License:   license,
+		OwnerID:   extra.UserId,
+		Size:      install.Size,
+		Version:   install.Version,
 	}
 
 	cloudInstallation, err := p.cloudClient.CreateInstallation(req)

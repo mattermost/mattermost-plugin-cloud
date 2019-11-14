@@ -19,8 +19,9 @@ const (
 // Installation extends the cloud struct of the same name to add additional configuration options
 type Installation struct {
 	cloud.Installation
-	Name     string
-	TestData bool
+	Name        string
+	TestData    bool
+	StorageType string
 }
 
 // ToPrettyJSON will return a JSON string installation with indentation and new lines

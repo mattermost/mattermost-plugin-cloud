@@ -31,6 +31,10 @@ func validLicenseOption(license string) bool {
 	return license == licenseOptionE10 || license == licenseOptionE20
 }
 
+func validStorageOption(storageChoice string) bool {
+	return storageChoice == storageOptionAWS || storageChoice == storageOptionOperator
+}
+
 // NewBool returns a pointer to a given bool.
 func NewBool(b bool) *bool { return &b }
 
