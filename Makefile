@@ -70,7 +70,7 @@ endif
 govet:
 ifneq ($(HAS_SERVER),)
 	@echo Running govet
-	@# Workaround because you cant install binaries without adding them to go.mod
+	@# Workaround because you cannot install binaries without adding them to go.mod
 	env GO111MODULE=off $(GO) get golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow
 	$(GO) vet ./...
 	$(GO) vet -vettool=$(GOPATH)/bin/shadow ./...

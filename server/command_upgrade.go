@@ -12,7 +12,7 @@ import (
 func getUpgradeFlagSet() *flag.FlagSet {
 	upgradeFlagSet := flag.NewFlagSet("upgrade", flag.ContinueOnError)
 	upgradeFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
-	upgradeFlagSet.String("license", "", "The enterprise license to use. Can be 'e10' or 'e20'")
+	upgradeFlagSet.String("license", "", "The enterprise license to use. Can be 'e10', 'e20', or 'te'")
 
 	return upgradeFlagSet
 }
@@ -36,7 +36,7 @@ func parseUpgradeArgs(args []string) (string, string, error) {
 		return "", "", err
 	}
 	if license != "" && !validLicenseOption(license) {
-		return "", "", fmt.Errorf("invalid license option %s, must be %s, %s or %s", license, licenseOptionE10, licenseOptionE20, licenseOptionTE)
+		return "", "", fmt.Errorf("invalid license option %s; must be %s, %s or %s", license, licenseOptionE10, licenseOptionE20, licenseOptionTE)
 	}
 
 	return version, license, nil
@@ -86,8 +86,11 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 	// Only change the license if a value was provided.
 	license := installToUpgrade.License
 	if newLicense != "" {
+		license = config.E20License
 		if newLicense == licenseOptionE10 {
 			license = config.E10License
+		} else if newLicense == licenseOptionTE {
+			license = ""
 		}
 	}
 

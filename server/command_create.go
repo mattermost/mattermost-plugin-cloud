@@ -20,7 +20,7 @@ func getCreateFlagSet() *flag.FlagSet {
 	createFlagSet.String("size", "miniSingleton", "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'")
 	createFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
 	createFlagSet.String("affinity", "multitenant", "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
-	createFlagSet.String("license", "te", "The enterprise license to use. Can be 'e10', 'e20', or leave blank to choose Team Edition")
+	createFlagSet.String("license", "e20", "The enterprise license to use. Can be 'e10', 'e20', or 'te'")
 	createFlagSet.Bool("test-data", false, "Set to pre-load the server with test data")
 
 	return createFlagSet
@@ -50,7 +50,7 @@ func parseCreateArgs(args []string, install *Installation) error {
 		return err
 	}
 	if !validLicenseOption(install.License) {
-		return fmt.Errorf("invalid license option %s, must be %s, %s or none", install.License, licenseOptionE10, licenseOptionE20)
+		return fmt.Errorf("invalid license option %s, must be %s, %s or %s", install.License, licenseOptionE10, licenseOptionE20, licenseOptionTE)
 	}
 	install.TestData, err = createFlagSet.GetBool("test-data")
 	if err != nil {
