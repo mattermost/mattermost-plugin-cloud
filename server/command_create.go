@@ -89,7 +89,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 	}
 
 	install := &Installation{
-		Name: args[0],
+		Name: strings.ToLower(args[0]),
 	}
 
 	if install.Name == "" || strings.HasPrefix(install.Name, "--") {
