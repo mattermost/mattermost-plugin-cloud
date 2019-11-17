@@ -20,7 +20,7 @@ func getCreateFlagSet() *flag.FlagSet {
 	createFlagSet.String("size", "miniSingleton", "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'")
 	createFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
 	createFlagSet.String("affinity", "multitenant", "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
-	createFlagSet.String("license", "e20", "The enterprise license to use. Can be 'e10' or 'e20'")
+	createFlagSet.String("license", "e20", "The enterprise license to use. Can be 'e10', 'e20', or 'te'")
 	createFlagSet.String("filestore", "aws-s3", "Specify the backing file store. Can be 'aws-s3' to use Amazon S3 or 'operator' to use the Minio Operator inside the cluster")
 	createFlagSet.String("database", "aws-rds", "Specify the backing database. Can be 'aws-rds' to use Amazon RDS or 'operator' to use the MySQL Operator inside the cluster")
 	createFlagSet.Bool("test-data", false, "Set to pre-load the server with test data")
@@ -54,7 +54,7 @@ func parseCreateArgs(args []string, install *Installation) error {
 	}
 
 	if !validLicenseOption(install.License) {
-		return fmt.Errorf("invalid license option %s, must be %s or %s", install.License, licenseOptionE10, licenseOptionE20)
+		return fmt.Errorf("invalid license option %s, must be %s, %s or %s", install.License, licenseOptionE10, licenseOptionE20, licenseOptionTE)
 	}
 
 	install.Database, err = createFlagSet.GetString("database")
@@ -106,9 +106,11 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 
 	config := p.getConfiguration()
 
-	license := config.E20License
+	license := ""
 	if install.License == licenseOptionE10 {
 		license = config.E10License
+	} else if install.License == licenseOptionE20 {
+		license = config.E20License
 	}
 
 	if install.Version != "" {
