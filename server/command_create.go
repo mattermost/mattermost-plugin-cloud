@@ -21,11 +21,14 @@ func getCreateFlagSet() *flag.FlagSet {
 	createFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
 	createFlagSet.String("affinity", "multitenant", "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
 	createFlagSet.String("license", "e20", "The enterprise license to use. Can be 'e10' or 'e20'")
+	createFlagSet.String("filestore", "aws-s3", "Specify the backing file store. Can be 'aws-s3' to use Amazon S3 or 'operator' to use the Minio Operator inside the cluster")
+	createFlagSet.String("database", "aws-rds", "Specify the backing database. Can be 'aws-rds' to use Amazon RDS or 'operator' to use the MySQL Operator inside the cluster")
 	createFlagSet.Bool("test-data", false, "Set to pre-load the server with test data")
 
 	return createFlagSet
 }
 
+// parseCreateArgs is responsible for reading in arguments and basic input validity checking
 func parseCreateArgs(args []string, install *Installation) error {
 	createFlagSet := getCreateFlagSet()
 	err := createFlagSet.Parse(args)
@@ -49,9 +52,29 @@ func parseCreateArgs(args []string, install *Installation) error {
 	if err != nil {
 		return err
 	}
+
 	if !validLicenseOption(install.License) {
 		return fmt.Errorf("invalid license option %s, must be %s or %s", install.License, licenseOptionE10, licenseOptionE20)
 	}
+
+	install.Database, err = createFlagSet.GetString("database")
+	if err != nil {
+		return err
+	}
+
+	if !validDatabaseOption(install.Database) {
+		return fmt.Errorf("invalid database option %s; must be %s or %s", install.Database, databaseOptionRDS, databaseOptionOperator)
+	}
+
+	install.Filestore, err = createFlagSet.GetString("filestore")
+	if err != nil {
+		return err
+	}
+
+	if !validFilestoreOption(install.Filestore) {
+		return fmt.Errorf("invalid filestore option %s; must be %s or %s", install.Filestore, filestoreOptionS3, filestoreOptionOperator)
+	}
+
 	install.TestData, err = createFlagSet.GetBool("test-data")
 	if err != nil {
 		return err
@@ -100,13 +123,37 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		}
 	}
 
+	database := ""
+	if install.Database == databaseOptionRDS {
+		database = cloud.InstallationDatabaseAwsRDS
+	} else if install.Database == databaseOptionOperator {
+		database = cloud.InstallationDatabaseMysqlOperator
+	}
+
+	if len(database) == 0 {
+		return nil, false, fmt.Errorf("could not determine database type; provided database type was %s", install.Database)
+	}
+
+	var filestore string
+	if install.Filestore == filestoreOptionS3 {
+		filestore = cloud.InstallationFilestoreAwsS3
+	} else if install.Filestore == filestoreOptionOperator {
+		filestore = cloud.InstallationFilestoreMinioOperator
+	}
+
+	if len(filestore) == 0 {
+		return nil, false, fmt.Errorf("could not determine filestore type; provided filestore type was %s", install.Filestore)
+	}
+
 	req := &cloud.CreateInstallationRequest{
-		OwnerID:  extra.UserId,
-		DNS:      fmt.Sprintf("%s.%s", install.Name, config.InstallationDNS),
-		Version:  install.Version,
-		Size:     install.Size,
-		Affinity: install.Affinity,
-		License:  license,
+		Affinity:  install.Affinity,
+		DNS:       fmt.Sprintf("%s.%s", install.Name, config.InstallationDNS),
+		Database:  database,
+		Filestore: filestore,
+		License:   license,
+		OwnerID:   extra.UserId,
+		Size:      install.Size,
+		Version:   install.Version,
 	}
 
 	cloudInstallation, err := p.cloudClient.CreateInstallation(req)

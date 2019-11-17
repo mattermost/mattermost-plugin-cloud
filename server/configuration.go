@@ -12,6 +12,12 @@ import (
 const (
 	licenseOptionE10 = "e10"
 	licenseOptionE20 = "e20"
+
+	databaseOptionRDS      = "aws-rds"
+	databaseOptionOperator = "operator"
+
+	filestoreOptionS3       = "aws-s3"
+	filestoreOptionOperator = "operator"
 )
 
 // configuration captures the plugin's external configuration as exposed in the Mattermost server
