@@ -7,7 +7,7 @@ import (
 )
 
 // PostBotDM posts a DM as the cloud bot user.
-func (p *Plugin) PostBotDM(userID string, message string) error {
+func (p *Plugin) PostBotDM(userID, message string) error {
 	channel, appError := p.API.GetDirectChannel(userID, p.BotUserID)
 	if appError != nil {
 		return appError
@@ -23,4 +23,18 @@ func (p *Plugin) PostBotDM(userID string, message string) error {
 	})
 
 	return appError
+}
+
+// PostToChannelByIDAsBot posts a message to the provided channel.
+func (p *Plugin) PostToChannelByIDAsBot(channelID, message string) error {
+	_, appError := p.API.CreatePost(&model.Post{
+		UserId:    p.BotUserID,
+		ChannelId: channelID,
+		Message:   message,
+	})
+	if appError != nil {
+		return appError
+	}
+
+	return nil
 }

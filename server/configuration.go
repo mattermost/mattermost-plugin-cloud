@@ -13,6 +13,12 @@ const (
 	licenseOptionE10 = "e10"
 	licenseOptionE20 = "e20"
 	licenseOptionTE  = "te"
+
+	databaseOptionRDS      = "aws-rds"
+	databaseOptionOperator = "operator"
+
+	filestoreOptionS3       = "aws-s3"
+	filestoreOptionOperator = "operator"
 )
 
 // configuration captures the plugin's external configuration as exposed in the Mattermost server
@@ -38,6 +44,13 @@ type configuration struct {
 
 	// Email
 	EmailSettings string
+
+	// Webhook Alerts
+	ClusterWebhookAlertsEnable    bool
+	ClusterWebhookAlertsChannelID string
+
+	InstallationWebhookAlertsEnable    bool
+	InstallationWebhookAlertsChannelID string
 }
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if
@@ -60,7 +73,19 @@ func (c *configuration) IsValid() error {
 		return fmt.Errorf("must specify InstallationDNS")
 	}
 
-	return err
+	if c.ClusterWebhookAlertsEnable {
+		if len(c.ClusterWebhookAlertsChannelID) == 0 {
+			return fmt.Errorf("must specify a cluster alerts channel ID when cluster alerts are enabled")
+		}
+	}
+
+	if c.InstallationWebhookAlertsEnable {
+		if len(c.InstallationWebhookAlertsChannelID) == 0 {
+			return fmt.Errorf("must specify an installation alerts channel ID when installation alerts are enabled")
+		}
+	}
+
+	return nil
 }
 
 // getConfiguration retrieves the active configuration under lock, making it safe to use
