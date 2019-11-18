@@ -21,7 +21,7 @@ func (p *Plugin) runDeleteCommand(args []string, extra *model.CommandArgs) (*mod
 
 	var installToDelete *Installation
 	for _, install := range installs {
-		if install.OwnerID == extra.UserId && install.Name == name {
+		if install.OwnerID == extra.UserId && strings.ToLower(install.Name) == name {
 			installToDelete = install
 			break
 		}

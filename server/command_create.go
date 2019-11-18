@@ -28,7 +28,7 @@ func getCreateFlagSet() *flag.FlagSet {
 	return createFlagSet
 }
 
-// parseCreateArgs is responsible for reading in arguments and basic input validity checking
+// parseCreateArgs is responsible for reading in arguments and basic input validation
 func parseCreateArgs(args []string, install *Installation) error {
 	createFlagSet := getCreateFlagSet()
 	err := createFlagSet.Parse(args)
