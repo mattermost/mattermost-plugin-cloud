@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 func prettyPrintJSON(in string) string {
@@ -25,6 +26,10 @@ func codeBlock(in string) string {
 
 func inlineCode(in string) string {
 	return fmt.Sprintf("`%s`", in)
+}
+
+func standardizeName(name string) string {
+	return strings.ToLower(name)
 }
 
 func validLicenseOption(license string) bool {

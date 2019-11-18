@@ -28,7 +28,7 @@ func getCreateFlagSet() *flag.FlagSet {
 	return createFlagSet
 }
 
-// parseCreateArgs is responsible for reading in arguments and basic input validity checking
+// parseCreateArgs is responsible for reading in arguments and basic input validation
 func parseCreateArgs(args []string, install *Installation) error {
 	createFlagSet := getCreateFlagSet()
 	err := createFlagSet.Parse(args)
@@ -89,12 +89,13 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 	}
 
 	install := &Installation{
-		Name: args[0],
+		Name: standardizeName(args[0]),
 	}
 
 	if install.Name == "" || strings.HasPrefix(install.Name, "--") {
 		return nil, true, fmt.Errorf("must provide an installation name")
 	}
+
 	if !validInstallationName(install.Name) {
 		return nil, true, fmt.Errorf("installation name %s is invalid: only letters, numbers, and hyphens are permitted", install.Name)
 	}

@@ -14,7 +14,7 @@ func (p *Plugin) runMattermostCLICommand(args []string, extra *model.CommandArgs
 		return nil, true, errors.New("must provide an installation name")
 	}
 
-	name := args[0]
+	name := standardizeName(args[0])
 	if name == "" {
 		return nil, true, errors.New("must provide an installation name")
 	}

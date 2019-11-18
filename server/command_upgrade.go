@@ -48,7 +48,7 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 		return nil, true, fmt.Errorf("must provide an installation name")
 	}
 
-	name := args[0]
+	name := standardizeName(args[0])
 
 	installs, _, err := p.getInstallations()
 	if err != nil {

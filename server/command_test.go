@@ -74,6 +74,13 @@ func TestCreateCommand(t *testing.T) {
 		assert.Contains(t, resp.Text, "Installation being created.")
 	})
 
+	t.Run("create installation successfully with capitalized name to show case insensitivity", func(t *testing.T) {
+		resp, isUserError, err := plugin.runCreateCommand([]string{"jOrAmTeSt"}, &model.CommandArgs{})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, "Installation being created.")
+	})
+
 	t.Run("docker tag", func(t *testing.T) {
 
 		t.Run("valid", func(t *testing.T) {
@@ -173,6 +180,15 @@ func TestUpgradeCommand(t *testing.T) {
 		assert.Contains(t, resp.Text, "Upgrade of installation")
 	})
 
+	t.Run("upgrade installation successfully with name with caps to demonstrate case insensitivity of name", func(t *testing.T) {
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
+
+		resp, isUserError, err := plugin.runUpgradeCommand([]string{"GabesInstall", "--version", "5.13.1"}, &model.CommandArgs{UserId: "gabeid"})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, "Upgrade of installation")
+	})
+
 	t.Run("no version", func(t *testing.T) {
 		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
 
@@ -265,6 +281,15 @@ func TestMattermostCLICommand(t *testing.T) {
 		assert.Contains(t, resp.Text, "mocked command output")
 	})
 
+	t.Run("run command successfully with caps in name to show name is case insensitive", func(t *testing.T) {
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
+
+		resp, isUserError, err := plugin.runMattermostCLICommand([]string{"GabesInstall", "version"}, &model.CommandArgs{UserId: "gabeid"})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, "mocked command output")
+	})
+
 	t.Run("no name provided", func(t *testing.T) {
 		resp, isUserError, err := plugin.runMattermostCLICommand([]string{}, &model.CommandArgs{UserId: "gabeid2"})
 		require.NotNil(t, err)
@@ -321,6 +346,15 @@ func TestDeleteCommand(t *testing.T) {
 
 	t.Run("delete installation successfully", func(t *testing.T) {
 		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"joramid\", \"Name\": \"joramsinstall\"}]"), nil)
+
+		resp, isUserError, err := plugin.runDeleteCommand([]string{"joramsinstall"}, &model.CommandArgs{UserId: "joramid"})
+		require.Nil(t, err)
+		assert.False(t, isUserError)
+		assert.True(t, strings.Contains(resp.Text, "Installation joramsinstall deleted."))
+	})
+
+	t.Run("delete installation successfully with caps in name to demonstrate name case insensitivity", func(t *testing.T) {
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"joramid\", \"Name\": \"JoramsInstall\"}]"), nil)
 
 		resp, isUserError, err := plugin.runDeleteCommand([]string{"joramsinstall"}, &model.CommandArgs{UserId: "joramid"})
 		require.Nil(t, err)
