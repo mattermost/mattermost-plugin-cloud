@@ -100,6 +100,13 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, true, fmt.Errorf("installation name %s is invalid: only letters, numbers, and hyphens are permitted", install.Name)
 	}
 
+	if exists, err := p.installationWithNameExists(install.Name); err != nil || exists {
+		if err != nil {
+			return nil, false, err
+		}
+		return nil, true, fmt.Errorf("Installation name %s already exists. Names are case insensitive and must be unique so you must choose a new name and try again", install.Name)
+	}
+
 	err := parseCreateArgs(args, install)
 	if err != nil {
 		return nil, true, err
@@ -181,6 +188,20 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Installation being created. You will receive a notification when it is ready. Use `/cloud list` to check on the status of your installations.\n\n"+jsonCodeBlock(prettyPrintJSON(string(data)))), false, nil
 }
 
-func validInstallationName(name string) bool {
-	return installationNameMatcher.MatchString(name)
+// installationWithNameExists returns true when there already exists an installation with name "name"
+func (p *Plugin) installationWithNameExists(name string) (bool, error) {
+
+	existing, _, err := p.getInstallations()
+	if err != nil {
+		return false, errors.Wrap(err, "trouble looking up existing installations")
+	}
+
+	for _, i := range existing {
+		// FIXME standardizing these here really shouldn't be necessary if everything is stored in the correct format, but better safe than sorry until we can find a better approach
+		if standardizeName(name) == standardizeName(i.Name) {
+			return true, nil
+		}
+	}
+
+	return false, nil
 }
