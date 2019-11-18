@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost-server/model"
-	"strings"
 )
 
 func (p *Plugin) runDeleteCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
@@ -12,7 +11,7 @@ func (p *Plugin) runDeleteCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, true, fmt.Errorf("must provide an installation name")
 	}
 
-	name := strings.ToLower(args[0])
+	name := standardizeName(args[0])
 
 	installs, _, err := p.getInstallations()
 	if err != nil {
@@ -21,7 +20,7 @@ func (p *Plugin) runDeleteCommand(args []string, extra *model.CommandArgs) (*mod
 
 	var installToDelete *Installation
 	for _, install := range installs {
-		if install.OwnerID == extra.UserId && strings.ToLower(install.Name) == name {
+		if install.OwnerID == extra.UserId && standardizeName(install.Name) == name {
 			installToDelete = install
 			break
 		}

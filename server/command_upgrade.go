@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strings"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/model"
@@ -49,7 +48,7 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 		return nil, true, fmt.Errorf("must provide an installation name")
 	}
 
-	name := strings.ToLower(args[0])
+	name := standardizeName(args[0])
 
 	installs, _, err := p.getInstallations()
 	if err != nil {
