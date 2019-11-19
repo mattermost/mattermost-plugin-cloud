@@ -40,8 +40,7 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, erro
 			return nil, errors.Wrapf(err, "could not get updated installation %s", install.ID)
 		}
 		if updatedInstall == nil {
-			p.API.LogError(fmt.Sprintf("could not find installation %s", install.ID))
-			continue
+			return nil, fmt.Errorf("could not find installation %s", install.ID)
 		}
 		install.Installation = *updatedInstall
 		install.License = "hidden"
