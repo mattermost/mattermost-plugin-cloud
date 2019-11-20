@@ -40,6 +40,10 @@ func validDatabaseOption(databaseChoice string) bool {
 	return databaseChoice == databaseOptionRDS || databaseChoice == databaseOptionOperator
 }
 
+func validInstallationName(name string) bool {
+	return installationNameMatcher.MatchString(name)
+}
+
 func validFilestoreOption(filestoreChoice string) bool {
 	return filestoreChoice == filestoreOptionS3 || filestoreChoice == filestoreOptionOperator
 }

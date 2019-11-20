@@ -161,6 +161,7 @@ func (p *Plugin) deleteInstallation(installationID string) error {
 	return fmt.Errorf("failed %d times to delete installation %s", StoreInstallRetries, installationID)
 }
 
+// getInstallations fetches existing installs from the KV store and returns a slice of pointers to the Installations (unmarshalled from JSON), the original JSON as a byte slice, and any errors
 func (p *Plugin) getInstallations() ([]*Installation, []byte, error) {
 	originalJSONInstalls, err := p.API.KVGet(StoreInstallsKey)
 	if err != nil {
