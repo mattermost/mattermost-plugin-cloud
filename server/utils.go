@@ -36,6 +36,10 @@ func validLicenseOption(license string) bool {
 	return license == licenseOptionE10 || license == licenseOptionE20 || license == licenseOptionTE
 }
 
+func validAffinityOption(affinity string) bool {
+	return affinity == affinityIsolated || affinity == affinityMultitenant
+}
+
 func validDatabaseOption(databaseChoice string) bool {
 	return databaseChoice == databaseOptionRDS || databaseChoice == databaseOptionOperator
 }

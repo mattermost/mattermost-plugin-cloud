@@ -110,6 +110,28 @@ func TestCreateCommand(t *testing.T) {
 		assert.Nil(t, resp)
 	})
 
+	t.Run("invalid affinity", func(t *testing.T) {
+		resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--affinity", "banana"}, &model.CommandArgs{})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid affinity option banana, must be isolated or multitenant")
+		assert.True(t, isUserError)
+		assert.Nil(t, resp)
+	})
+
+	t.Run("affinity is set to isolated", func(t *testing.T) {
+		resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--affinity", "isolated"}, &model.CommandArgs{})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, "Installation being created.")
+	})
+
+	t.Run("affinity is set to multitenant", func(t *testing.T) {
+		resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--affinity", "multitenant"}, &model.CommandArgs{})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, "Installation being created.")
+	})
+
 	t.Run("missing installation name", func(t *testing.T) {
 		resp, isUserError, err := plugin.runCreateCommand([]string{""}, &model.CommandArgs{})
 		require.Error(t, err)

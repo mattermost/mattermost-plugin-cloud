@@ -19,6 +19,9 @@ const (
 
 	filestoreOptionS3       = "aws-s3"
 	filestoreOptionOperator = "operator"
+
+	affinityIsolated    = "isolated"
+	affinityMultitenant = "multitenant"
 )
 
 // configuration captures the plugin's external configuration as exposed in the Mattermost server

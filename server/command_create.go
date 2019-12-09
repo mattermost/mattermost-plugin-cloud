@@ -48,6 +48,11 @@ func parseCreateArgs(args []string, install *Installation) error {
 	if err != nil {
 		return err
 	}
+
+	if !validAffinityOption(install.Affinity) {
+		return fmt.Errorf("invalid affinity option %s, must be %s or %s", install.Affinity, affinityIsolated, affinityMultitenant)
+	}
+
 	install.License, err = createFlagSet.GetString("license")
 	if err != nil {
 		return err
