@@ -28,15 +28,17 @@ func parseUpgradeArgs(args []string) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	if version == "" {
-		return "", "", errors.New("must specify a version")
-	}
+
 	license, err := upgradeFlagSet.GetString("license")
 	if err != nil {
 		return "", "", err
 	}
 	if license != "" && !validLicenseOption(license) {
 		return "", "", fmt.Errorf("invalid license option %s; must be %s, %s or %s", license, licenseOptionE10, licenseOptionE20, licenseOptionTE)
+	}
+
+	if version == "" && license == "" {
+		return "", "", errors.New("must specify at least one option: license or version")
 	}
 
 	return version, license, nil
