@@ -31,7 +31,10 @@ func (mc *MockClient) CreateInstallation(request *cloud.CreateInstallationReques
 }
 
 func (mc *MockClient) GetInstallation(installataionID string) (*cloud.Installation, error) {
-	return &cloud.Installation{ID: "someid", OwnerID: "joramid"}, nil
+	if installataionID == "someid" {
+		return &cloud.Installation{ID: "someid", OwnerID: "joramid"}, nil
+	}
+	return nil, nil
 }
 
 func (mc *MockClient) GetInstallations(request *cloud.GetInstallationsRequest) ([]*cloud.Installation, error) {
@@ -126,13 +129,17 @@ func TestCreateCommand(t *testing.T) {
 }
 
 func TestListCommand(t *testing.T) {
-	plugin := Plugin{}
-	plugin.cloudClient = &MockClient{}
+	setup := func() (*plugintest.API, *Plugin) {
+		plugin := Plugin{}
+		plugin.cloudClient = &MockClient{}
+		api := plugintest.API{}
+		plugin.SetAPI(&api)
 
-	api := &plugintest.API{}
-	plugin.SetAPI(api)
+		return &api, &plugin
+	}
 
 	t.Run("list installations successfully", func(t *testing.T) {
+		api, plugin := setup()
 		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"joramid\"}]"), nil)
 
 		resp, isUserError, err := plugin.runListCommand([]string{}, &model.CommandArgs{UserId: "joramid"})
@@ -142,6 +149,7 @@ func TestListCommand(t *testing.T) {
 	})
 
 	t.Run("no installations", func(t *testing.T) {
+		api, plugin := setup()
 		api.On("KVGet", mock.AnythingOfType("string")).Return(nil, nil)
 
 		resp, isUserError, err := plugin.runListCommand([]string{}, &model.CommandArgs{})
@@ -151,12 +159,36 @@ func TestListCommand(t *testing.T) {
 	})
 
 	t.Run("no installations for current user", func(t *testing.T) {
+		api, plugin := setup()
 		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"joramid\"}]"), nil)
 
 		resp, isUserError, err := plugin.runListCommand([]string{}, &model.CommandArgs{UserId: "joramid2"})
 		require.Nil(t, err)
 		assert.False(t, isUserError)
 		assert.False(t, strings.Contains(resp.Text, "someid"))
+	})
+
+	t.Run("installation missing error", func(t *testing.T) {
+		api, plugin := setup()
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"test123\", \"OwnerID\": \"joramid\", \"DeleteAt\": 0}]"), nil)
+
+		resp, isUserError, err := plugin.runListCommand([]string{}, &model.CommandArgs{UserId: "joramid"})
+		require.Error(t, err, "no records of installation ID id123")
+		assert.False(t, isUserError)
+		assert.Nil(t, resp)
+	})
+
+	t.Run("deleted installation", func(t *testing.T) {
+		api, plugin := setup()
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"id123\", \"OwnerID\": \"joramid\", \"DeleteAt\": 123}]"), nil)
+		api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
+		api.On("GetDirectChannel", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.Channel{}, nil)
+		api.On("CreatePost", &model.Post{Message: "Cloud installation ID id123 has been removed from your Mattermost app."}).Return(&model.Post{}, nil)
+
+		resp, isUserError, err := plugin.runListCommand([]string{}, &model.CommandArgs{UserId: "joramid"})
+		require.Nil(t, err)
+		assert.False(t, isUserError)
+		assert.False(t, strings.Contains(resp.Text, "id123"))
 	})
 }
 
