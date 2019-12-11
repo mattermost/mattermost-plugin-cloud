@@ -217,8 +217,16 @@ func TestUpgradeCommand(t *testing.T) {
 		assert.Contains(t, resp.Text, "Upgrade of installation")
 	})
 
-	t.Run("docker tag", func(t *testing.T) {
+	t.Run("version is equal to current version", func(t *testing.T) {
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\", \"Version\": \"5.31.1\"}]"), nil)
 
+		resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--version", "5.31.1"}, &model.CommandArgs{UserId: "gabeid"})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, "Upgrade of installation")
+	})
+
+	t.Run("docker tag", func(t *testing.T) {
 		t.Run("valid", func(t *testing.T) {
 			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
 

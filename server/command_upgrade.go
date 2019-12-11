@@ -9,6 +9,10 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
+const (
+	dockerRepository = "mattermost/mattermost-enterprise-edition"
+)
+
 func getUpgradeFlagSet() *flag.FlagSet {
 	upgradeFlagSet := flag.NewFlagSet("upgrade", flag.ContinueOnError)
 	upgradeFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
@@ -74,13 +78,17 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 		return nil, true, err
 	}
 
-	repository := "mattermost/mattermost-enterprise-edition"
-	exists, err := p.dockerClient.ValidTag(version, repository)
-	if err != nil {
-		p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", repository, version).Error())
-	}
-	if !exists {
-		return nil, true, fmt.Errorf("%s is not a valid docker tag for repository %s", version, repository)
+	// Use the current version if none was provided, otherwise validate that a correspondent image tag exists.
+	if version == "" {
+		version = installToUpgrade.Version
+	} else {
+		exists, err := p.dockerClient.ValidTag(version, dockerRepository)
+		if err != nil {
+			p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", dockerRepository, version).Error())
+		}
+		if !exists {
+			return nil, true, fmt.Errorf("%s is not a valid docker tag for repository %s", version, dockerRepository)
+		}
 	}
 
 	config := p.getConfiguration()
