@@ -49,8 +49,8 @@ func parseCreateArgs(args []string, install *Installation) error {
 		return err
 	}
 
-	if !validAffinityOption(install.Affinity) {
-		return fmt.Errorf("invalid affinity option %s, must be %s or %s", install.Affinity, affinityIsolated, affinityMultitenant)
+	if !cloud.IsSupportedAffinity(install.Affinity) {
+		return fmt.Errorf("invalid affinity option %s, must be %s or %s", install.Affinity, cloud.InstallationAffinityIsolated, cloud.InstallationAffinityMultiTenant)
 	}
 
 	install.License, err = createFlagSet.GetString("license")
