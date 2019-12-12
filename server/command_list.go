@@ -43,7 +43,7 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, erro
 	for _, cloudInstall := range cloudInstalls {
 		for j, pluginInstall := range pluginInstalls {
 			if cloudInstall.ID == pluginInstall.ID {
-				if cloudInstall.DeleteAt > 0 {
+				if cloudInstall.DeleteAt > 0 || cloudInstall.State == cloud.ClusterInstallationStateCreationFailed {
 					err = p.deleteInstallation(pluginInstall.ID)
 					if err != nil {
 						p.API.LogError(err.Error(), pluginInstall.ID)
@@ -56,10 +56,10 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, erro
 						pluginInstalls[j] = pluginInstalls[l]
 						pluginInstalls = pluginInstalls[:l]
 					}
-					continue
+				} else {
+					pluginInstall.Installation = *cloudInstall
+					pluginInstall.License = "hidden"
 				}
-				pluginInstall.Installation = *cloudInstall
-				pluginInstall.License = "hidden"
 				break
 			}
 		}
