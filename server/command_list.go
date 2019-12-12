@@ -6,7 +6,6 @@ import (
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/pkg/errors"
 )
 
 func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
@@ -33,40 +32,37 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, erro
 		return nil, err
 	}
 
-	var cloudInstall *cloud.Installation
-	for k, pluginInstall := range pluginInstalls {
-		cloudInstall, err = p.cloudClient.GetInstallation(pluginInstall.ID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "could not get updated installation %s", pluginInstall.ID)
-		}
+	cloudInstalls, err := p.cloudClient.GetInstallations(&cloud.GetInstallationsRequest{
+		OwnerID:        userID,
+		IncludeDeleted: true,
+	})
+	if err != nil {
+		return nil, err
+	}
 
-		if cloudInstall == nil {
-			// If it was never an installation in cloud server and it was never marked as deleted
-			// in KV store, we return en error.
-			if pluginInstall.DeleteAt == 0 {
-				return nil, fmt.Errorf("no records of installation ID %s", pluginInstall.ID)
+	for _, cloudInstall := range cloudInstalls {
+		for j, pluginInstall := range pluginInstalls {
+			if cloudInstall.ID == pluginInstall.ID {
+				if cloudInstall.DeleteAt > 0 {
+					err = p.deleteInstallation(pluginInstall.ID)
+					if err != nil {
+						p.API.LogError(err.Error(), pluginInstall.ID)
+					} else {
+						// Notify the user that installation was removed.
+						p.PostBotDM(userID, fmt.Sprintf("Cloud installation ID %s has been removed from your Mattermost app.", pluginInstall.ID))
+						// Remove key from the plugin installations.
+						l := len(pluginInstalls) - 1
+						pluginInstalls[l] = pluginInstalls[j]
+						pluginInstalls[j] = pluginInstalls[l]
+						pluginInstalls = pluginInstalls[:l]
+					}
+					continue
+				}
+				pluginInstall.Installation = *cloudInstall
+				pluginInstall.License = "hidden"
+				break
 			}
-
-			// If installation was marked as deleted, remove it from the KV store.
-			err = p.deleteInstallation(pluginInstall.ID)
-			if err != nil {
-				p.API.LogError(err.Error(), pluginInstall.ID)
-				continue
-			}
-
-			// Notify the user that installation was removed.
-			p.PostBotDM(userID, fmt.Sprintf("Cloud installation ID %s has been removed from your Mattermost app.", pluginInstall.ID))
-
-			// Remove item from installs.
-			i := len(pluginInstalls) - 1
-			pluginInstalls[i] = pluginInstalls[k]
-			pluginInstalls[k] = pluginInstalls[i]
-			pluginInstalls = pluginInstalls[:i]
-			continue
 		}
-
-		pluginInstall.Installation = *cloudInstall
-		pluginInstall.License = "hidden"
 	}
 
 	return pluginInstalls, nil

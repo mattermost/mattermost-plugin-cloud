@@ -60,7 +60,18 @@ func (mc *MockClient) RunMattermostCLICommandOnClusterInstallation(clusterInstal
 func TestCreateCommand(t *testing.T) {
 	dockerClient := &MockedDockerClient{tagExists: true}
 	plugin := Plugin{
-		cloudClient:  &MockClient{},
+		cloudClient: &MockClient{
+			mockedCloudInstallations: []*cloud.Installation{
+				&cloud.Installation{
+					ID:      "id1",
+					OwnerID: "owner 1",
+				},
+				&cloud.Installation{
+					ID:      "id2",
+					OwnerID: "owner 2",
+				},
+			},
+		},
 		dockerClient: dockerClient,
 	}
 
@@ -168,19 +179,9 @@ func TestListCommand(t *testing.T) {
 		assert.False(t, strings.Contains(resp.Text, "someid"))
 	})
 
-	t.Run("installation missing error", func(t *testing.T) {
-		api, plugin := setup()
-		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"test123\", \"OwnerID\": \"joramid\", \"DeleteAt\": 0}]"), nil)
-
-		resp, isUserError, err := plugin.runListCommand([]string{}, &model.CommandArgs{UserId: "joramid"})
-		require.Error(t, err, "no records of installation ID id123")
-		assert.False(t, isUserError)
-		assert.Nil(t, resp)
-	})
-
 	t.Run("deleted installation", func(t *testing.T) {
 		api, plugin := setup()
-		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"id123\", \"OwnerID\": \"joramid\", \"DeleteAt\": 123}]"), nil)
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"id1\", \"OwnerID\": \"joramid\", \"DeleteAt\": 123}]"), nil)
 		api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
 		api.On("GetDirectChannel", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.Channel{}, nil)
 		api.On("CreatePost", &model.Post{Message: "Cloud installation ID id123 has been removed from your Mattermost app."}).Return(&model.Post{}, nil)
