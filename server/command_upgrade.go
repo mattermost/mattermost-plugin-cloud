@@ -78,17 +78,17 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 		return nil, true, err
 	}
 
-	// Use the current version if none was provided, otherwise validate that a correspondent image tag exists.
+	// Use the current version if none was provided.
 	if version == "" {
 		version = installToUpgrade.Version
-	} else {
-		exists, err := p.dockerClient.ValidTag(version, dockerRepository)
-		if err != nil {
-			p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", dockerRepository, version).Error())
-		}
-		if !exists {
-			return nil, true, fmt.Errorf("%s is not a valid docker tag for repository %s", version, dockerRepository)
-		}
+	}
+
+	exists, err := p.dockerClient.ValidTag(version, dockerRepository)
+	if err != nil {
+		p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", dockerRepository, version).Error())
+	}
+	if !exists {
+		return nil, true, fmt.Errorf("%s is not a valid docker tag for repository %s", version, dockerRepository)
 	}
 
 	config := p.getConfiguration()
