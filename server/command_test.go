@@ -211,18 +211,44 @@ func TestUpgradeCommand(t *testing.T) {
 		assert.Contains(t, resp.Text, "Upgrade of installation")
 	})
 
-	t.Run("no version", func(t *testing.T) {
+	t.Run("no version and no license", func(t *testing.T) {
 		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
 
 		resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall"}, &model.CommandArgs{UserId: "gabeid"})
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "must specify a version")
+		assert.Contains(t, err.Error(), "must specify at least one option: license or version")
 		assert.True(t, isUserError)
 		assert.Nil(t, resp)
 	})
 
-	t.Run("docker tag", func(t *testing.T) {
+	t.Run("with version and no license", func(t *testing.T) {
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
 
+		resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--version", "5.13.1"}, &model.CommandArgs{UserId: "gabeid"})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, "Upgrade of installation")
+	})
+
+	t.Run("with license and no version", func(t *testing.T) {
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
+
+		resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--license", "e10"}, &model.CommandArgs{UserId: "gabeid"})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, "Upgrade of installation")
+	})
+
+	t.Run("version is equal to current version", func(t *testing.T) {
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\", \"Version\": \"5.31.1\"}]"), nil)
+
+		resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--version", "5.31.1"}, &model.CommandArgs{UserId: "gabeid"})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, "Upgrade of installation")
+	})
+
+	t.Run("docker tag", func(t *testing.T) {
 		t.Run("valid", func(t *testing.T) {
 			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
 

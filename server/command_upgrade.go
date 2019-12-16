@@ -9,6 +9,10 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
+const (
+	dockerRepository = "mattermost/mattermost-enterprise-edition"
+)
+
 func getUpgradeFlagSet() *flag.FlagSet {
 	upgradeFlagSet := flag.NewFlagSet("upgrade", flag.ContinueOnError)
 	upgradeFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
@@ -28,15 +32,17 @@ func parseUpgradeArgs(args []string) (string, string, error) {
 	if err != nil {
 		return "", "", err
 	}
-	if version == "" {
-		return "", "", errors.New("must specify a version")
-	}
+
 	license, err := upgradeFlagSet.GetString("license")
 	if err != nil {
 		return "", "", err
 	}
 	if license != "" && !validLicenseOption(license) {
 		return "", "", fmt.Errorf("invalid license option %s; must be %s, %s or %s", license, licenseOptionE10, licenseOptionE20, licenseOptionTE)
+	}
+
+	if version == "" && license == "" {
+		return "", "", errors.New("must specify at least one option: license or version")
 	}
 
 	return version, license, nil
@@ -72,13 +78,17 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 		return nil, true, err
 	}
 
-	repository := "mattermost/mattermost-enterprise-edition"
-	exists, err := p.dockerClient.ValidTag(version, repository)
+	// Use the current version if none was provided.
+	if version == "" {
+		version = installToUpgrade.Version
+	}
+
+	exists, err := p.dockerClient.ValidTag(version, dockerRepository)
 	if err != nil {
-		p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", repository, version).Error())
+		p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", dockerRepository, version).Error())
 	}
 	if !exists {
-		return nil, true, fmt.Errorf("%s is not a valid docker tag for repository %s", version, repository)
+		return nil, true, fmt.Errorf("%s is not a valid docker tag for repository %s", version, dockerRepository)
 	}
 
 	config := p.getConfiguration()
