@@ -40,6 +40,10 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, erro
 		return nil, err
 	}
 
+	// TODO: This may become a performance issue as deleted installations in the database start
+	// to grow. We could make it better by assuming that installation is not deleted. If an error
+	// is returned when asked for it, the plugin makes a follow up call to confirm that it was
+	// deleted. If deleted, the installation should be also removed from the plugin storage.
 	for _, cloudInstall := range cloudInstalls {
 		for j, pluginInstall := range pluginInstalls {
 			if cloudInstall.ID == pluginInstall.ID {
