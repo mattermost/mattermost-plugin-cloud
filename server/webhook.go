@@ -153,8 +153,9 @@ func (p *Plugin) handleInstallationWebhook(payload *cloud.WebhookPayload) error 
 [ Cloud Webhook ] Installation
 ---
 ID: %s
+ClusterID: %s
 State: from %s to %s
-`, inlineCode(payload.ID), inlineCode(payload.OldState), inlineCode(payload.NewState))
+`, inlineCode(payload.ID), inlineCode(payload.ExtraData["ClusterID"]), inlineCode(payload.OldState), inlineCode(payload.NewState))
 
 	return p.PostToChannelByIDAsBot(p.configuration.InstallationWebhookAlertsChannelID, message)
 }
