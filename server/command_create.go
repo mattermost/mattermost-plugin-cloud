@@ -106,11 +106,28 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 	}
 
 	exists, err := p.installationWithNameExists(install.Name)
-	if err != nil || exists {
+	if err != nil {
+		return nil, false, err
+	}
+
+	if exists {
+		var installations []*Installation
+		installations, _, err = p.getInstallations()
 		if err != nil {
-			return nil, false, err
+			return nil, true, err
 		}
-		return nil, true, fmt.Errorf("Installation name %s already exists. Names are case insensitive and must be unique so you must choose a new name and try again", install.Name)
+		for _, existing := range installations {
+			if existing.Name == install.Name {
+				switch existing.State {
+				case
+					cloud.InstallationStateCreationFailed,
+					cloud.InstallationStateDeleted:
+					break
+				default:
+					return nil, true, fmt.Errorf("Installation name %s already exists. Names are case insensitive and must be unique so you must choose a new name and try again", install.Name)
+				}
+			}
+		}
 	}
 
 	err = parseCreateArgs(args, install)
