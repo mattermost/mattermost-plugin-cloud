@@ -45,28 +45,40 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, erro
 	// is returned when asked for it, the plugin makes a follow up call to confirm that it was
 	// deleted. If deleted, the installation should be also removed from the plugin storage.
 	for _, cloudInstall := range cloudInstalls {
-		for j, pluginInstall := range pluginInstalls {
-			if cloudInstall.ID == pluginInstall.ID {
-				if cloudInstall.DeleteAt > 0 || cloudInstall.State == cloud.ClusterInstallationStateCreationFailed {
-					err = p.deleteInstallation(pluginInstall.ID)
-					if err != nil {
-						p.API.LogError(err.Error(), pluginInstall.ID)
-					} else {
-						// Notify the user that installation was removed.
-						p.PostBotDM(userID, fmt.Sprintf("Cloud installation ID %s has been removed from your Mattermost app.", pluginInstall.ID))
-						// Remove key from the plugin installations in place.
-						l := len(pluginInstalls) - 1
-						pluginInstalls[j] = pluginInstalls[l]
-						pluginInstalls = pluginInstalls[:l]
-					}
-				} else {
-					pluginInstall.Installation = *cloudInstall
-					pluginInstall.License = "hidden"
+		for j := 0; j < len(pluginInstalls); j++ {
+			if cloudInstall.ID == pluginInstalls[j].ID {
+				continue
+			}
+
+			if cloudInstall.DeleteAt > 0 || cloudInstall.State == cloud.ClusterInstallationStateCreationFailed {
+				err = p.deleteInstallation(pluginInstalls[j].ID)
+				if err != nil {
+					p.API.LogError(err.Error(), pluginInstalls[j].ID)
+					continue
 				}
+
+				// Notify the user that installation was removed.
+				p.PostBotDM(userID, fmt.Sprintf("Cloud installation ID %s has been removed from your Mattermost app.", pluginInstalls[j].ID))
+
+				// Update plugin installs array.
+				updatePluginInstalls(j, pluginInstalls)
 				break
 			}
+
+			pluginInstalls[j].Installation = *cloudInstall
+			pluginInstalls[j].License = "hidden"
+			break
 		}
 	}
 
 	return pluginInstalls, nil
+}
+
+func updatePluginInstalls(i int, arr []*Installation) []*Installation {
+	l := len(arr)
+	if l > 0 && i >= 0 && i < l {
+		arr[i] = arr[l-1]
+		return arr[:(l - 1)]
+	}
+	return arr
 }
