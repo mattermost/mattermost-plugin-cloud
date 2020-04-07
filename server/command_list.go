@@ -61,7 +61,7 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, erro
 				p.PostBotDM(userID, fmt.Sprintf("Cloud installation ID %s has been removed from your Mattermost app.", pluginInstalls[j].ID))
 
 				// Update plugin installs array.
-				updatePluginInstalls(j, pluginInstalls)
+				pluginInstalls = updatePluginInstalls(j, pluginInstalls)
 				break
 			}
 
