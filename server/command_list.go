@@ -52,10 +52,8 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, erro
 			}
 
 			if cloudInstall.DeleteAt > 0 || cloudInstall.State == cloud.ClusterInstallationStateCreationFailed {
-
 				err = p.deleteInstallation(pluginInstalls[j].ID)
 				if err != nil {
-
 					p.API.LogError(err.Error(), pluginInstalls[j].ID)
 					continue
 				}

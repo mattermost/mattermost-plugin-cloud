@@ -13,14 +13,6 @@ LDFLAGS += -X "main.BuildDate=$(BUILD_DATE)"
 LDFLAGS += -X "main.BuildHash=$(BUILD_HASH)"
 LDFLAGS += -X "main.BuildHashShort=$(BUILD_HASH_SHORT)"
 
-######################################
-
-MM_SERVER_URL := github.com/mattermost/mattermost-server
-MM_SERVER_VERSION := $(shell find go.mod -type f -exec cat {} + | grep ${MM_SERVER_URL} | awk '{print $$NF}')
-MM_SERVER_PATH := $(GOPATH)/pkg/mod/${MM_SERVER_URL}\@${MM_SERVER_VERSION}
-
-######################################
-
 export GO111MODULE=on
 
 # You can include assets this directory into the bundle. This can be e.g. used to include profile pictures.
@@ -98,9 +90,9 @@ golint:
 server:
 ifneq ($(HAS_SERVER),)
 	mkdir -p server/dist;
-	cd server && env GOOS=linux GOARCH=amd64 $(GO) build $(GO_BUILD_FLAGS)  -o dist/plugin-linux-amd64;
-	cd server && env GOOS=darwin GOARCH=amd64 $(GO) build $(GO_BUILD_FLAGS) -o dist/plugin-darwin-amd64;
-	cd server && env GOOS=windows GOARCH=amd64 $(GO) build $(GO_BUILD_FLAGS) -o dist/plugin-windows-amd64.exe;
+	cd server && env GOOS=linux GOARCH=amd64 $(GO) build $(GO_BUILD_FLAGS) -ldflags '$(LDFLAGS)' -o dist/plugin-linux-amd64;
+	cd server && env GOOS=darwin GOARCH=amd64 $(GO) build $(GO_BUILD_FLAGS) -ldflags '$(LDFLAGS)' -o dist/plugin-darwin-amd64;
+	cd server && env GOOS=windows GOARCH=amd64 $(GO) build $(GO_BUILD_FLAGS) -ldflags '$(LDFLAGS)' -o dist/plugin-windows-amd64.exe;
 endif
 
 ## Ensures NPM dependencies are installed without having to run this all the time.
@@ -210,18 +202,3 @@ endif
 # Help documentatin à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:
 	@cat Makefile | grep -v '\.PHONY' |  grep -v '\help:' | grep -B1 -E '^[a-zA-Z0-9_.-]+:.*' | sed -e "s/:.*//" | sed -e "s/^## //" |  grep -v '\-\-' | sed '1!G;h;$$!d' | awk 'NR%2{printf "\033[36m%-30s\033[0m",$$0;next;}1' | sort
-
-# Generate mocks from the interfaces.
-.PHONY: mocks
-mocks:
-	@if [ ! -f $(GOPATH)/bin/mockgen ]; then \
-		echo "mockgen (https://github.com/golang/mock) is not installed";\
-	fi
-
-	@if [ ! -f $(GOPATH)/pkg/mod ]; then \
-		$(GO) mod download;\
-	fi
-
-	$(GOPATH)/bin/mockgen -source ./server/plugin.go -package mocks -destination ./server/mocks/plugin.go
-	$(GOPATH)/bin/mockgen -source $(MM_SERVER_PATH)/plugin/api.go -package mocks -destination ./server/mocks/api.go
-	$(GOPATH)/bin/mockgen -source $(MM_SERVER_PATH)/plugin/helpers.go -package mocks -destination ./server/mocks/helpers.go
