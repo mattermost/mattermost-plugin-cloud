@@ -7,6 +7,7 @@ require (
 	github.com/go-openapi/jsonreference v0.19.3 // indirect
 	github.com/go-openapi/spec v0.19.3 // indirect
 	github.com/gogo/protobuf v1.3.0 // indirect
+	github.com/golang/mock v1.2.0
 	github.com/gorilla/websocket v1.4.1 // indirect
 	github.com/heroku/docker-registry-client v0.0.0-20190909225348-afc9e1acc3d5
 	github.com/mailru/easyjson v0.7.0 // indirect
