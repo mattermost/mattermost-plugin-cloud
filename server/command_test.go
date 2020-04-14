@@ -30,7 +30,7 @@ func (mc *MockClient) CreateInstallation(request *cloud.CreateInstallationReques
 	return &cloud.Installation{ID: "someid"}, nil
 }
 
-func (mc *MockClient) GetInstallation(installataionID string) (*cloud.Installation, error) {
+func (mc *MockClient) GetInstallation(installataionID string, request *cloud.GetInstallationRequest) (*cloud.Installation, error) {
 	return &cloud.Installation{ID: "someid", OwnerID: "joramid"}, nil
 }
 
@@ -38,8 +38,8 @@ func (mc *MockClient) GetInstallations(request *cloud.GetInstallationsRequest) (
 	return mc.mockedCloudInstallations, mc.err
 }
 
-func (mc *MockClient) UpgradeInstallation(installationID string, request *cloud.UpgradeInstallationRequest) error {
-	return nil
+func (mc *MockClient) UpdateInstallation(installationID string, request *cloud.PatchInstallationRequest) (*cloud.Installation, error) {
+	return &cloud.Installation{ID: "someid", OwnerID: "joramid"}, nil
 }
 
 func (mc *MockClient) DeleteInstallation(installationID string) error {
@@ -52,6 +52,10 @@ func (mc *MockClient) GetClusterInstallations(request *cloud.GetClusterInstallat
 
 func (mc *MockClient) RunMattermostCLICommandOnClusterInstallation(clusterInstallationID string, subcommand []string) ([]byte, error) {
 	return []byte("mocked command output"), nil
+}
+
+func (mc *MockClient) GetGroup(groupID string) (*cloud.Group, error) {
+	return &cloud.Group{ID: groupID, Name: "test-group"}, nil
 }
 
 func TestCreateCommand(t *testing.T) {
@@ -110,26 +114,28 @@ func TestCreateCommand(t *testing.T) {
 		assert.Nil(t, resp)
 	})
 
-	t.Run("invalid affinity", func(t *testing.T) {
-		resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--affinity", "banana"}, &model.CommandArgs{})
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "invalid affinity option banana, must be isolated or multitenant")
-		assert.True(t, isUserError)
-		assert.Nil(t, resp)
-	})
+	t.Run("affinity", func(t *testing.T) {
+		t.Run("invalid", func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--affinity", "banana"}, &model.CommandArgs{})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "invalid affinity option banana, must be isolated or multitenant")
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+		})
 
-	t.Run("affinity is set to isolated", func(t *testing.T) {
-		resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--affinity", "isolated"}, &model.CommandArgs{})
-		require.NoError(t, err)
-		assert.False(t, isUserError)
-		assert.Contains(t, resp.Text, "Installation being created.")
-	})
+		t.Run("isolated", func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--affinity", "isolated"}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created.")
+		})
 
-	t.Run("affinity is set to multitenant", func(t *testing.T) {
-		resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--affinity", "multitenant"}, &model.CommandArgs{})
-		require.NoError(t, err)
-		assert.False(t, isUserError)
-		assert.Contains(t, resp.Text, "Installation being created.")
+		t.Run("multitenant", func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--affinity", "multitenant"}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created.")
+		})
 	})
 
 	t.Run("missing installation name", func(t *testing.T) {
@@ -144,6 +150,20 @@ func TestCreateCommand(t *testing.T) {
 		assert.Equal(t, "must provide an installation name", err.Error())
 		assert.True(t, isUserError)
 		assert.Nil(t, resp)
+	})
+
+	t.Run("groups", func(t *testing.T) {
+		groupID := model.NewId()
+		plugin.configuration = &configuration{
+			GroupID: groupID,
+		}
+
+		t.Run("create installation successfully", func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest"}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created.")
+		})
 	})
 }
 

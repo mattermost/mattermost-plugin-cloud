@@ -67,7 +67,7 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, erro
 			}
 
 			pluginInstalls[j].Installation = *cloudInstall
-			pluginInstalls[j].License = "hidden"
+			pluginInstalls[j].HideSensitiveFields()
 			break
 		}
 	}

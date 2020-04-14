@@ -3,6 +3,7 @@ package main
 import (
 	"testing"
 
+	"github.com/mattermost/mattermost-cloud/model"
 	"github.com/stretchr/testify/require"
 )
 
@@ -10,6 +11,7 @@ func TestConfigurationIsValid(t *testing.T) {
 	baseConfiguration := configuration{
 		ProvisioningServerURL:           "https://provisioner.url.com",
 		InstallationDNS:                 "test.com",
+		GroupID:                         "",
 		ClusterWebhookAlertsEnable:      false,
 		InstallationWebhookAlertsEnable: false,
 	}
@@ -28,6 +30,20 @@ func TestConfigurationIsValid(t *testing.T) {
 		config := baseConfiguration
 		config.InstallationDNS = ""
 		require.Error(t, config.IsValid())
+	})
+
+	t.Run("groups", func(t *testing.T) {
+		t.Run("valid group ID length", func(t *testing.T) {
+			config := baseConfiguration
+			config.GroupID = model.NewID()
+			require.NoError(t, config.IsValid())
+		})
+
+		t.Run("invalid group ID length", func(t *testing.T) {
+			config := baseConfiguration
+			config.GroupID = "tooshort"
+			require.Error(t, config.IsValid())
+		})
 	})
 
 	t.Run("cluster alerts", func(t *testing.T) {

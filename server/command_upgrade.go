@@ -104,12 +104,12 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 		}
 	}
 
-	upgradeRequest := &cloud.UpgradeInstallationRequest{
-		Version: version,
-		License: license,
+	upgradeRequest := &cloud.PatchInstallationRequest{
+		Version: &version,
+		License: &license,
 	}
 
-	err = p.cloudClient.UpgradeInstallation(installToUpgrade.ID, upgradeRequest)
+	_, err = p.cloudClient.UpdateInstallation(installToUpgrade.ID, upgradeRequest)
 	if err != nil {
 		return nil, false, err
 	}

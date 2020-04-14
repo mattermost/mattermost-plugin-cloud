@@ -63,44 +63,50 @@ func (p *Plugin) processWebhookEvent(payload *cloud.WebhookPayload) {
 		return
 	}
 
-	var installation *cloud.Installation
+	installation, err := p.cloudClient.GetInstallation(payload.ID,
+		&cloud.GetInstallationRequest{
+			IncludeGroupConfig:          true,
+			IncludeGroupConfigOverrides: false,
+		})
+	if err != nil {
+		p.API.LogError(err.Error(), "installation", install.Name)
+		return
+	}
+	if installation == nil {
+		p.API.LogError(fmt.Sprintf("could not find installation %s", install.ID))
+	}
+	install.Installation = *installation
 
 	switch payload.OldState {
-	case cloud.InstallationStateUpgradeRequested,
-		cloud.InstallationStateUpgradeInProgress,
-		cloud.InstallationStateUpgradeFailed:
-		installation, err = p.cloudClient.GetInstallation(payload.ID)
-		if err != nil {
-			p.API.LogError(err.Error(), "installation", install.Name)
-			return
-		}
-		if installation == nil {
-			p.API.LogError(fmt.Sprintf("could not find installation %s", install.ID))
-		}
+	case cloud.InstallationStateUpdateRequested,
+		cloud.InstallationStateUpdateInProgress,
+		cloud.InstallationStateUpdateFailed:
 
-		install.Installation = *installation
+		install.HideSensitiveFields()
 
 		message := fmt.Sprintf(`
-Installation %s has been upgraded!
+Installation %s has been updated!
 
 Installation details:
 %s
 `, install.Name, jsonCodeBlock(install.ToPrettyJSON()))
 
 		p.PostBotDM(install.OwnerID, message)
+
 	case cloud.InstallationStateCreationRequested,
 		cloud.InstallationStateCreationPreProvisioning,
 		cloud.InstallationStateCreationInProgress,
 		cloud.InstallationStateCreationDNS,
 		cloud.InstallationStateCreationNoCompatibleClusters,
 		cloud.InstallationStateCreationFailed:
+
 		err = p.setupInstallation(install)
 		if err != nil {
 			p.API.LogError(err.Error(), "installation", install.Name)
 			return
 		}
 
-		install.License = "hidden"
+		install.HideSensitiveFields()
 
 		message := fmt.Sprintf(`
 Installation %s is ready!

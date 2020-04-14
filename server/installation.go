@@ -32,6 +32,13 @@ func (i *Installation) ToPrettyJSON() string {
 	return string(b)
 }
 
+// HideSensitiveFields hides installation fields that could contain sensitive
+// information.
+func (i *Installation) HideSensitiveFields() {
+	i.License = "hidden"
+	i.MattermostEnv = nil
+}
+
 func (p *Plugin) storeInstallation(install *Installation) error {
 	for i := 0; i < StoreInstallRetries; i++ {
 		// Use the retry count value to build an increasing backoff that has no

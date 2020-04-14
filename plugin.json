@@ -55,10 +55,16 @@
                 "help_text": "The contents of a E20 license."
             },
             {
+                "key": "GroupID",
+                "display_name": "Group ID",
+                "type": "text",
+                "help_text": "(Optional) When set, all installations created by the plugin are created within this group."
+            },
+            {
                 "key": "EmailSettings",
                 "display_name": "Email Settings",
                 "type": "longtext",
-                "help_text": "The JSON EmailSettings section for Mattermost."
+                "help_text": "The JSON EmailSettings section for Mattermost. Only used when Group ID is not set."
             },
             {
                 "key": "ClusterWebhookAlertsEnable",

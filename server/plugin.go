@@ -34,13 +34,15 @@ type CloudClient interface {
 	GetClusters(*cloud.GetClustersRequest) ([]*cloud.Cluster, error)
 
 	CreateInstallation(request *cloud.CreateInstallationRequest) (*cloud.Installation, error)
-	GetInstallation(installationID string) (*cloud.Installation, error)
+	GetInstallation(installationID string, request *cloud.GetInstallationRequest) (*cloud.Installation, error)
 	GetInstallations(*cloud.GetInstallationsRequest) ([]*cloud.Installation, error)
-	UpgradeInstallation(installationID string, request *cloud.UpgradeInstallationRequest) error
+	UpdateInstallation(installationID string, request *cloud.PatchInstallationRequest) (*cloud.Installation, error)
 	DeleteInstallation(installationID string) error
 
 	GetClusterInstallations(request *cloud.GetClusterInstallationsRequest) ([]*cloud.ClusterInstallation, error)
 	RunMattermostCLICommandOnClusterInstallation(clusterInstallationID string, subcommand []string) ([]byte, error)
+
+	GetGroup(groupID string) (*cloud.Group, error)
 }
 
 // DockerClientInterface is the interface for interacting with docker.
