@@ -58,7 +58,7 @@
                 "key": "GroupID",
                 "display_name": "Group ID",
                 "type": "text",
-                "help_text": "(Optional) When set, all installations created by the plugin are created within this group."
+                "help_text": "(Optional) When set, all new installations created by the plugin are created within this group."
             },
             {
                 "key": "EmailSettings",
