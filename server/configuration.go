@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/url"
 	"reflect"
 
@@ -42,7 +41,11 @@ type configuration struct {
 	E10License string
 	E20License string
 
+	// Groups
+	GroupID string
+
 	// Email
+	// Note: email settings are only used when group configuration is empty.
 	EmailSettings string
 
 	// Webhook Alerts
@@ -70,18 +73,22 @@ func (c *configuration) IsValid() error {
 	}
 
 	if len(c.InstallationDNS) == 0 {
-		return fmt.Errorf("must specify InstallationDNS")
+		return errors.New("must specify InstallationDNS")
+	}
+
+	if len(c.GroupID) != 0 && len(c.GroupID) != 26 {
+		return errors.Errorf("group IDs are 26 characters long, the provided ID was %d", len(c.GroupID))
 	}
 
 	if c.ClusterWebhookAlertsEnable {
 		if len(c.ClusterWebhookAlertsChannelID) == 0 {
-			return fmt.Errorf("must specify a cluster alerts channel ID when cluster alerts are enabled")
+			return errors.Errorf("must specify a cluster alerts channel ID when cluster alerts are enabled")
 		}
 	}
 
 	if c.InstallationWebhookAlertsEnable {
 		if len(c.InstallationWebhookAlertsChannelID) == 0 {
-			return fmt.Errorf("must specify an installation alerts channel ID when installation alerts are enabled")
+			return errors.Errorf("must specify an installation alerts channel ID when installation alerts are enabled")
 		}
 	}
 

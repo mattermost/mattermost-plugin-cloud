@@ -74,15 +74,18 @@ func (p *Plugin) setupInstallationConfiguration(client *model.Client4, install *
 
 	pluginConfig := p.getConfiguration()
 
-	p.configureEmail(config, pluginConfig)
+	if pluginConfig.GroupID == "" {
+		// Set some basic config due to not being in a group.
+		p.configureEmail(config, pluginConfig)
 
-	config.ServiceSettings.EnableDeveloper = NewBool(true)
-	config.TeamSettings.EnableOpenServer = NewBool(true)
-	config.PluginSettings.EnableUploads = NewBool(true)
+		config.ServiceSettings.EnableDeveloper = NewBool(true)
+		config.TeamSettings.EnableOpenServer = NewBool(true)
+		config.PluginSettings.EnableUploads = NewBool(true)
 
-	_, resp = client.UpdateConfig(config)
-	if resp.Error != nil {
-		return errors.Wrap(resp.Error, "unable to update installation config")
+		_, resp = client.UpdateConfig(config)
+		if resp.Error != nil {
+			return errors.Wrap(resp.Error, "unable to update installation config")
+		}
 	}
 
 	err := p.createTestData(client, install)

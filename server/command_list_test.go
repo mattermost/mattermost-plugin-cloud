@@ -17,25 +17,21 @@ func TestGetUpdatedInstallsForUser(t *testing.T) {
 	plugin := Plugin{
 		cloudClient: &MockClient{
 			mockedCloudInstallations: []*cloud.Installation{
-				&cloud.Installation{
+				{
 					ID:      "id1",
 					OwnerID: "owner 1",
-				},
-				&cloud.Installation{
+				}, {
 					ID:      "id2",
 					OwnerID: "owner 1",
-				},
-				&cloud.Installation{
+				}, {
 					ID:       "id3",
 					OwnerID:  "owner 1",
 					DeleteAt: 99999,
-				},
-				&cloud.Installation{
+				}, {
 					ID:      "id4",
 					OwnerID: "owner 1",
 					State:   cloud.ClusterInstallationStateCreationFailed,
-				},
-				&cloud.Installation{
+				}, {
 					ID:      "id5",
 					OwnerID: "owner 2",
 				},
@@ -99,11 +95,11 @@ func TestGetUpdatedInstallsForUser(t *testing.T) {
 
 func getFakeCloudInstallations() ([]*Installation, []byte, error) {
 	installations := []*Installation{
-		&Installation{Name: "installation-one", Installation: cloud.Installation{ID: "id1", OwnerID: "owner 1"}},
-		&Installation{Name: "installation-two", Installation: cloud.Installation{ID: "id2", OwnerID: "owner 1"}},
-		&Installation{Name: "installation-three", Installation: cloud.Installation{ID: "id3", OwnerID: "owner 1"}},
-		&Installation{Name: "installation-four", Installation: cloud.Installation{ID: "id4", OwnerID: "owner 1"}},
-		&Installation{Name: "installation-five", Installation: cloud.Installation{ID: "id5", OwnerID: "owner 1"}},
+		{Name: "installation-one", Installation: cloud.Installation{ID: "id1", OwnerID: "owner 1"}},
+		{Name: "installation-two", Installation: cloud.Installation{ID: "id2", OwnerID: "owner 1"}},
+		{Name: "installation-three", Installation: cloud.Installation{ID: "id3", OwnerID: "owner 1"}},
+		{Name: "installation-four", Installation: cloud.Installation{ID: "id4", OwnerID: "owner 1"}},
+		{Name: "installation-five", Installation: cloud.Installation{ID: "id5", OwnerID: "owner 1"}},
 	}
 	b, err := json.Marshal(installations)
 

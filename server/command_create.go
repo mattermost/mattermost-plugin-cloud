@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
@@ -90,7 +89,7 @@ func parseCreateArgs(args []string, install *Installation) error {
 
 func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
 	if len(args) == 0 {
-		return nil, true, fmt.Errorf("must provide an installation name")
+		return nil, true, errors.New("must provide an installation name")
 	}
 
 	install := &Installation{
@@ -98,19 +97,19 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 	}
 
 	if install.Name == "" || strings.HasPrefix(install.Name, "--") {
-		return nil, true, fmt.Errorf("must provide an installation name")
+		return nil, true, errors.New("must provide an installation name")
 	}
 
 	if !validInstallationName(install.Name) {
-		return nil, true, fmt.Errorf("installation name %s is invalid: only letters, numbers, and hyphens are permitted", install.Name)
+		return nil, true, errors.Errorf("installation name %s is invalid: only letters, numbers, and hyphens are permitted", install.Name)
 	}
 
 	exists, err := p.installationWithNameExists(install.Name)
-	if err != nil || exists {
-		if err != nil {
-			return nil, false, err
-		}
-		return nil, true, fmt.Errorf("Installation name %s already exists. Names are case insensitive and must be unique so you must choose a new name and try again", install.Name)
+	if err != nil {
+		return nil, false, errors.Wrap(err, "unable to determine if installation name is already taken")
+	}
+	if exists {
+		return nil, true, errors.Errorf("Installation name %s already exists. Names are case insensitive and must be unique so you must choose a new name and try again", install.Name)
 	}
 
 	err = parseCreateArgs(args, install)
@@ -135,7 +134,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 			p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", repository, install.Version).Error())
 		}
 		if !exists {
-			return nil, true, fmt.Errorf("%s is not a valid docker tag for repository %s", install.Version, repository)
+			return nil, true, errors.Errorf("%s is not a valid docker tag for repository %s", install.Version, repository)
 		}
 	}
 
@@ -147,7 +146,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 	}
 
 	if len(database) == 0 {
-		return nil, false, fmt.Errorf("could not determine database type; provided database type was %s", install.Database)
+		return nil, false, errors.Errorf("could not determine database type; provided database type was %s", install.Database)
 	}
 
 	var filestore string
@@ -158,16 +157,30 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 	}
 
 	if len(filestore) == 0 {
-		return nil, false, fmt.Errorf("could not determine filestore type; provided filestore type was %s", install.Filestore)
+		return nil, false, errors.Errorf("could not determine filestore type; provided filestore type was %s", install.Filestore)
+	}
+
+	var groupID string
+	var group *cloud.Group
+	if len(config.GroupID) != 0 {
+		group, err = p.cloudClient.GetGroup(config.GroupID)
+		if err != nil {
+			return nil, false, errors.Wrapf(err, "unable to get group with ID %s", config.GroupID)
+		}
+		if group == nil {
+			return nil, false, errors.Errorf("group with ID %s does not exist", config.GroupID)
+		}
+		groupID = config.GroupID
 	}
 
 	req := &cloud.CreateInstallationRequest{
+		OwnerID:   extra.UserId,
+		GroupID:   groupID,
 		Affinity:  install.Affinity,
 		DNS:       fmt.Sprintf("%s.%s", install.Name, config.InstallationDNS),
 		Database:  database,
 		Filestore: filestore,
 		License:   license,
-		OwnerID:   extra.UserId,
 		Size:      install.Size,
 		Version:   install.Version,
 	}
@@ -184,14 +197,9 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, false, err
 	}
 
-	cloudInstallation.License = "hidden"
+	install.HideSensitiveFields()
 
-	data, err := json.Marshal(cloudInstallation)
-	if err != nil {
-		return nil, false, err
-	}
-
-	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Installation being created. You will receive a notification when it is ready. Use `/cloud list` to check on the status of your installations.\n\n"+jsonCodeBlock(prettyPrintJSON(string(data)))), false, nil
+	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Installation being created. You will receive a notification when it is ready. Use `/cloud list` to check on the status of your installations.\n\n"+jsonCodeBlock(install.ToPrettyJSON())), false, nil
 }
 
 // installationWithNameExists returns true when there already exists an installation with name "name"
