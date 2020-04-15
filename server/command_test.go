@@ -19,6 +19,8 @@ type MockClient struct {
 	mockedCloudInstallations        []*cloud.Installation
 	mockedCloudClusterInstallations []*cloud.ClusterInstallation
 
+	overrideGetInstallation *cloud.Installation
+
 	err error
 }
 
@@ -31,6 +33,10 @@ func (mc *MockClient) CreateInstallation(request *cloud.CreateInstallationReques
 }
 
 func (mc *MockClient) GetInstallation(installataionID string, request *cloud.GetInstallationRequest) (*cloud.Installation, error) {
+	if mc.overrideGetInstallation != nil {
+		return mc.overrideGetInstallation, nil
+	}
+
 	return &cloud.Installation{ID: "someid", OwnerID: "joramid"}, nil
 }
 
@@ -172,6 +178,7 @@ func TestListCommand(t *testing.T) {
 	plugin.cloudClient = &MockClient{}
 
 	api := &plugintest.API{}
+	api.On("LogWarn", mock.AnythingOfTypeArgument("string")).Return(nil)
 	plugin.SetAPI(api)
 
 	t.Run("list installations successfully", func(t *testing.T) {

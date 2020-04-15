@@ -18,8 +18,8 @@ const (
 
 // Installation extends the cloud struct of the same name to add additional configuration options
 type Installation struct {
+	Name string
 	cloud.Installation
-	Name     string
 	TestData bool
 }
 
