@@ -13,87 +13,59 @@ import (
 )
 
 func TestGetUpdatedInstallsForUser(t *testing.T) {
-	dockerClient := &MockedDockerClient{tagExists: true}
 	plugin := Plugin{
 		cloudClient: &MockClient{
+			overrideGetInstallation: &cloud.Installation{
+				ID:    "id3",
+				State: cloud.ClusterInstallationStateDeleted,
+			},
 			mockedCloudInstallations: []*cloud.Installation{
 				{
-					ID:      "id1",
-					OwnerID: "owner 1",
+					ID:    "id1",
+					State: cloud.ClusterInstallationStateStable,
 				}, {
-					ID:      "id2",
-					OwnerID: "owner 1",
+					ID:    "id2",
+					State: cloud.ClusterInstallationStateStable,
 				}, {
-					ID:       "id3",
-					OwnerID:  "owner 1",
-					DeleteAt: 99999,
+					ID:    "id4",
+					State: cloud.ClusterInstallationStateStable,
 				}, {
-					ID:      "id4",
-					OwnerID: "owner 1",
-					State:   cloud.ClusterInstallationStateCreationFailed,
-				}, {
-					ID:      "id5",
-					OwnerID: "owner 2",
+					ID:    "id5",
+					State: cloud.ClusterInstallationStateStable,
 				},
 			},
 		},
-		dockerClient: dockerClient,
+		dockerClient: &MockedDockerClient{tagExists: true},
 	}
 
 	api := &plugintest.API{}
 
 	plugin.SetAPI(api)
 
-	t.Run("test deleted mismatched items", func(t *testing.T) {
-		_, installationBytes, err := getFakeCloudInstallations()
+	t.Run("test deleted installations", func(t *testing.T) {
+		pluginInstalls, installationBytes, err := getFakePluginInstallations()
 		require.NoError(t, err)
 		api.On("KVGet", mock.AnythingOfType("string")).Return(installationBytes, nil)
 		api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
-		api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
 		api.On("GetDirectChannel", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.Channel{}, nil)
-		api.On("CreatePost", &model.Post{Message: "Cloud installation ID id5 has been removed from your Mattermost app."}).Return(&model.Post{}, nil)
-		api.On("CreatePost", &model.Post{Message: "Cloud installation ID id2 has been removed from your Mattermost app."}).Return(&model.Post{}, nil)
+		api.On("CreatePost", &model.Post{
+			Message: "Cloud installation installation-three has been manually deleted and is now removed from the cloud plugin.\n\n``` json\n{\n\t\"Name\": \"installation-three\",\n\t\"ID\": \"id3\",\n\t\"OwnerID\": \"\",\n\t\"GroupID\": null,\n\t\"Version\": \"\",\n\t\"Image\": \"\",\n\t\"DNS\": \"\",\n\t\"Database\": \"\",\n\t\"Filestore\": \"\",\n\t\"License\": \"hidden\",\n\t\"MattermostEnv\": null,\n\t\"Size\": \"\",\n\t\"Affinity\": \"\",\n\t\"State\": \"deleted\",\n\t\"CreateAt\": 0,\n\t\"DeleteAt\": 0,\n\t\"LockAcquiredBy\": null,\n\t\"LockAcquiredAt\": 0,\n\t\"TestData\": false\n}\n```",
+		}).Return(nil, nil)
+		api.On("LogWarn", mock.AnythingOfTypeArgument("string")).Return(nil)
 
 		installations, err := plugin.getUpdatedInstallsForUser("owner 1")
 		require.NoError(t, err)
-		assert.Equal(t, 3, len(installations))
-		assert.Equal(t, "id5", installations[0].ID)
-		assert.Equal(t, "id1", installations[1].ID)
-		assert.Equal(t, "id3", installations[2].ID)
-	})
-
-	t.Run("test updatePluginInstalls helper function", func(t *testing.T) {
-		pluginInstalls := []*Installation{
-			{Name: "one"},
-			{Name: "two"},
-			{Name: "three"},
-			{Name: "four"},
-		}
-
-		pluginInstalls = updatePluginInstalls(3, pluginInstalls)
-		require.Equal(t, 3, len(pluginInstalls))
-		require.Equal(t, "one", pluginInstalls[0].Name)
-		require.Equal(t, "two", pluginInstalls[1].Name)
-		require.Equal(t, "three", pluginInstalls[2].Name)
-
-		pluginInstalls = updatePluginInstalls(1, pluginInstalls)
-		require.Equal(t, 2, len(pluginInstalls))
-		require.Equal(t, "one", pluginInstalls[0].Name)
-		require.Equal(t, "three", pluginInstalls[1].Name)
-
-		pluginInstalls = updatePluginInstalls(0, pluginInstalls)
-		require.Equal(t, 1, len(pluginInstalls))
-		require.Equal(t, "three", pluginInstalls[0].Name)
-
-		pluginInstalls = updatePluginInstalls(0, pluginInstalls)
-		require.Equal(t, 0, len(pluginInstalls))
-
-		pluginInstalls = updatePluginInstalls(0, pluginInstalls)
-		require.Equal(t, 0, len(pluginInstalls))
+		require.Equal(t, len(pluginInstalls), len(installations))
+		assert.Equal(t, "id1", installations[0].ID)
+		assert.Equal(t, "id2", installations[1].ID)
+		assert.Equal(t, "id4", installations[3].ID)
+		assert.Equal(t, "id5", installations[4].ID)
+		assert.Contains(t, installations[2].Name, "installation-three")
+		assert.Contains(t, installations[2].Name, "DELETED")
 	})
 }
 
-func getFakeCloudInstallations() ([]*Installation, []byte, error) {
+func getFakePluginInstallations() ([]*Installation, []byte, error) {
 	installations := []*Installation{
 		{Name: "installation-one", Installation: cloud.Installation{ID: "id1", OwnerID: "owner 1"}},
 		{Name: "installation-two", Installation: cloud.Installation{ID: "id2", OwnerID: "owner 1"}},

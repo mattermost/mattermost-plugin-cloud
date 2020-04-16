@@ -6,6 +6,7 @@ import (
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 )
 
 func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
@@ -32,54 +33,78 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, erro
 		return nil, err
 	}
 
-	// cloud.Installation
+	// Grab the cloud installations belonging to this user. Note that we are not
+	// asking for deleted installations. This is done for performance reasons as
+	// we can ask for deleted installations later if necesssary.
 	cloudInstalls, err := p.cloudClient.GetInstallations(&cloud.GetInstallationsRequest{
-		OwnerID:        userID,
-		IncludeDeleted: true,
+		OwnerID:            userID,
+		IncludeGroupConfig: true,
+		IncludeDeleted:     false,
+		PerPage:            cloud.AllPerPage,
 	})
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(err, "unable to get installations from cloud server")
 	}
 
-	// TODO: This may become a performance issue as deleted installations in the database start
-	// to grow. We could make it better by assuming that installation is not deleted. If an error
-	// is returned when asked for it, the plugin makes a follow up call to confirm that it was
-	// deleted. If deleted, the installation should be also removed from the plugin storage.
-	for _, cloudInstall := range cloudInstalls {
-		for j := 0; j < len(pluginInstalls); j++ {
-			if cloudInstall.ID == pluginInstalls[j].ID {
-				continue
+	var deleted bool
+	for i, pluginInstall := range pluginInstalls {
+		deleted, err = p.processInstallationUpdate(pluginInstall, cloudInstalls)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable to process installation")
+		}
+		if deleted {
+			// Notify the user and also show the deleted installation in their
+			// list one last time with a DELETED tag.
+			p.PostBotDM(userID, fmt.Sprintf("Cloud installation %s has been manually deleted and is now removed from the cloud plugin.\n\n%s", pluginInstall.Name, jsonCodeBlock(pluginInstall.ToPrettyJSON())))
+			pluginInstalls[i] = &Installation{
+				Name: fmt.Sprintf("%s [ DELETED ]", pluginInstall.Name),
 			}
-
-			if cloudInstall.DeleteAt > 0 || cloudInstall.State == cloud.ClusterInstallationStateCreationFailed {
-				err = p.deleteInstallation(pluginInstalls[j].ID)
-				if err != nil {
-					p.API.LogError(err.Error(), pluginInstalls[j].ID)
-					continue
-				}
-
-				// Notify the user that installation was removed.
-				p.PostBotDM(userID, fmt.Sprintf("Cloud installation ID %s has been removed from your Mattermost app.", pluginInstalls[j].ID))
-
-				// Update plugin installs array.
-				pluginInstalls = updatePluginInstalls(j, pluginInstalls)
-				break
-			}
-
-			pluginInstalls[j].Installation = *cloudInstall
-			pluginInstalls[j].HideSensitiveFields()
-			break
 		}
 	}
 
 	return pluginInstalls, nil
 }
 
-func updatePluginInstalls(i int, arr []*Installation) []*Installation {
-	l := len(arr)
-	if l > 0 && i >= 0 && i < l {
-		arr[i] = arr[l-1]
-		return arr[:(l - 1)]
+func (p *Plugin) processInstallationUpdate(pluginInstall *Installation, cloudInstalls []*cloud.Installation) (bool, error) {
+	for _, cloudInstall := range cloudInstalls {
+		if pluginInstall.ID == cloudInstall.ID {
+			pluginInstall.Installation = *cloudInstall
+			pluginInstall.HideSensitiveFields()
+			return false, nil
+		}
 	}
-	return arr
+
+	// No match could be made with the provided slice of cloud installations.
+	// Let's verify that this installation was deleted.
+	updatedInstall, err := p.cloudClient.GetInstallation(pluginInstall.ID,
+		&cloud.GetInstallationRequest{
+			IncludeGroupConfig: true,
+		})
+	if err != nil {
+		return false, errors.Wrapf(err, "unable to get installation %s from cloud server", pluginInstall.ID)
+	}
+	if updatedInstall == nil {
+		return false, fmt.Errorf("could not find installation %s", pluginInstall.ID)
+	}
+
+	pluginInstall.Installation = *updatedInstall
+	pluginInstall.HideSensitiveFields()
+
+	if updatedInstall.State != cloud.InstallationStateDeleted {
+		// This is strange as the installation should have been retrieved in the
+		// original cloud server query.
+		// Handle this by logging and returning the installation as normal.
+		p.API.LogWarn(fmt.Sprintf("Cloud installation %s with name %s was not returned on the original cloud server query", pluginInstall.ID, pluginInstall.Name))
+		return false, nil
+	}
+
+	// The installation was deleted on the cloud server so remove it from the KV
+	// store to sync state and notify the user.
+	p.API.LogWarn(fmt.Sprintf("Removing deleted installation %s with name %s from the KV store", pluginInstall.ID, pluginInstall.Name))
+	err = p.deleteInstallation(pluginInstall.ID)
+	if err != nil {
+		return true, errors.Wrapf(err, "unable to delete installation %s in the KV store", pluginInstall.ID)
+	}
+
+	return true, nil
 }
