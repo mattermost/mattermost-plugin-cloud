@@ -252,6 +252,7 @@ github.com/evanphx/json-patch v4.5.0+incompatible/go.mod h1:50XU6AFN0ol/bzJsmQLi
 github.com/exponent-io/jsonpath v0.0.0-20151013193312-d6023ce2651d/go.mod h1:ZZMPRZwes7CROmyNKgQzC3XPs6L/G2EJLHddWejkmf4=
 github.com/fatih/camelcase v1.0.0/go.mod h1:yN2Sb0lFhZJUdVvtELVWefmrXpuZESvPmqwoZc+/fpc=
 github.com/fatih/color v1.6.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
+github.com/fatih/color v1.7.0 h1:DkWD4oS2D8LGGgTQ6IvwJJXSL5Vp2ffcQg58nFV38Ys=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
 github.com/fatih/structs v1.1.0/go.mod h1:9NiDSp5zOcgEDl+j00MP/WkGVPOlPRLejGD8Ga6PJ7M=
 github.com/fatih/structtag v1.1.0/go.mod h1:mBJUNpUnHmRKrKlQQlmCrh5PuhftFbNv8Ys4/aAZl94=
@@ -654,8 +655,8 @@ github.com/mattermost/gorp v2.0.1-0.20190301154413-3b31e9a39d05+incompatible h1:
 github.com/mattermost/gorp v2.0.1-0.20190301154413-3b31e9a39d05+incompatible/go.mod h1:0kX1qa3DOpaPJyOdMLeo7TcBN0QmUszj9a/VygOhDe0=
 github.com/mattermost/ldap v3.0.4+incompatible h1:SOeNnz+JNR+foQ3yHkYqijb9MLPhXN2BZP/PdX23VDU=
 github.com/mattermost/ldap v3.0.4+incompatible/go.mod h1:b4reDCcGpBxJ4WX0f224KFY+OR0npin7or7EFpeIko4=
-github.com/mattermost/mattermost-cloud v0.18.3-0.20200410174526-5785ffd13bf0 h1:OC2nMLTj1Jkc/2fnNZI+KlU6mqhV6qAICqPWT1IiSNs=
-github.com/mattermost/mattermost-cloud v0.18.3-0.20200410174526-5785ffd13bf0/go.mod h1:BYz4EVCdiKAWltIcg+HcYb5nIHEqG0ouTcOXdZVPF2k=
+github.com/mattermost/mattermost-cloud v0.18.3-0.20200422184813-335489fc317a h1:yBdYB1xZxIW8FuZWbGv6iPXtVL59p4MDLc50QOFcnw0=
+github.com/mattermost/mattermost-cloud v0.18.3-0.20200422184813-335489fc317a/go.mod h1:BYz4EVCdiKAWltIcg+HcYb5nIHEqG0ouTcOXdZVPF2k=
 github.com/mattermost/mattermost-operator v1.3.0 h1:q3HSCKyeEm8R1SNJX2n6GzF02GdzsbfItlHC9CEkKEY=
 github.com/mattermost/mattermost-operator v1.3.0/go.mod h1:qZ0P5FBGr9U91b11rYrjzCwFCPWGtqUxBKPga00GLpg=
 github.com/mattermost/mattermost-server v1.4.1-0.20190926112648-af3ffeed1a4a h1:Vq44zXWe1kK6+JpdIbGCbdfv3kjLjfEnxv9aRR5dE9w=

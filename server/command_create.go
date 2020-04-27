@@ -160,22 +160,9 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, false, errors.Errorf("could not determine filestore type; provided filestore type was %s", install.Filestore)
 	}
 
-	var groupID string
-	var group *cloud.Group
-	if len(config.GroupID) != 0 {
-		group, err = p.cloudClient.GetGroup(config.GroupID)
-		if err != nil {
-			return nil, false, errors.Wrapf(err, "unable to get group with ID %s", config.GroupID)
-		}
-		if group == nil {
-			return nil, false, errors.Errorf("group with ID %s does not exist", config.GroupID)
-		}
-		groupID = config.GroupID
-	}
-
 	req := &cloud.CreateInstallationRequest{
 		OwnerID:   extra.UserId,
-		GroupID:   groupID,
+		GroupID:   config.GroupID,
 		Affinity:  install.Affinity,
 		DNS:       fmt.Sprintf("%s.%s", install.Name, config.InstallationDNS),
 		Database:  database,
