@@ -5,7 +5,7 @@ go 1.13
 require (
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/heroku/docker-registry-client v0.0.0-20190909225348-afc9e1acc3d5
-	github.com/mattermost/mattermost-cloud v0.18.3-0.20200410174526-5785ffd13bf0
+	github.com/mattermost/mattermost-cloud v0.18.3-0.20200422184813-335489fc317a
 	github.com/mattermost/mattermost-server v1.4.1-0.20190926112648-af3ffeed1a4a
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5

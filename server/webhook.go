@@ -98,7 +98,8 @@ Installation details:
 		cloud.InstallationStateCreationInProgress,
 		cloud.InstallationStateCreationDNS,
 		cloud.InstallationStateCreationNoCompatibleClusters,
-		cloud.InstallationStateCreationFailed:
+		cloud.InstallationStateCreationFailed,
+		cloud.InstallationStateCreationFinalTasks:
 
 		err = p.setupInstallation(install)
 		if err != nil {
