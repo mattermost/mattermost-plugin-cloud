@@ -67,7 +67,7 @@ func parseCreateArgs(args []string, install *Installation) error {
 	}
 
 	if !validDatabaseOption(install.Database) {
-		return fmt.Errorf("invalid database option %s; must be %s or %s", install.Database, databaseOptionRDS, databaseOptionOperator)
+		return fmt.Errorf("invalid database option %s; must be %s, %s or %s", install.Database, databaseOptionRDS, databaseOptionOperator, databaseOptionMultitenant)
 	}
 
 	install.Filestore, err = createFlagSet.GetString("filestore")
@@ -140,9 +140,11 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 
 	database := ""
 	if install.Database == databaseOptionRDS {
-		database = cloud.InstallationDatabaseAwsRDS
+		database = cloud.InstallationDatabaseSingleTenantRDS
 	} else if install.Database == databaseOptionOperator {
 		database = cloud.InstallationDatabaseMysqlOperator
+	} else if install.Database == databaseOptionMultitenant {
+		database = cloud.InstallationDatabaseMultiTenantRDS
 	}
 
 	if len(database) == 0 {

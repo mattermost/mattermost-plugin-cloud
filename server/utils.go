@@ -37,7 +37,7 @@ func validLicenseOption(license string) bool {
 }
 
 func validDatabaseOption(databaseChoice string) bool {
-	return databaseChoice == databaseOptionRDS || databaseChoice == databaseOptionOperator
+	return databaseChoice == databaseOptionRDS || databaseChoice == databaseOptionOperator || databaseChoice == databaseOptionMultitenant
 }
 
 func validInstallationName(name string) bool {
