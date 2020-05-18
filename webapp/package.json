@@ -1,6 +1,6 @@
 {
   "name": "cloud",
-  "version": "0.1.1",
+  "version": "0.1.13",
   "description": "Cloud plugin for Mattermost",
   "main": "src/index.js",
   "scripts": {

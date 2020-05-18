@@ -1,2 +1,2 @@
 export const id = 'com.mattermost.cloud';
-export const version = '0.1.12';
+export const version = '0.1.13';
