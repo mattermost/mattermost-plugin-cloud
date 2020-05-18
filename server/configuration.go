@@ -13,8 +13,9 @@ const (
 	licenseOptionE20 = "e20"
 	licenseOptionTE  = "te"
 
-	databaseOptionRDS      = "aws-rds"
-	databaseOptionOperator = "operator"
+	databaseOptionRDS         = "aws-rds"
+	databaseOptionOperator    = "operator"
+	databaseOptionMultitenant = "aws-multitenant-rds"
 
 	filestoreOptionS3       = "aws-s3"
 	filestoreOptionOperator = "operator"
