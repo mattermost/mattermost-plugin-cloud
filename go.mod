@@ -5,13 +5,12 @@ go 1.13
 require (
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/heroku/docker-registry-client v0.0.0-20190909225348-afc9e1acc3d5
-	github.com/mattermost/mattermost-cloud v0.18.3-0.20200515180538-72899a2283ce
+	github.com/mattermost/mattermost-cloud v0.19.1-0.20200522160004-a4357c8defe6
 	github.com/mattermost/mattermost-server v1.4.1-0.20190926112648-af3ffeed1a4a
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.5.1
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
-	golang.org/x/tools v0.0.0-20200325203130-f53864d0dba1 // indirect
 )
 
 // Pinned to kubernetes-1.16.7
