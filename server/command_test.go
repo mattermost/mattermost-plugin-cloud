@@ -238,17 +238,17 @@ func TestUpgradeCommand(t *testing.T) {
 		assert.Contains(t, resp.Text, "Upgrade of installation")
 	})
 
-	t.Run("no version and no license", func(t *testing.T) {
+	t.Run("no version, license, or size", func(t *testing.T) {
 		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
 
 		resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall"}, &model.CommandArgs{UserId: "gabeid"})
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "must specify at least one option: license or version")
+		assert.Contains(t, err.Error(), "must specify at least one option: version, license, or size")
 		assert.True(t, isUserError)
 		assert.Nil(t, resp)
 	})
 
-	t.Run("with version and no license", func(t *testing.T) {
+	t.Run("version only", func(t *testing.T) {
 		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
 
 		resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--version", "5.13.1"}, &model.CommandArgs{UserId: "gabeid"})
@@ -257,13 +257,54 @@ func TestUpgradeCommand(t *testing.T) {
 		assert.Contains(t, resp.Text, "Upgrade of installation")
 	})
 
-	t.Run("with license and no version", func(t *testing.T) {
+	t.Run("size only", func(t *testing.T) {
 		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
 
-		resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--license", "e10"}, &model.CommandArgs{UserId: "gabeid"})
+		resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--size", "miniHA"}, &model.CommandArgs{UserId: "gabeid"})
 		require.NoError(t, err)
 		assert.False(t, isUserError)
 		assert.Contains(t, resp.Text, "Upgrade of installation")
+	})
+
+	t.Run("licenses", func(t *testing.T) {
+
+		t.Run("invalid", func(t *testing.T) {
+			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
+
+			resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--version", "5.13.1", "--license", "e30"}, &model.CommandArgs{UserId: "gabeid"})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "invalid license option")
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+		})
+
+		t.Run("e20", func(t *testing.T) {
+			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
+
+			resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--license", licenseOptionE20}, &model.CommandArgs{UserId: "gabeid"})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Upgrade of installation")
+		})
+
+		t.Run("e10", func(t *testing.T) {
+			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
+
+			resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--license", licenseOptionE10}, &model.CommandArgs{UserId: "gabeid"})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Upgrade of installation")
+		})
+
+		t.Run("te", func(t *testing.T) {
+			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
+
+			resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--license", licenseOptionTE}, &model.CommandArgs{UserId: "gabeid"})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Upgrade of installation")
+		})
+
 	})
 
 	t.Run("version is equal to current version", func(t *testing.T) {
@@ -296,16 +337,6 @@ func TestUpgradeCommand(t *testing.T) {
 			assert.Nil(t, resp)
 		})
 
-	})
-
-	t.Run("invalid license", func(t *testing.T) {
-		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
-
-		resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--version", "5.13.1", "--license", "e30"}, &model.CommandArgs{UserId: "gabeid"})
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "invalid license option")
-		assert.True(t, isUserError)
-		assert.Nil(t, resp)
 	})
 
 	t.Run("no installations", func(t *testing.T) {
