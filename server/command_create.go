@@ -21,7 +21,7 @@ func getCreateFlagSet() *flag.FlagSet {
 	createFlagSet.String("affinity", "multitenant", "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
 	createFlagSet.String("license", "e20", "The enterprise license to use. Can be 'e10', 'e20', or 'te'")
 	createFlagSet.String("filestore", "aws-s3", "Specify the backing file store. Can be 'aws-s3' to use Amazon S3 or 'operator' to use the Minio Operator inside the cluster")
-	createFlagSet.String("database", "aws-rds", "Specify the backing database. Can be 'aws-rds' to use Amazon RDS or 'operator' to use the MySQL Operator inside the cluster")
+	createFlagSet.String("database", databaseOptionMultitenant, "Specify the backing database. Can be 'aws-multitenant-rds' to use a shared Amazon RDS instance, 'aws-rds' to use a single-tenant Amazon RDS, 'operator' to use the MySQL Operator inside the cluster")
 	createFlagSet.Bool("test-data", false, "Set to pre-load the server with test data")
 
 	return createFlagSet
