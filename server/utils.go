@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+
+	"github.com/blang/semver/v4"
+	"github.com/pkg/errors"
 )
 
 func prettyPrintJSON(in string) string {
@@ -34,6 +37,24 @@ func standardizeName(name string) string {
 
 func validLicenseOption(license string) bool {
 	return license == licenseOptionE10 || license == licenseOptionE20 || license == licenseOptionTE
+}
+
+func validVersionOption(version string) error {
+	v, err := semver.Parse(version)
+	if err != nil {
+		// in case using a non version like latest or any other tag
+		return nil
+	}
+
+	expectedRange, err := semver.ParseRange("< 5.12.0")
+	if err != nil {
+		return errors.Wrapf(err, "failed to parse the version range for %s", version)
+	}
+	if expectedRange(v) {
+		return errors.Errorf("invalid Version option %s, must be greater than 5.12.0", version)
+	}
+
+	return nil
 }
 
 func validDatabaseOption(databaseChoice string) bool {

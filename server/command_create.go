@@ -43,6 +43,7 @@ func parseCreateArgs(args []string, install *Installation) error {
 	if err != nil {
 		return err
 	}
+
 	install.Affinity, err = createFlagSet.GetString("affinity")
 	if err != nil {
 		return err
@@ -135,6 +136,11 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		}
 		if !exists {
 			return nil, true, errors.Errorf("%s is not a valid docker tag for repository %s", install.Version, repository)
+		}
+
+		err = validVersionOption(install.Version)
+		if err != nil {
+			return nil, true, err
 		}
 	}
 
