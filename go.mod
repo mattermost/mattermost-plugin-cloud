@@ -3,6 +3,7 @@ module github.com/mattermost/mattermost-plugin-starter-template
 go 1.13
 
 require (
+	github.com/blang/semver/v4 v4.0.0
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/heroku/docker-registry-client v0.0.0-20190909225348-afc9e1acc3d5
 	github.com/mattermost/mattermost-cloud v0.19.1-0.20200522160004-a4357c8defe6

@@ -91,6 +91,27 @@ func TestCreateCommand(t *testing.T) {
 		assert.Contains(t, resp.Text, "Installation being created.")
 	})
 
+	t.Run("block it try to install version below 5.12.0", func(t *testing.T) {
+		resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--version", "5.8.3"}, &model.CommandArgs{})
+		require.Error(t, err)
+		assert.True(t, isUserError)
+		assert.Nil(t, resp)
+	})
+
+	t.Run("allow it try to install version greater than 5.12.0", func(t *testing.T) {
+		resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--version", "5.20.1"}, &model.CommandArgs{})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, "Installation being created.")
+	})
+
+	t.Run("allow it try to install version called latest", func(t *testing.T) {
+		resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--version", "latest"}, &model.CommandArgs{})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, "Installation being created.")
+	})
+
 	t.Run("docker tag", func(t *testing.T) {
 
 		t.Run("valid", func(t *testing.T) {
@@ -109,7 +130,6 @@ func TestCreateCommand(t *testing.T) {
 			assert.True(t, isUserError)
 			assert.Nil(t, resp)
 		})
-
 	})
 
 	t.Run("invalid license", func(t *testing.T) {
