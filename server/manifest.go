@@ -5,5 +5,5 @@ var manifest = struct {
 	Version string
 }{
 	ID:      "com.mattermost.cloud",
-	Version: "0.1.14",
+	Version: "0.1.15",
 }
