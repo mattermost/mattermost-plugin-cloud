@@ -34,3 +34,42 @@ This plugin allows for the creation and management of Mattermost kubernetes inst
   | Mattermost E20 License | `E20 license file contents` |
 8. Enable the plugin
 The plugin is now usable. Make changes to your plugin and run `make deploy` again to run those changes on your local Mattermost server.
+
+
+## Release
+
+To release a new version of the `cloud plugin` please do the following steps:
+
+- Bump the version to the desire version in `plugin.json` and then run `make apply`
+
+- Create a PR with the changes, see [example](https://github.com/mattermost/mattermost-plugin-cloud/pull/52)
+
+- After the PR is merged, generate the release notes. Here will show the commands but if need more information please refer to the [internal docs](https://app.gitbook.com/@mattermost-private/s/internal-documentation/cloud/cloud/releases/rel-notes)
+
+```bash
+$ GO111MODULE=on go get k8s.io/release/cmd/release-notes
+$ export GITHUB_TOKEN=<personal_github_api_token>
+$ release-notes --github-org mattermost \
+  --github-repo mattermost-plugin-cloud \
+  --start-sha START_SHA \ # the GIT SHA from the previous release
+  --end-sha END_SHA \ # the GIT SHA from the current release
+  --debug \
+  --output ./relnote.md \
+  --required-author ""
+```
+
+This generates the release notes in the `relnote.md` you can apply any changes.
+
+- Update your local repository and create a tag with the same version that you used in the previous step and add the `v` as prefix, for example:
+
+```bash
+$ git fetch origin --prune
+$ git pull origin master
+$ git tag vX.Y.Z
+$ git push origin vX.Y.Z
+```
+
+This will kick the CI job to build/package and release the plugin in GitHub.
+
+- Create a new Release by clicking and editing the Tag that is created in GitHub and paste the release notes that was generated in the step before.
+- After the CI job is complete the package will be available in the Release as well.
