@@ -548,7 +548,6 @@ func TestStatusCommand(t *testing.T) {
 	t.Run("clusters and installations", func(t *testing.T) {
 		cluster1 := &cloud.Cluster{
 			ID:    cloud.NewID(),
-			Size:  cloud.SizeAlef1000,
 			State: cloud.ClusterStateStable,
 		}
 		mockedCloudClient.mockedCloudClusters = []*cloud.Cluster{cluster1}
@@ -569,7 +568,6 @@ func TestStatusCommand(t *testing.T) {
 			assert.Contains(t, resp.Text, clusterTableHeader)
 			assert.Contains(t, resp.Text, installationTableHeader)
 			assert.Contains(t, resp.Text, cluster1.ID)
-			assert.Contains(t, resp.Text, cluster1.Size)
 			assert.Contains(t, resp.Text, cluster1.State)
 			assert.Contains(t, resp.Text, installation1.ID)
 			assert.Contains(t, resp.Text, installation1.DNS)
@@ -585,7 +583,6 @@ func TestStatusCommand(t *testing.T) {
 			assert.NotContains(t, resp.Text, clusterTableHeader)
 			assert.Contains(t, resp.Text, installationTableHeader)
 			assert.NotContains(t, resp.Text, cluster1.ID)
-			assert.NotContains(t, resp.Text, cluster1.Size)
 			assert.NotContains(t, resp.Text, cluster1.State)
 			assert.Contains(t, resp.Text, installation1.ID)
 			assert.Contains(t, resp.Text, installation1.DNS)

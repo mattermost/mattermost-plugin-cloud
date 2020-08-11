@@ -83,9 +83,8 @@ func (p *Plugin) runStatusCommand(args []string, extra *model.CommandArgs) (*mod
 	status += "\n"
 	status += clusterTableHeader
 	for _, cluster := range clusters {
-		status += fmt.Sprintf("| `%s` | %s | %s | %s |\n",
+		status += fmt.Sprintf("| `%s` | %s | %s |\n",
 			cluster.ID,
-			cluster.Size,
 			cluster.State,
 			getTimeFromMillis(cluster.CreateAt).Format("Jan-02-2006"),
 		)

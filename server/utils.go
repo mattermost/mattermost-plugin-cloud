@@ -57,10 +57,6 @@ func validVersionOption(version string) error {
 	return nil
 }
 
-func validDatabaseOption(databaseChoice string) bool {
-	return databaseChoice == databaseOptionRDS || databaseChoice == databaseOptionOperator || databaseChoice == databaseOptionMultitenant
-}
-
 func validInstallationName(name string) bool {
 	return installationNameMatcher.MatchString(name)
 }
