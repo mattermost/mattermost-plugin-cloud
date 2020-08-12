@@ -21,7 +21,7 @@ func getCreateFlagSet() *flag.FlagSet {
 	createFlagSet.String("affinity", "multitenant", "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
 	createFlagSet.String("license", "e20", "The enterprise license to use. Can be 'e10', 'e20', or 'te'")
 	createFlagSet.String("filestore", "aws-s3", "Specify the backing file store. Can be 'aws-s3' to use Amazon S3 or 'operator' to use the Minio Operator inside the cluster")
-	createFlagSet.String("database", databaseOptionMultitenant, "Specify the backing database. Can be 'aws-multitenant-rds' to use a shared Amazon RDS instance, 'aws-rds' to use a single-tenant Amazon RDS, 'operator' to use the MySQL Operator inside the cluster")
+	createFlagSet.String("database", cloud.InstallationDatabaseMultiTenantRDSPostgres, "Specify the backing database. Can be 'aws-multitenant-rds-postgres' (RDS Postgres Shared), 'aws-multitenant-rds' (RDS MySQL Shared), 'aws-rds-postgres' (RDS Postgres), 'aws-rds' (RDS MySQL), 'mysql-operator' (MySQL Operator inside the cluster)")
 	createFlagSet.Bool("test-data", false, "Set to pre-load the server with test data")
 
 	return createFlagSet
@@ -67,8 +67,15 @@ func parseCreateArgs(args []string, install *Installation) error {
 		return err
 	}
 
-	if !validDatabaseOption(install.Database) {
-		return fmt.Errorf("invalid database option %s; must be %s, %s or %s", install.Database, databaseOptionRDS, databaseOptionOperator, databaseOptionMultitenant)
+	if !cloud.IsSupportedDatabase(install.Database) {
+		return fmt.Errorf("invalid database option %s; must be %s, %s, %s, %s, or %s",
+			install.Database,
+			cloud.InstallationDatabaseMysqlOperator,
+			cloud.InstallationDatabaseSingleTenantRDSMySQL,
+			cloud.InstallationDatabaseSingleTenantRDSPostgres,
+			cloud.InstallationDatabaseMultiTenantRDSMySQL,
+			cloud.InstallationDatabaseMultiTenantRDSPostgres,
+		)
 	}
 
 	install.Filestore, err = createFlagSet.GetString("filestore")
@@ -144,19 +151,6 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		}
 	}
 
-	database := ""
-	if install.Database == databaseOptionRDS {
-		database = cloud.InstallationDatabaseSingleTenantRDS
-	} else if install.Database == databaseOptionOperator {
-		database = cloud.InstallationDatabaseMysqlOperator
-	} else if install.Database == databaseOptionMultitenant {
-		database = cloud.InstallationDatabaseMultiTenantRDS
-	}
-
-	if len(database) == 0 {
-		return nil, false, errors.Errorf("could not determine database type; provided database type was %s", install.Database)
-	}
-
 	var filestore string
 	if install.Filestore == filestoreOptionS3 {
 		filestore = cloud.InstallationFilestoreAwsS3
@@ -173,7 +167,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		GroupID:   config.GroupID,
 		Affinity:  install.Affinity,
 		DNS:       fmt.Sprintf("%s.%s", install.Name, config.InstallationDNS),
-		Database:  database,
+		Database:  install.Database,
 		Filestore: filestore,
 		License:   license,
 		Size:      install.Size,
