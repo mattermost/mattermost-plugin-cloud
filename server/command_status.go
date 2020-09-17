@@ -16,7 +16,7 @@ const (
 `
 
 	installationTableHeader = `
-| Installation | DNS | Size | Version | State | Created |
+| Installation | DNS | Size | Version | Database | Filestore | State | Created |
 | -- | -- | -- | -- | -- | -- |
 `
 )

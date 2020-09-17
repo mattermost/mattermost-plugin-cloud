@@ -218,6 +218,14 @@ func TestCreateCommand(t *testing.T) {
 			assert.Nil(t, resp)
 		})
 
+		t.Run("invalid license option", func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--filestore", cloud.InstallationFilestoreMultiTenantAwsS3, "--license", licenseOptionTE}, &model.CommandArgs{})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "filestore option aws-multitenant-s3 requires license option e20")
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+		})
+
 		t.Run(cloud.InstallationFilestoreMinioOperator, func(t *testing.T) {
 			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--filestore", cloud.InstallationFilestoreMinioOperator}, &model.CommandArgs{})
 			require.NoError(t, err)

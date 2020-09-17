@@ -92,6 +92,10 @@ func parseCreateArgs(args []string, install *Installation) error {
 		)
 	}
 
+	if install.Filestore == cloud.InstallationFilestoreMultiTenantAwsS3 && install.License != licenseOptionE20 {
+		return errors.Errorf("filestore option %s requires license option %s", cloud.InstallationFilestoreMultiTenantAwsS3, licenseOptionE20)
+	}
+
 	install.TestData, err = createFlagSet.GetBool("test-data")
 	if err != nil {
 		return err
