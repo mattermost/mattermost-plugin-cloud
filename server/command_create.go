@@ -18,9 +18,9 @@ func getCreateFlagSet() *flag.FlagSet {
 	createFlagSet := flag.NewFlagSet("create", flag.ContinueOnError)
 	createFlagSet.String("size", "miniSingleton", "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'")
 	createFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
-	createFlagSet.String("affinity", "multitenant", "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
+	createFlagSet.String("affinity", cloud.InstallationAffinityMultiTenant, "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
 	createFlagSet.String("license", "e20", "The enterprise license to use. Can be 'e10', 'e20', or 'te'")
-	createFlagSet.String("filestore", "aws-s3", "Specify the backing file store. Can be 'aws-s3' to use Amazon S3 or 'operator' to use the Minio Operator inside the cluster")
+	createFlagSet.String("filestore", cloud.InstallationFilestoreMultiTenantAwsS3, "Specify the backing file store. Can be 'aws-multitenant-s3' (S3 Shared Bucket), 'aws-s3' (S3 Bucket), 'operator' (Minio Operator inside the cluster")
 	createFlagSet.String("database", cloud.InstallationDatabaseMultiTenantRDSPostgres, "Specify the backing database. Can be 'aws-multitenant-rds-postgres' (RDS Postgres Shared), 'aws-multitenant-rds' (RDS MySQL Shared), 'aws-rds-postgres' (RDS Postgres), 'aws-rds' (RDS MySQL), 'mysql-operator' (MySQL Operator inside the cluster)")
 	createFlagSet.Bool("test-data", false, "Set to pre-load the server with test data")
 
@@ -50,7 +50,7 @@ func parseCreateArgs(args []string, install *Installation) error {
 	}
 
 	if !cloud.IsSupportedAffinity(install.Affinity) {
-		return fmt.Errorf("invalid affinity option %s, must be %s or %s", install.Affinity, cloud.InstallationAffinityIsolated, cloud.InstallationAffinityMultiTenant)
+		return errors.Errorf("invalid affinity option %s, must be %s or %s", install.Affinity, cloud.InstallationAffinityIsolated, cloud.InstallationAffinityMultiTenant)
 	}
 
 	install.License, err = createFlagSet.GetString("license")
@@ -59,7 +59,7 @@ func parseCreateArgs(args []string, install *Installation) error {
 	}
 
 	if !validLicenseOption(install.License) {
-		return fmt.Errorf("invalid license option %s, must be %s, %s or %s", install.License, licenseOptionE10, licenseOptionE20, licenseOptionTE)
+		return errors.Errorf("invalid license option %s, must be %s, %s or %s", install.License, licenseOptionE10, licenseOptionE20, licenseOptionTE)
 	}
 
 	install.Database, err = createFlagSet.GetString("database")
@@ -68,7 +68,7 @@ func parseCreateArgs(args []string, install *Installation) error {
 	}
 
 	if !cloud.IsSupportedDatabase(install.Database) {
-		return fmt.Errorf("invalid database option %s; must be %s, %s, %s, %s, or %s",
+		return errors.Errorf("invalid database option %s; must be %s, %s, %s, %s, or %s",
 			install.Database,
 			cloud.InstallationDatabaseMysqlOperator,
 			cloud.InstallationDatabaseSingleTenantRDSMySQL,
@@ -83,8 +83,17 @@ func parseCreateArgs(args []string, install *Installation) error {
 		return err
 	}
 
-	if !validFilestoreOption(install.Filestore) {
-		return fmt.Errorf("invalid filestore option %s; must be %s or %s", install.Filestore, filestoreOptionS3, filestoreOptionOperator)
+	if !cloud.IsSupportedFilestore(install.Filestore) {
+		return errors.Errorf("invalid filestore option %s; must be %s, %s, or %s",
+			install.Filestore,
+			cloud.InstallationFilestoreMinioOperator,
+			cloud.InstallationFilestoreAwsS3,
+			cloud.InstallationFilestoreMultiTenantAwsS3,
+		)
+	}
+
+	if install.Filestore == cloud.InstallationFilestoreMultiTenantAwsS3 && install.License != licenseOptionE20 {
+		return errors.Errorf("filestore option %s requires license option %s", cloud.InstallationFilestoreMultiTenantAwsS3, licenseOptionE20)
 	}
 
 	install.TestData, err = createFlagSet.GetBool("test-data")
@@ -151,24 +160,13 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		}
 	}
 
-	var filestore string
-	if install.Filestore == filestoreOptionS3 {
-		filestore = cloud.InstallationFilestoreAwsS3
-	} else if install.Filestore == filestoreOptionOperator {
-		filestore = cloud.InstallationFilestoreMinioOperator
-	}
-
-	if len(filestore) == 0 {
-		return nil, false, errors.Errorf("could not determine filestore type; provided filestore type was %s", install.Filestore)
-	}
-
 	req := &cloud.CreateInstallationRequest{
 		OwnerID:   extra.UserId,
 		GroupID:   config.GroupID,
 		Affinity:  install.Affinity,
 		DNS:       fmt.Sprintf("%s.%s", install.Name, config.InstallationDNS),
 		Database:  install.Database,
-		Filestore: filestore,
+		Filestore: install.Filestore,
 		License:   license,
 		Size:      install.Size,
 		Version:   install.Version,

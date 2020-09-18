@@ -61,10 +61,6 @@ func validInstallationName(name string) bool {
 	return installationNameMatcher.MatchString(name)
 }
 
-func validFilestoreOption(filestoreChoice string) bool {
-	return filestoreChoice == filestoreOptionS3 || filestoreChoice == filestoreOptionOperator
-}
-
 // NewBool returns a pointer to a given bool.
 func NewBool(b bool) *bool { return &b }
 

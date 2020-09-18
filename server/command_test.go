@@ -164,6 +164,90 @@ func TestCreateCommand(t *testing.T) {
 		})
 	})
 
+	t.Run("database", func(t *testing.T) {
+		t.Run("invalid", func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", "sqlite"}, &model.CommandArgs{})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "invalid database option sqlite")
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+		})
+
+		t.Run(cloud.InstallationDatabaseMysqlOperator, func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", cloud.InstallationDatabaseMysqlOperator}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created.")
+		})
+
+		t.Run(cloud.InstallationDatabaseSingleTenantRDSMySQL, func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", cloud.InstallationDatabaseSingleTenantRDSMySQL}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created.")
+		})
+
+		t.Run(cloud.InstallationDatabaseMultiTenantRDSMySQL, func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", cloud.InstallationDatabaseMultiTenantRDSMySQL}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created.")
+		})
+
+		t.Run(cloud.InstallationDatabaseSingleTenantRDSPostgres, func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", cloud.InstallationDatabaseSingleTenantRDSPostgres}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created.")
+		})
+
+		t.Run(cloud.InstallationDatabaseMultiTenantRDSPostgres, func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", cloud.InstallationDatabaseMultiTenantRDSPostgres}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created.")
+		})
+	})
+
+	t.Run("filestore", func(t *testing.T) {
+		t.Run("invalid", func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--filestore", "usb-drive"}, &model.CommandArgs{})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "invalid filestore option usb-drive")
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+		})
+
+		t.Run("invalid license option", func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--filestore", cloud.InstallationFilestoreMultiTenantAwsS3, "--license", licenseOptionTE}, &model.CommandArgs{})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "filestore option aws-multitenant-s3 requires license option e20")
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+		})
+
+		t.Run(cloud.InstallationFilestoreMinioOperator, func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--filestore", cloud.InstallationFilestoreMinioOperator}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created.")
+		})
+
+		t.Run(cloud.InstallationFilestoreAwsS3, func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--filestore", cloud.InstallationFilestoreAwsS3}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created.")
+		})
+
+		t.Run(cloud.InstallationFilestoreMultiTenantAwsS3, func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--filestore", cloud.InstallationFilestoreMultiTenantAwsS3}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created.")
+		})
+	})
+
 	t.Run("missing installation name", func(t *testing.T) {
 		resp, isUserError, err := plugin.runCreateCommand([]string{""}, &model.CommandArgs{})
 		require.Error(t, err)

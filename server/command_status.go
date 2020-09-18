@@ -16,7 +16,7 @@ const (
 `
 
 	installationTableHeader = `
-| Installation | DNS | Size | Version | State | Created |
+| Installation | DNS | Size | Version | Database | Filestore | State | Created |
 | -- | -- | -- | -- | -- | -- |
 `
 )
@@ -57,11 +57,13 @@ func (p *Plugin) runStatusCommand(args []string, extra *model.CommandArgs) (*mod
 
 	status := installationTableHeader
 	for _, installation := range installations {
-		status += fmt.Sprintf("| `%s` | [%s](https://%s) | %s | %s | %s | %s |\n",
+		status += fmt.Sprintf("| `%s` | [%s](https://%s) | %s | %s | %s | %s | %s | %s |\n",
 			installation.ID,
 			installation.DNS, installation.DNS,
 			installation.Size,
 			installation.Version,
+			installation.Database,
+			installation.Filestore,
 			installation.State,
 			getTimeFromMillis(installation.CreateAt).Format("Jan-02-2006"),
 		)
