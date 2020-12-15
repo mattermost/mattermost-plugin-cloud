@@ -19,7 +19,7 @@ func getCreateFlagSet() *flag.FlagSet {
 	createFlagSet.String("size", "miniSingleton", "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'")
 	createFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
 	createFlagSet.String("affinity", cloud.InstallationAffinityMultiTenant, "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
-	createFlagSet.String("license", "e20", "The enterprise license to use. Can be 'e10', 'e20', or 'te'")
+	createFlagSet.String("license", licenseOptionE20, "The enterprise license to use. Can be 'e10', 'e20', or 'te'")
 	createFlagSet.String("filestore", "", "Specify the backing file store. Can be 'aws-multitenant-s3' (S3 Shared Bucket), 'aws-s3' (S3 Bucket), 'operator' (Minio Operator inside the cluster. Default 'aws-multi-tenant-s3' for E20, and 'aws-s3' for E10 and E0/TE.")
 	createFlagSet.String("database", cloud.InstallationDatabaseMultiTenantRDSPostgres, "Specify the backing database. Can be 'aws-multitenant-rds-postgres' (RDS Postgres Shared), 'aws-multitenant-rds' (RDS MySQL Shared), 'aws-rds-postgres' (RDS Postgres), 'aws-rds' (RDS MySQL), 'mysql-operator' (MySQL Operator inside the cluster)")
 	createFlagSet.Bool("test-data", false, "Set to pre-load the server with test data")
@@ -85,7 +85,7 @@ func parseCreateArgs(args []string, install *Installation) error {
 
 	// the filestore has a different default depending upon the target installation type
 	if install.Filestore == "" {
-		if install.License == "e20" {
+		if install.License == licenseOptionE20 {
 			install.Filestore = cloud.InstallationFilestoreMultiTenantAwsS3
 		} else {
 			install.Filestore = cloud.InstallationFilestoreAwsS3
