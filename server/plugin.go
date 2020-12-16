@@ -48,6 +48,7 @@ type CloudClient interface {
 // DockerClientInterface is the interface for interacting with docker.
 type DockerClientInterface interface {
 	ValidTag(desiredTag, repository string) (bool, error)
+	GetDigestForTag(desiredTag, repository string) (string, error)
 }
 
 // BuildHash is the full git hash of the build.

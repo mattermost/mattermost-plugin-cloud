@@ -163,6 +163,12 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 			return nil, true, errors.Errorf("%s is not a valid docker tag for repository %s", install.Version, repository)
 		}
 
+		digest, err := p.dockerClient.GetDigestForTag(install.Version, repository)
+		if err != nil {
+			return nil, false, errors.Wrapf(err, "failed to find a manifest digest for version %s", install.Version)
+		}
+		install.Version = digest
+
 		err = validVersionOption(install.Version)
 		if err != nil {
 			return nil, true, err

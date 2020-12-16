@@ -63,7 +63,9 @@ func buildPatchInstallationRequestFromArgs(args []string) (*cloud.PatchInstallat
 	return request, nil
 }
 
-// runUpgradeCommand requests an upgrade and returns the response, an error, and a boolean set to true if a non-nil error is returned due to user error, and false if the error was caused by something else.
+// runUpgradeCommand requests an upgrade and returns the response, an
+// error, and a boolean set to true if a non-nil error is returned due
+// to user error, and false if the error was caused by something else.
 func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
 	if len(args) == 0 || len(args[0]) == 0 {
 		return nil, true, errors.Errorf("must provide an installation name")
@@ -103,6 +105,11 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 		if !exists {
 			return nil, true, errors.Errorf("%s is not a valid docker tag for repository %s", *request.Version, dockerRepository)
 		}
+		digest, err := p.dockerClient.GetDigestForTag(*request.Version, dockerRepository)
+		if err != nil {
+			return nil, false, errors.Wrapf(err, "failed to find a manifest digest for version %s", *request.Version)
+		}
+		request.Version = &digest
 	}
 
 	if request.License != nil {
