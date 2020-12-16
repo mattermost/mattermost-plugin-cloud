@@ -105,7 +105,8 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 		if !exists {
 			return nil, true, errors.Errorf("%s is not a valid docker tag for repository %s", *request.Version, dockerRepository)
 		}
-		digest, err := p.dockerClient.GetDigestForTag(*request.Version, dockerRepository)
+		var digest string
+		digest, err = p.dockerClient.GetDigestForTag(*request.Version, dockerRepository)
 		if err != nil {
 			return nil, false, errors.Wrapf(err, "failed to find a manifest digest for version %s", *request.Version)
 		}
