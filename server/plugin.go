@@ -94,5 +94,6 @@ func (p *Plugin) OnActivate() error {
 
 	p.setCloudClient()
 	p.dockerClient = NewDockerClient()
+	p.periodicallyNagUsersAboutOldInstallations()
 	return p.API.RegisterCommand(getCommand())
 }
