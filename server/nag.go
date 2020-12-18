@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 )
 
 // nagUsersSensibly sends a DM to any users whose installations have
@@ -86,13 +87,28 @@ func (p *Plugin) nagUser(user *model.User, installations []*Installation) {
 // sleeps until the beginning of the next hour, then calls
 // nagUsersSensibly() and calls it each hour after that, which will
 // nag users about old Installations
-func (p *Plugin) periodicallyNagUsersAboutOldInstallations() {
+func (p *Plugin) periodicallyNagUsersAboutOldInstallations() error {
+	unlocked, err := p.API.KVCompareAndSet("reminder-mutex", nil, []byte("lock"))
+	if err != nil {
+		return errors.Wrap(err, "database error while attempting to grab mutex while setting up old installation reminder")
+	}
+
+	if !unlocked {
+		// lock created by a different plugin process
+		return nil
+	}
+
+	// set the lock to expire after 120 seconds, which will be plenty of
+	// time for the losing processes to finish the race and exit
+	p.API.KVSetWithExpiry("reminder-mutex", []byte("lock"), 120)
 	go func() {
 		for {
 			time.Sleep(untilNext(time.Hour))
 			p.nagUsersSensibly()
 		}
 	}()
+
+	return nil
 }
 
 // untilNext returns the duration until the beginning of the next
