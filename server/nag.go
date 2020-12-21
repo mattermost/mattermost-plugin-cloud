@@ -5,13 +5,18 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost-server/model"
-	"github.com/pkg/errors"
 )
 
 // nagUsersSensibly sends a DM to any users whose installations have
 // been around for at least a day, but only if it's 12:30PM to 1:30PM
 // local time for that user
 func (p *Plugin) nagUsersSensibly() error {
+	if dayOfWeek := time.Now().Weekday(); dayOfWeek == 0 || dayOfWeek >= 5 {
+		// it's the weekend, don't nag anyone. Treats the weekend as
+		// Fri-Sun so that "the weekend" is nag-free whether you're in the
+		// part of the world where it's Fri-Sat or Sat-Sun
+		return nil
+	}
 	installs, _, err := p.getInstallations()
 	if err != nil {
 		return err
@@ -80,7 +85,8 @@ func (p *Plugin) nagUser(user *model.User, installations []*Installation) {
 			creationTimestamp,
 		)
 	}
-	p.PostBotDM(user.Id, message)
+	postID := fmt.Sprintf("%s%d", user.Id, time.Now().Unix())
+	p.PostUniqueBotDM(user.Id, postID, message)
 }
 
 // periodicallyNagUsersAboutOldInstallations starts a new thread and
@@ -88,19 +94,6 @@ func (p *Plugin) nagUser(user *model.User, installations []*Installation) {
 // nagUsersSensibly() and calls it each hour after that, which will
 // nag users about old Installations
 func (p *Plugin) periodicallyNagUsersAboutOldInstallations() error {
-	unlocked, err := p.API.KVCompareAndSet("reminder-mutex", nil, []byte("lock"))
-	if err != nil {
-		return errors.Wrap(err, "database error while attempting to grab mutex while setting up old installation reminder")
-	}
-
-	if !unlocked {
-		// lock created by a different plugin process
-		return nil
-	}
-
-	// set the lock to expire after 120 seconds, which will be plenty of
-	// time for the losing processes to finish the race and exit
-	p.API.KVSetWithExpiry("reminder-mutex", []byte("lock"), 120)
 	go func() {
 		for {
 			time.Sleep(untilNext(time.Hour))
