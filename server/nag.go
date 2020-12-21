@@ -85,7 +85,8 @@ func (p *Plugin) nagUser(user *model.User, installations []*Installation) {
 			creationTimestamp,
 		)
 	}
-	postID := fmt.Sprintf("%s%d", user.Id, time.Now().Unix())
+	month, day, year := time.Now().Date()
+	postID := fmt.Sprintf("%s%s", user.Id, fmt.Sprintf("%d%d%d", month, day, year))
 	p.PostUniqueBotDM(user.Id, postID, message)
 }
 
