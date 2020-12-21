@@ -110,6 +110,7 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 		if err != nil {
 			return nil, false, errors.Wrapf(err, "failed to find a manifest digest for version %s", *request.Version)
 		}
+		installToUpgrade.Tag = *request.Version
 		request.Version = &digest
 	}
 
@@ -133,6 +134,11 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 	_, err = p.cloudClient.UpdateInstallation(installToUpgrade.ID, request)
 	if err != nil {
 		return nil, false, err
+	}
+
+	err = p.updateInstallation(installToUpgrade)
+	if err != nil {
+		return nil, false, errors.Wrap(err, "failed to store new tag in plugin Installation object")
 	}
 
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, fmt.Sprintf("Upgrade of installation %s has begun. You will receive a notification when it is ready. Use /cloud list to check on the status of your installations.", name)), false, nil

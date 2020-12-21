@@ -39,7 +39,7 @@ func parseCreateArgs(args []string, install *Installation) error {
 	if err != nil {
 		return err
 	}
-	install.Version, err = createFlagSet.GetString("version")
+	install.Tag, err = createFlagSet.GetString("version")
 	if err != nil {
 		return err
 	}

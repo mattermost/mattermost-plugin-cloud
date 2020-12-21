@@ -21,6 +21,7 @@ type Installation struct {
 	Name string
 	cloud.Installation
 	TestData bool
+	Tag      string
 }
 
 // ToPrettyJSON will return a JSON string installation with indentation and new lines
