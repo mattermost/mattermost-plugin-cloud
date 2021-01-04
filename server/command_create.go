@@ -44,6 +44,8 @@ func parseCreateArgs(args []string, install *Installation) error {
 		return err
 	}
 
+	install.Tag = install.Version
+
 	install.Affinity, err = createFlagSet.GetString("affinity")
 	if err != nil {
 		return err
@@ -153,6 +155,11 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 	}
 
 	if install.Version != "" {
+		err = validVersionOption(install.Version)
+		if err != nil {
+			return nil, true, err
+		}
+
 		var exists bool
 		repository := "mattermost/mattermost-enterprise-edition"
 		exists, err = p.dockerClient.ValidTag(install.Version, repository)
@@ -163,10 +170,12 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 			return nil, true, errors.Errorf("%s is not a valid docker tag for repository %s", install.Version, repository)
 		}
 
-		err = validVersionOption(install.Version)
+		var digest string
+		digest, err = p.dockerClient.GetDigestForTag(install.Version, repository)
 		if err != nil {
-			return nil, true, err
+			return nil, false, errors.Wrapf(err, "failed to find a manifest digest for version %s", install.Version)
 		}
+		install.Version = digest
 	}
 
 	req := &cloud.CreateInstallationRequest{

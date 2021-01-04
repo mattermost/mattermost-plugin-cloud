@@ -4,6 +4,7 @@ go 1.13
 
 require (
 	github.com/blang/semver/v4 v4.0.0
+	github.com/docker/distribution v2.7.1+incompatible
 	github.com/google/gofuzz v1.1.0 // indirect
 	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/heroku/docker-registry-client v0.0.0-20190909225348-afc9e1acc3d5
