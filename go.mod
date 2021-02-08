@@ -5,16 +5,20 @@ go 1.13
 require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/docker/distribution v2.7.1+incompatible
+	github.com/gogo/protobuf v1.3.1 // indirect
 	github.com/google/gofuzz v1.1.0 // indirect
-	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/heroku/docker-registry-client v0.0.0-20190909225348-afc9e1acc3d5
-	github.com/kr/pretty v0.2.0 // indirect
-	github.com/mattermost/mattermost-cloud v0.28.1-0.20200917163429-d715d7100f66
+	github.com/mattermost/mattermost-cloud v0.39.1-0.20210210190544-89161840694f
 	github.com/mattermost/mattermost-server v1.4.1-0.20190926112648-af3ffeed1a4a
+	github.com/opencontainers/image-spec v1.0.2-0.20190823105129-775207bd45b6 // indirect
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.6.1
+	go.uber.org/zap v1.14.1 // indirect
 	golang.org/x/lint v0.0.0-20200302205851-738671d3881b // indirect
+	google.golang.org/genproto v0.0.0-20200117163144-32f20d992d24 // indirect
+	google.golang.org/grpc v1.27.0 // indirect
+	k8s.io/client-go v12.0.0+incompatible // indirect
 )
 
 // Pinned to kubernetes-1.17.7
