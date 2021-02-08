@@ -12,6 +12,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
+var dockerRepoWhitelist = []string{"mattermost/mattermost-enterprise-edition", "mattermost/mm-ee-test", "mattermost/mm-ee-cloud", "mattermost/mm-te", "mattermost/mattermost-team-edition"}
 var installationNameMatcher = regexp.MustCompile(`^[a-zA-Z0-9-]*$`)
 
 func getCreateFlagSet() *flag.FlagSet {
@@ -23,7 +24,7 @@ func getCreateFlagSet() *flag.FlagSet {
 	createFlagSet.String("filestore", "", "Specify the backing file store. Can be 'aws-multitenant-s3' (S3 Shared Bucket), 'aws-s3' (S3 Bucket), 'operator' (Minio Operator inside the cluster. Default 'aws-multi-tenant-s3' for E20, and 'aws-s3' for E10 and E0/TE.")
 	createFlagSet.String("database", cloud.InstallationDatabaseMultiTenantRDSPostgres, "Specify the backing database. Can be 'aws-multitenant-rds-postgres' (RDS Postgres Shared), 'aws-multitenant-rds' (RDS MySQL Shared), 'aws-rds-postgres' (RDS Postgres), 'aws-rds' (RDS MySQL), 'mysql-operator' (MySQL Operator inside the cluster)")
 	createFlagSet.Bool("test-data", false, "Set to pre-load the server with test data")
-
+	createFlagSet.String("image", defaultImage, fmt.Sprintf("Docker image repository. Can be %s", strings.Join(dockerRepoWhitelist, ", ")))
 	return createFlagSet
 }
 
@@ -62,6 +63,15 @@ func parseCreateArgs(args []string, install *Installation) error {
 
 	if !validLicenseOption(install.License) {
 		return errors.Errorf("invalid license option %s, must be %s, %s or %s", install.License, licenseOptionE10, licenseOptionE20, licenseOptionTE)
+	}
+
+	install.Image, err = createFlagSet.GetString("image")
+	if err != nil {
+		return err
+	}
+
+	if !validImageName(install.Image) {
+		return errors.Errorf("invalid image name %s", strings.Join(dockerRepoWhitelist, ", "))
 	}
 
 	install.Database, err = createFlagSet.GetString("database")
@@ -188,6 +198,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		License:   license,
 		Size:      install.Size,
 		Version:   install.Version,
+		Image:     install.Image,
 	}
 
 	cloudInstallation, err := p.cloudClient.CreateInstallation(req)
@@ -222,4 +233,13 @@ func (p *Plugin) installationWithNameExists(name string) (bool, error) {
 	}
 
 	return false, nil
+}
+
+func validImageName(imageName string) bool {
+	for _, image := range dockerRepoWhitelist {
+		if image == imageName {
+			return true
+		}
+	}
+	return false
 }

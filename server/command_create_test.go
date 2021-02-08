@@ -196,6 +196,22 @@ func TestCreateCommand(t *testing.T) {
 		})
 	})
 
+	t.Run("image", func(t *testing.T) {
+		t.Run("valid image name", func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--image", "mattermost/mm-ee-test"}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created.")
+		})
+		t.Run("invalid image name", func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--image", "mattermost/randomimage"}, &model.CommandArgs{})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "invalid image name")
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+		})
+	})
+
 	t.Run("missing installation name", func(t *testing.T) {
 		resp, isUserError, err := plugin.runCreateCommand([]string{""}, &model.CommandArgs{})
 		require.Error(t, err)
