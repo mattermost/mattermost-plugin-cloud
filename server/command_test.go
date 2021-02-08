@@ -15,37 +15,41 @@ import (
 )
 
 type MockClient struct {
-	mockedCloudClusters             []*cloud.Cluster
-	mockedCloudInstallations        []*cloud.Installation
+	mockedCloudClustersDTO          []*cloud.ClusterDTO
+	mockedCloudInstallationsDTO     []*cloud.InstallationDTO
 	mockedCloudClusterInstallations []*cloud.ClusterInstallation
 
-	overrideGetInstallation *cloud.Installation
+	overrideGetInstallationDTO *cloud.InstallationDTO
 
 	err error
 }
 
-func (mc *MockClient) GetClusters(request *cloud.GetClustersRequest) ([]*cloud.Cluster, error) {
-	return mc.mockedCloudClusters, mc.err
+func (mc *MockClient) GetClusters(request *cloud.GetClustersRequest) ([]*cloud.ClusterDTO, error) {
+	return mc.mockedCloudClustersDTO, mc.err
 }
 
-func (mc *MockClient) CreateInstallation(request *cloud.CreateInstallationRequest) (*cloud.Installation, error) {
-	return &cloud.Installation{ID: "someid"}, nil
+func (mc *MockClient) CreateInstallation(request *cloud.CreateInstallationRequest) (*cloud.InstallationDTO, error) {
+	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid"}}, nil
 }
 
-func (mc *MockClient) GetInstallation(installataionID string, request *cloud.GetInstallationRequest) (*cloud.Installation, error) {
-	if mc.overrideGetInstallation != nil {
-		return mc.overrideGetInstallation, nil
+func (mc *MockClient) GetInstallation(installataionID string, request *cloud.GetInstallationRequest) (*cloud.InstallationDTO, error) {
+	if mc.overrideGetInstallationDTO != nil {
+		return mc.overrideGetInstallationDTO, nil
 	}
 
-	return &cloud.Installation{ID: "someid", OwnerID: "joramid"}, nil
+	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid", OwnerID: "joramid"}}, nil
 }
 
-func (mc *MockClient) GetInstallations(request *cloud.GetInstallationsRequest) ([]*cloud.Installation, error) {
-	return mc.mockedCloudInstallations, mc.err
+func (mc *MockClient) GetInstallationByDNS(DNS string, request *cloud.GetInstallationRequest) (*cloud.InstallationDTO, error) {
+	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid"}}, nil
 }
 
-func (mc *MockClient) UpdateInstallation(installationID string, request *cloud.PatchInstallationRequest) (*cloud.Installation, error) {
-	return &cloud.Installation{ID: "someid", OwnerID: "joramid"}, nil
+func (mc *MockClient) GetInstallations(request *cloud.GetInstallationsRequest) ([]*cloud.InstallationDTO, error) {
+	return mc.mockedCloudInstallationsDTO, mc.err
+}
+
+func (mc *MockClient) UpdateInstallation(installationID string, request *cloud.PatchInstallationRequest) (*cloud.InstallationDTO, error) {
+	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid", OwnerID: "joramid"}}, nil
 }
 
 func (mc *MockClient) DeleteInstallation(installationID string) error {
@@ -53,7 +57,7 @@ func (mc *MockClient) DeleteInstallation(installationID string) error {
 }
 
 func (mc *MockClient) GetClusterInstallations(request *cloud.GetClusterInstallationsRequest) ([]*cloud.ClusterInstallation, error) {
-	return mc.mockedCloudClusterInstallations, nil
+	return mc.mockedCloudClusterInstallationsDTO, nil
 }
 
 func (mc *MockClient) RunMattermostCLICommandOnClusterInstallation(clusterInstallationID string, subcommand []string) ([]byte, error) {
@@ -634,7 +638,7 @@ func TestStatusCommand(t *testing.T) {
 			ID:    cloud.NewID(),
 			State: cloud.ClusterStateStable,
 		}
-		mockedCloudClient.mockedCloudClusters = []*cloud.Cluster{cluster1}
+		mockedCloudClient.mockedCloudClustersDTO = []*cloud.ClusterDTO{Cluster: cluster1}
 
 		installation1 := &cloud.Installation{
 			ID:      cloud.NewID(),
