@@ -65,10 +65,10 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, erro
 	return pluginInstalls, nil
 }
 
-func (p *Plugin) processInstallationUpdate(pluginInstall *Installation, cloudInstalls []*cloud.Installation) (bool, error) {
+func (p *Plugin) processInstallationUpdate(pluginInstall *Installation, cloudInstalls []*cloud.InstallationDTO) (bool, error) {
 	for _, cloudInstall := range cloudInstalls {
 		if pluginInstall.ID == cloudInstall.ID {
-			pluginInstall.Installation = *cloudInstall
+			pluginInstall.Installation = *cloudInstall.Installation
 			pluginInstall.HideSensitiveFields()
 			return false, nil
 		}
@@ -87,7 +87,7 @@ func (p *Plugin) processInstallationUpdate(pluginInstall *Installation, cloudIns
 		return false, fmt.Errorf("could not find installation %s", pluginInstall.ID)
 	}
 
-	pluginInstall.Installation = *updatedInstall
+	pluginInstall.Installation = *updatedInstall.Installation
 	pluginInstall.HideSensitiveFields()
 
 	if updatedInstall.State != cloud.InstallationStateDeleted {

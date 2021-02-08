@@ -15,23 +15,34 @@ import (
 func TestGetUpdatedInstallsForUser(t *testing.T) {
 	plugin := Plugin{
 		cloudClient: &MockClient{
-			overrideGetInstallation: &cloud.Installation{
+			overrideGetInstallationDTO: &cloud.InstallationDTO{Installation: &cloud.Installation{
 				ID:    "id3",
-				State: cloud.ClusterInstallationStateDeleted,
-			},
-			mockedCloudInstallations: []*cloud.Installation{
+				State: cloud.InstallationStateDeleted,
+			}},
+			mockedCloudInstallationsDTO: []*cloud.InstallationDTO{
 				{
-					ID:    "id1",
-					State: cloud.ClusterInstallationStateStable,
-				}, {
-					ID:    "id2",
-					State: cloud.ClusterInstallationStateStable,
-				}, {
-					ID:    "id4",
-					State: cloud.ClusterInstallationStateStable,
-				}, {
-					ID:    "id5",
-					State: cloud.ClusterInstallationStateStable,
+					Installation: &cloud.Installation{
+						ID:    "id1",
+						State: cloud.InstallationStateStable,
+					},
+				},
+				{
+					Installation: &cloud.Installation{
+						ID:    "id2",
+						State: cloud.InstallationStateStable,
+					},
+				},
+				{
+					Installation: &cloud.Installation{
+						ID:    "id4",
+						State: cloud.InstallationStateStable,
+					},
+				},
+				{
+					Installation: &cloud.Installation{
+						ID:    "id5",
+						State: cloud.InstallationStateStable,
+					},
 				},
 			},
 		},
@@ -48,9 +59,7 @@ func TestGetUpdatedInstallsForUser(t *testing.T) {
 		api.On("KVGet", mock.AnythingOfType("string")).Return(installationBytes, nil)
 		api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
 		api.On("GetDirectChannel", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.Channel{}, nil)
-		api.On("CreatePost", &model.Post{
-			Message: "Cloud installation installation-three has been manually deleted and is now removed from the cloud plugin.\n\n``` json\n{\n\t\"Name\": \"installation-three\",\n\t\"ID\": \"id3\",\n\t\"OwnerID\": \"\",\n\t\"GroupID\": null,\n\t\"Version\": \"\",\n\t\"Image\": \"\",\n\t\"DNS\": \"\",\n\t\"Database\": \"\",\n\t\"Filestore\": \"\",\n\t\"License\": \"hidden\",\n\t\"MattermostEnv\": null,\n\t\"Size\": \"\",\n\t\"Affinity\": \"\",\n\t\"State\": \"deleted\",\n\t\"CreateAt\": 0,\n\t\"DeleteAt\": 0,\n\t\"APISecurityLock\": false,\n\t\"LockAcquiredBy\": null,\n\t\"LockAcquiredAt\": 0,\n\t\"TestData\": false,\n\t\"Tag\": \"\"\n}\n```",
-		}).Return(nil, nil)
+		api.On("CreatePost", mock.Anything).Return(nil, nil)
 		api.On("LogWarn", mock.AnythingOfTypeArgument("string")).Return(nil)
 
 		installations, err := plugin.getUpdatedInstallsForUser("owner 1")
