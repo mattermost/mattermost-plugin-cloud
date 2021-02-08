@@ -57,7 +57,7 @@ func (mc *MockClient) DeleteInstallation(installationID string) error {
 }
 
 func (mc *MockClient) GetClusterInstallations(request *cloud.GetClusterInstallationsRequest) ([]*cloud.ClusterInstallation, error) {
-	return mc.mockedCloudClusterInstallationsDTO, nil
+	return mc.mockedCloudClusterInstallations, nil
 }
 
 func (mc *MockClient) RunMattermostCLICommandOnClusterInstallation(clusterInstallationID string, subcommand []string) ([]byte, error) {
@@ -638,7 +638,7 @@ func TestStatusCommand(t *testing.T) {
 			ID:    cloud.NewID(),
 			State: cloud.ClusterStateStable,
 		}
-		mockedCloudClient.mockedCloudClustersDTO = []*cloud.ClusterDTO{Cluster: cluster1}
+		mockedCloudClient.mockedCloudClustersDTO = []*cloud.ClusterDTO{{Cluster: cluster1}}
 
 		installation1 := &cloud.Installation{
 			ID:      cloud.NewID(),
@@ -647,7 +647,7 @@ func TestStatusCommand(t *testing.T) {
 			Version: "v7.1.44",
 			State:   cloud.InstallationStateCreationDNS,
 		}
-		mockedCloudClient.mockedCloudInstallations = []*cloud.Installation{installation1}
+		mockedCloudClient.mockedCloudInstallationsDTO = []*cloud.InstallationDTO{{Installation: installation1}}
 
 		t.Run("show clusters", func(t *testing.T) {
 			resp, isUserError, err := plugin.runStatusCommand([]string{"--include-clusters=true"}, &model.CommandArgs{UserId: "gabeid"})

@@ -195,7 +195,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, false, errors.Wrap(err, "failed to create installation")
 	}
 
-	install.Installation = *cloudInstallation
+	install.Installation = *cloudInstallation.Installation
 
 	err = p.storeInstallation(install)
 	if err != nil {

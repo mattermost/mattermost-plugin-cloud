@@ -51,7 +51,7 @@ func (p *Plugin) getInstallWithDNS(DNS string, userID string) (*Installation, er
 	pluginInstall := &Installation{
 		Name: name,
 	}
-	pluginInstall.Installation = *cloudInstall
+	pluginInstall.Installation = *cloudInstall.Installation
 
 	err = p.storeInstallation(pluginInstall)
 	if err != nil {

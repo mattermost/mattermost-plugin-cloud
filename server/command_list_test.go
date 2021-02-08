@@ -15,23 +15,40 @@ import (
 func TestGetUpdatedInstallsForUser(t *testing.T) {
 	plugin := Plugin{
 		cloudClient: &MockClient{
-			overrideGetInstallation: &cloud.Installation{
+			overrideGetInstallationDTO: &cloud.InstallationDTO{Installation: &cloud.Installation{
 				ID:    "id3",
-				State: cloud.ClusterInstallationStateDeleted,
-			},
-			mockedCloudInstallations: []*cloud.Installation{
+				State: cloud.InstallationStateDeleted,
+			}},
+			mockedCloudInstallationsDTO: []*cloud.InstallationDTO{
 				{
-					ID:    "id1",
-					State: cloud.ClusterInstallationStateStable,
-				}, {
-					ID:    "id2",
-					State: cloud.ClusterInstallationStateStable,
-				}, {
-					ID:    "id4",
-					State: cloud.ClusterInstallationStateStable,
-				}, {
-					ID:    "id5",
-					State: cloud.ClusterInstallationStateStable,
+					Installation: &cloud.Installation{
+						ID:    "id1",
+						State: cloud.InstallationStateStable,
+					},
+				},
+				{
+					Installation: &cloud.Installation{
+						ID:    "id2",
+						State: cloud.InstallationStateStable,
+					},
+				},
+				{
+					Installation: &cloud.Installation{
+						ID:    "id3",
+						State: cloud.InstallationStateStable,
+					},
+				},
+				{
+					Installation: &cloud.Installation{
+						ID:    "id4",
+						State: cloud.InstallationStateStable,
+					},
+				},
+				{
+					Installation: &cloud.Installation{
+						ID:    "id5",
+						State: cloud.InstallationStateStable,
+					},
 				},
 			},
 		},
