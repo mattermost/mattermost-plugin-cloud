@@ -130,7 +130,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 }
 
 func (p *Plugin) runInfoCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
-	resp := fmt.Sprintf("Hello Mattermost Cloud plugin version: %s, "+
+	resp := fmt.Sprintf("Mattermost Cloud plugin version: %s, "+
 		"[%s](https://github.com/mattermost/mattermost-plugin-cloud/commit/%s), built %s\n",
 		manifest.Version, BuildHashShort, BuildHash, BuildDate)
 

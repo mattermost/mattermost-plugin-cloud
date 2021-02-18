@@ -28,13 +28,27 @@ func (p *Plugin) runImportCommand(args []string, extra *model.CommandArgs) (*mod
 	if cloudInstall == nil {
 		return nil, true, errors.New("no installation for the DNS provided")
 	}
-	if cloudInstall.OwnerID != extra.UserId {
-		cloudInstall.OwnerID = extra.UserId
+
+	installs, _, err := p.getInstallations()
+	if err != nil {
+		return nil, false, err
 	}
 
-	p.cloudClient.UpdateInstallation(cloudInstall.ID, &cloud.PatchInstallationRequest{
-		OwnerID: &cloudInstall.OwnerID,
-	})
+	for _, install := range installs {
+		if install.ID == cloudInstall.ID {
+			return nil, true, errors.New("Installation has already been imported to cloud plugin")
+		}
+	}
+
+	if cloudInstall.OwnerID != extra.UserId {
+		cloudInstall.OwnerID = extra.UserId
+		_, err = p.cloudClient.UpdateInstallation(cloudInstall.ID, &cloud.PatchInstallationRequest{
+			OwnerID: &cloudInstall.OwnerID,
+		})
+		if err != nil {
+			return nil, false, errors.Wrap(err, "failed to update installation")
+		}
+	}
 
 	pluginInstall := &Installation{
 		Name: name,
@@ -43,13 +57,13 @@ func (p *Plugin) runImportCommand(args []string, extra *model.CommandArgs) (*mod
 
 	err = p.storeInstallation(pluginInstall)
 	if err != nil {
-		return nil, false, err
+		return nil, false, errors.Wrap(err, "failed to store updated installation")
 	}
 	pluginInstall.HideSensitiveFields()
 
 	dataInstall, err := json.Marshal(pluginInstall)
 	if err != nil {
-		return nil, false, err
+		return nil, false, errors.Wrap(err, "failed to Marshal installation")
 	}
 
 	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Installation imported:\n\n"+jsonCodeBlock(prettyPrintJSON(string(dataInstall)))), false, nil
