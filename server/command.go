@@ -20,6 +20,9 @@ create [name] [flags]
 list
 	Lists the Mattermost installations created by you.
 
+import [DNS]
+	Imports installation using DNS value. 
+
 upgrade [name] [flags]
 	Upgades a Mattermost installaton.
 	Flags:
@@ -105,6 +108,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		handler = p.runStatusCommand
 	case "info":
 		handler = p.runInfoCommand
+	case "import":
+		handler = p.runImportCommand
 	}
 
 	if handler == nil {

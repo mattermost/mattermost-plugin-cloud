@@ -75,7 +75,7 @@ func (p *Plugin) processWebhookEvent(payload *cloud.WebhookPayload) {
 	if installation == nil {
 		p.API.LogError(fmt.Sprintf("could not find installation %s", install.ID))
 	}
-	install.Installation = *installation
+	install.Installation = *installation.Installation
 
 	switch payload.OldState {
 	case cloud.InstallationStateUpdateRequested,
