@@ -20,8 +20,9 @@ const (
 type Installation struct {
 	Name string
 	cloud.Installation
-	TestData bool
-	Tag      string
+	TestData      bool
+	Tag           string
+	EnterpriseTag string
 }
 
 // ToPrettyJSON will return a JSON string installation with indentation and new lines

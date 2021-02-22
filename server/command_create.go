@@ -14,15 +14,30 @@ import (
 
 var installationNameMatcher = regexp.MustCompile(`^[a-zA-Z0-9-]*$`)
 
+const (
+	// Command args
+	size          = "size"
+	version       = "version"
+	affinity      = "affinity"
+	license       = "license"
+	filestore     = "filestore"
+	database      = "database"
+	enterpriseTag = "enterprise-tag"
+	testData      = "test-data"
+
+	enterpriseRepo = "mattermost/mattermost-enterprise-edition"
+)
+
 func getCreateFlagSet() *flag.FlagSet {
 	createFlagSet := flag.NewFlagSet("create", flag.ContinueOnError)
-	createFlagSet.String("size", "miniSingleton", "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'")
-	createFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
-	createFlagSet.String("affinity", cloud.InstallationAffinityMultiTenant, "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
-	createFlagSet.String("license", licenseOptionE20, "The enterprise license to use. Can be 'e10', 'e20', or 'te'")
-	createFlagSet.String("filestore", "", "Specify the backing file store. Can be 'aws-multitenant-s3' (S3 Shared Bucket), 'aws-s3' (S3 Bucket), 'operator' (Minio Operator inside the cluster. Default 'aws-multi-tenant-s3' for E20, and 'aws-s3' for E10 and E0/TE.")
-	createFlagSet.String("database", cloud.InstallationDatabaseMultiTenantRDSPostgres, "Specify the backing database. Can be 'aws-multitenant-rds-postgres' (RDS Postgres Shared), 'aws-multitenant-rds' (RDS MySQL Shared), 'aws-rds-postgres' (RDS Postgres), 'aws-rds' (RDS MySQL), 'mysql-operator' (MySQL Operator inside the cluster)")
-	createFlagSet.Bool("test-data", false, "Set to pre-load the server with test data")
+	createFlagSet.String(size, "miniSingleton", "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'")
+	createFlagSet.String(version, "", "Mattermost version to run, e.g. '5.12.4'")
+	createFlagSet.String(affinity, cloud.InstallationAffinityMultiTenant, "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
+	createFlagSet.String(license, licenseOptionE20, "The enterprise license to use. Can be 'e10', 'e20', or 'te'")
+	createFlagSet.String(filestore, "", "Specify the backing file store. Can be 'aws-multitenant-s3' (S3 Shared Bucket), 'aws-s3' (S3 Bucket), 'operator' (Minio Operator inside the cluster. Default 'aws-multi-tenant-s3' for E20, and 'aws-s3' for E10 and E0/TE.")
+	createFlagSet.String(database, cloud.InstallationDatabaseMultiTenantRDSPostgres, "Specify the backing database. Can be 'aws-multitenant-rds-postgres' (RDS Postgres Shared), 'aws-multitenant-rds' (RDS MySQL Shared), 'aws-rds-postgres' (RDS Postgres), 'aws-rds' (RDS MySQL), 'mysql-operator' (MySQL Operator inside the cluster)")
+	createFlagSet.String(enterpriseTag, "", "Specify the enterprise tag that will be used to build enterprise")
+	createFlagSet.Bool(testData, false, "Set to pre-load the server with test data")
 
 	return createFlagSet
 }
@@ -35,18 +50,27 @@ func parseCreateArgs(args []string, install *Installation) error {
 		return err
 	}
 
-	install.Size, err = createFlagSet.GetString("size")
+	install.Size, err = createFlagSet.GetString(size)
 	if err != nil {
 		return err
 	}
-	install.Version, err = createFlagSet.GetString("version")
+	install.Version, err = createFlagSet.GetString(version)
 	if err != nil {
 		return err
+	}
+
+	install.EnterpriseTag, err = createFlagSet.GetString(enterpriseTag)
+	if err != nil {
+		return err
+	}
+
+	if install.EnterpriseTag == "" {
+		install.EnterpriseTag = install.Version
 	}
 
 	install.Tag = install.Version
 
-	install.Affinity, err = createFlagSet.GetString("affinity")
+	install.Affinity, err = createFlagSet.GetString(affinity)
 	if err != nil {
 		return err
 	}
@@ -55,7 +79,7 @@ func parseCreateArgs(args []string, install *Installation) error {
 		return errors.Errorf("invalid affinity option %s, must be %s or %s", install.Affinity, cloud.InstallationAffinityIsolated, cloud.InstallationAffinityMultiTenant)
 	}
 
-	install.License, err = createFlagSet.GetString("license")
+	install.License, err = createFlagSet.GetString(license)
 	if err != nil {
 		return err
 	}
@@ -64,7 +88,7 @@ func parseCreateArgs(args []string, install *Installation) error {
 		return errors.Errorf("invalid license option %s, must be %s, %s or %s", install.License, licenseOptionE10, licenseOptionE20, licenseOptionTE)
 	}
 
-	install.Database, err = createFlagSet.GetString("database")
+	install.Database, err = createFlagSet.GetString(database)
 	if err != nil {
 		return err
 	}
@@ -80,7 +104,7 @@ func parseCreateArgs(args []string, install *Installation) error {
 		)
 	}
 
-	install.Filestore, err = createFlagSet.GetString("filestore")
+	install.Filestore, err = createFlagSet.GetString(filestore)
 	if err != nil {
 		return err
 	}
@@ -107,7 +131,7 @@ func parseCreateArgs(args []string, install *Installation) error {
 		return errors.Errorf("filestore option %s requires license option %s", cloud.InstallationFilestoreMultiTenantAwsS3, licenseOptionE20)
 	}
 
-	install.TestData, err = createFlagSet.GetBool("test-data")
+	install.TestData, err = createFlagSet.GetBool(testData)
 	if err != nil {
 		return err
 	}
@@ -161,17 +185,16 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		}
 
 		var exists bool
-		repository := "mattermost/mattermost-enterprise-edition"
-		exists, err = p.dockerClient.ValidTag(install.Version, repository)
+		exists, err = p.dockerClient.ValidTag(install.Version, enterpriseRepo)
 		if err != nil {
-			p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", repository, install.Version).Error())
+			p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", enterpriseRepo, install.Version).Error())
 		}
 		if !exists {
-			return nil, true, errors.Errorf("%s is not a valid docker tag for repository %s", install.Version, repository)
+			return nil, true, errors.Errorf("%s is not a valid docker tag for repository %s", install.Version, enterpriseRepo)
 		}
 
 		var digest string
-		digest, err = p.dockerClient.GetDigestForTag(install.Version, repository)
+		digest, err = p.dockerClient.GetDigestForTag(install.Version, enterpriseRepo)
 		if err != nil {
 			return nil, false, errors.Wrapf(err, "failed to find a manifest digest for version %s", install.Version)
 		}
