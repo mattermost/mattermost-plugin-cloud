@@ -36,7 +36,7 @@ func (p *Plugin) runImportCommand(args []string, extra *model.CommandArgs) (*mod
 
 	for _, install := range installs {
 		if install.ID == cloudInstall.ID {
-			return nil, true, errors.New("Installation has already been imported to cloud plugin")
+			return nil, true, errors.New("installation has already been imported to cloud plugin")
 		}
 	}
 

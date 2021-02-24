@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
@@ -85,4 +86,40 @@ func getFakePluginInstallations() ([]*Installation, []byte, error) {
 	b, err := json.Marshal(installations)
 
 	return installations, b, err
+}
+
+func TestListCommand(t *testing.T) {
+	plugin := Plugin{}
+	plugin.cloudClient = &MockClient{}
+
+	api := &plugintest.API{}
+	api.On("LogWarn", mock.AnythingOfTypeArgument("string")).Return(nil)
+	plugin.SetAPI(api)
+
+	t.Run("list installations successfully", func(t *testing.T) {
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"joramid\"}]"), nil)
+
+		resp, isUserError, err := plugin.runListCommand([]string{}, &model.CommandArgs{UserId: "joramid"})
+		require.Nil(t, err)
+		assert.False(t, isUserError)
+		assert.True(t, strings.Contains(resp.Text, "someid"))
+	})
+
+	t.Run("no installations", func(t *testing.T) {
+		api.On("KVGet", mock.AnythingOfType("string")).Return(nil, nil)
+
+		resp, isUserError, err := plugin.runListCommand([]string{}, &model.CommandArgs{})
+		require.Nil(t, err)
+		assert.False(t, isUserError)
+		assert.False(t, strings.Contains(resp.Text, "someid"))
+	})
+
+	t.Run("no installations for current user", func(t *testing.T) {
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"joramid\"}]"), nil)
+
+		resp, isUserError, err := plugin.runListCommand([]string{}, &model.CommandArgs{UserId: "joramid2"})
+		require.Nil(t, err)
+		assert.False(t, isUserError)
+		assert.False(t, strings.Contains(resp.Text, "someid"))
+	})
 }
