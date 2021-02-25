@@ -27,7 +27,6 @@ func TestGetUpdatedInstallsForUser(t *testing.T) {
 						State: cloud.InstallationStateStable,
 					},
 				},
-<<<<<<< HEAD
 				{
 					Installation: &cloud.Installation{
 						ID:    "id2",
@@ -42,22 +41,6 @@ func TestGetUpdatedInstallsForUser(t *testing.T) {
 				},
 				{
 					Installation: &cloud.Installation{
-=======
-				{
-					Installation: &cloud.Installation{
-						ID:    "id2",
-						State: cloud.InstallationStateStable,
-					},
-				},
-				{
-					Installation: &cloud.Installation{
-						ID:    "id4",
-						State: cloud.InstallationStateStable,
-					},
-				},
-				{
-					Installation: &cloud.Installation{
->>>>>>> importcmd
 						ID:    "id5",
 						State: cloud.InstallationStateStable,
 					},
