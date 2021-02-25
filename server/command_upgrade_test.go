@@ -45,7 +45,7 @@ func TestUpgradeCommand(t *testing.T) {
 
 		resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall"}, &model.CommandArgs{UserId: "gabeid"})
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "must specify at least one option: version, license, or size")
+		assert.Contains(t, err.Error(), "must specify at least one option: version, license, image or size")
 		assert.True(t, isUserError)
 		assert.Nil(t, resp)
 	})
@@ -164,4 +164,24 @@ func TestUpgradeCommand(t *testing.T) {
 		assert.True(t, isUserError)
 		assert.Nil(t, resp)
 	})
+
+	t.Run("image", func(t *testing.T) {
+
+		t.Run("invalid image", func(t *testing.T) {
+			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
+			resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--image", "mattermost/randomimage"}, &model.CommandArgs{UserId: "gabeid"})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "invalid image name")
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+		})
+		t.Run("valid image", func(t *testing.T) {
+			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
+			resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--image", "mattermost/mm-ee-test"}, &model.CommandArgs{UserId: "gabeid"})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Upgrade of installation")
+		})
+	})
+
 }

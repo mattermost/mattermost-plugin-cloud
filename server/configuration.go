@@ -12,6 +12,7 @@ const (
 	licenseOptionE10 = "e10"
 	licenseOptionE20 = "e20"
 	licenseOptionTE  = "te"
+	defaultImage     = "mattermost/mattermost-enterprise-edition"
 )
 
 // configuration captures the plugin's external configuration as exposed in the Mattermost server

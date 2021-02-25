@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/model"
@@ -18,7 +19,7 @@ func getUpgradeFlagSet() *flag.FlagSet {
 	upgradeFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
 	upgradeFlagSet.String("license", "", "The enterprise license to use. Can be 'e10', 'e20', or 'te'")
 	upgradeFlagSet.String("size", "", "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'")
-
+	upgradeFlagSet.String("image", "", fmt.Sprintf("Docker image repository, can be %s", strings.Join(dockerRepoWhitelist, ", ")))
 	return upgradeFlagSet
 }
 
@@ -41,12 +42,18 @@ func buildPatchInstallationRequestFromArgs(args []string) (*cloud.PatchInstallat
 	if err != nil {
 		return nil, err
 	}
-
-	if version == "" && license == "" && size == "" {
-		return nil, errors.New("must specify at least one option: version, license, or size")
+	image, err := upgradeFlagSet.GetString("image")
+	if err != nil {
+		return nil, err
+	}
+	if version == "" && license == "" && size == "" && image == "" {
+		return nil, errors.New("must specify at least one option: version, license, image or size")
 	}
 	if license != "" && !validLicenseOption(license) {
 		return nil, errors.Errorf("invalid license option %s; must be %s, %s or %s", license, licenseOptionE10, licenseOptionE20, licenseOptionTE)
+	}
+	if image != "" && !validImageName(image) {
+		return nil, errors.Errorf("invalid image name %s, valid options are %s", image, strings.Join(dockerRepoWhitelist, ", "))
 	}
 
 	request := &cloud.PatchInstallationRequest{}
@@ -58,6 +65,9 @@ func buildPatchInstallationRequestFromArgs(args []string) (*cloud.PatchInstallat
 	}
 	if size != "" {
 		request.Size = &size
+	}
+	if image != "" {
+		request.Image = &image
 	}
 
 	return request, nil
