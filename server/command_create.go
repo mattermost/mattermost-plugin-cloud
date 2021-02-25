@@ -12,7 +12,13 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-var dockerRepoWhitelist = []string{"mattermost/mattermost-enterprise-edition", "mattermost/mm-ee-test", "mattermost/mm-ee-cloud", "mattermost/mm-te", "mattermost/mattermost-team-edition"}
+var dockerRepoWhitelist = []string{
+	"mattermost/mattermost-enterprise-edition",
+	"mattermost/mm-ee-test",
+	"mattermost/mm-ee-cloud",
+	"mattermost/mm-te",
+	"mattermost/mattermost-team-edition",
+}
 var installationNameMatcher = regexp.MustCompile(`^[a-zA-Z0-9-]*$`)
 
 func getCreateFlagSet() *flag.FlagSet {
