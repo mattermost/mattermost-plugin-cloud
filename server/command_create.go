@@ -71,7 +71,7 @@ func parseCreateArgs(args []string, install *Installation) error {
 	}
 
 	if !validImageName(install.Image) {
-		return errors.Errorf("invalid image name %s", strings.Join(dockerRepoWhitelist, ", "))
+		return errors.Errorf("invalid image name %s, valid options are %s", install.Image, strings.Join(dockerRepoWhitelist, ", "))
 	}
 
 	install.Database, err = createFlagSet.GetString("database")

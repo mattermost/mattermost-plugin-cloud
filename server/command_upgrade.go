@@ -53,7 +53,7 @@ func buildPatchInstallationRequestFromArgs(args []string) (*cloud.PatchInstallat
 		return nil, errors.Errorf("invalid license option %s; must be %s, %s or %s", license, licenseOptionE10, licenseOptionE20, licenseOptionTE)
 	}
 	if image != "" && !validImageName(image) {
-		return nil, errors.Errorf("invalid image name %s", strings.Join(dockerRepoWhitelist, ", "))
+		return nil, errors.Errorf("invalid image name %s, valid options are %s", image, strings.Join(dockerRepoWhitelist, ", "))
 	}
 
 	request := &cloud.PatchInstallationRequest{}
