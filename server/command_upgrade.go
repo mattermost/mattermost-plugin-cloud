@@ -10,9 +10,7 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-const (
-	dockerRepository = "mattermost/mattermost-enterprise-edition"
-)
+var dockerRepository = "mattermost/mattermost-enterprise-edition"
 
 func getUpgradeFlagSet() *flag.FlagSet {
 	upgradeFlagSet := flag.NewFlagSet("upgrade", flag.ContinueOnError)
@@ -55,6 +53,7 @@ func buildPatchInstallationRequestFromArgs(args []string) (*cloud.PatchInstallat
 	if image != "" && !validImageName(image) {
 		return nil, errors.Errorf("invalid image name %s, valid options are %s", image, strings.Join(dockerRepoWhitelist, ", "))
 	}
+	dockerRepository = image
 
 	request := &cloud.PatchInstallationRequest{}
 	if version != "" {
