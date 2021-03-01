@@ -10,10 +10,6 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-const (
-	dockerRepository = "mattermost/mattermost-enterprise-edition"
-)
-
 func getUpgradeFlagSet() *flag.FlagSet {
 	upgradeFlagSet := flag.NewFlagSet("upgrade", flag.ContinueOnError)
 	upgradeFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
@@ -105,22 +101,31 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 		return nil, true, err
 	}
 
-	if request.Version != nil {
+	if request.Version != nil || request.Image != nil {
+		dockerTag := installToUpgrade.Version
+		dockerRepository := installToUpgrade.Image
+
+		if request.Version != nil {
+			dockerTag = *request.Version
+		}
+		if request.Image != nil {
+			dockerRepository = *request.Image
+		}
 		// Check that new version exists.
 		var exists bool
-		exists, err = p.dockerClient.ValidTag(*request.Version, dockerRepository)
+		exists, err = p.dockerClient.ValidTag(dockerTag, dockerRepository)
 		if err != nil {
-			p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", dockerRepository, *request.Version).Error())
+			p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", dockerRepository, dockerTag).Error())
 		}
 		if !exists {
-			return nil, true, errors.Errorf("%s is not a valid docker tag for repository %s", *request.Version, dockerRepository)
+			return nil, true, errors.Errorf("%s is not a valid docker tag for repository %s", dockerTag, dockerRepository)
 		}
 		var digest string
-		digest, err = p.dockerClient.GetDigestForTag(*request.Version, dockerRepository)
+		digest, err = p.dockerClient.GetDigestForTag(dockerTag, dockerRepository)
 		if err != nil {
-			return nil, false, errors.Wrapf(err, "failed to find a manifest digest for version %s", *request.Version)
+			return nil, false, errors.Wrapf(err, "failed to find a manifest digest for version %s", dockerTag)
 		}
-		installToUpgrade.Tag = *request.Version
+		installToUpgrade.Tag = dockerTag
 		request.Version = &digest
 	}
 

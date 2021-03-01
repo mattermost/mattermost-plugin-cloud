@@ -170,24 +170,24 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		license = config.E20License
 	}
 
-	if install.Version != "" {
+	if install.Version != "" || install.Image != "" {
 		err = validVersionOption(install.Version)
 		if err != nil {
 			return nil, true, err
 		}
 
 		var exists bool
-		repository := "mattermost/mattermost-enterprise-edition"
-		exists, err = p.dockerClient.ValidTag(install.Version, repository)
+
+		exists, err = p.dockerClient.ValidTag(install.Version, install.Image)
 		if err != nil {
-			p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", repository, install.Version).Error())
+			p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", install.Image, install.Version).Error())
 		}
 		if !exists {
-			return nil, true, errors.Errorf("%s is not a valid docker tag for repository %s", install.Version, repository)
+			return nil, true, errors.Errorf("%s is not a valid docker tag for repository %s", install.Version, install.Image)
 		}
 
 		var digest string
-		digest, err = p.dockerClient.GetDigestForTag(install.Version, repository)
+		digest, err = p.dockerClient.GetDigestForTag(install.Version, install.Image)
 		if err != nil {
 			return nil, false, errors.Wrapf(err, "failed to find a manifest digest for version %s", install.Version)
 		}
