@@ -8,7 +8,6 @@ import (
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/pkg/errors"
-
 	flag "github.com/spf13/pflag"
 )
 
@@ -24,7 +23,7 @@ var installationNameMatcher = regexp.MustCompile(`^[a-zA-Z0-9-]*$`)
 func getCreateFlagSet() *flag.FlagSet {
 	createFlagSet := flag.NewFlagSet("create", flag.ContinueOnError)
 	createFlagSet.String("size", "miniSingleton", "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'")
-	createFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
+	createFlagSet.String("version", "latest", "Mattermost version to run, e.g. '5.12.4'")
 	createFlagSet.String("affinity", cloud.InstallationAffinityMultiTenant, "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
 	createFlagSet.String("license", licenseOptionE20, "The enterprise license to use. Can be 'e10', 'e20', or 'te'")
 	createFlagSet.String("filestore", "", "Specify the backing file store. Can be 'aws-multitenant-s3' (S3 Shared Bucket), 'aws-s3' (S3 Bucket), 'operator' (Minio Operator inside the cluster. Default 'aws-multi-tenant-s3' for E20, and 'aws-s3' for E10 and E0/TE.")
@@ -170,29 +169,27 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		license = config.E20License
 	}
 
-	if install.Version != "" || install.Image != "" {
-		err = validVersionOption(install.Version)
-		if err != nil {
-			return nil, true, err
-		}
-
-		var exists bool
-
-		exists, err = p.dockerClient.ValidTag(install.Version, install.Image)
-		if err != nil {
-			p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", install.Image, install.Version).Error())
-		}
-		if !exists {
-			return nil, true, errors.Errorf("%s is not a valid docker tag for repository %s", install.Version, install.Image)
-		}
-
-		var digest string
-		digest, err = p.dockerClient.GetDigestForTag(install.Version, install.Image)
-		if err != nil {
-			return nil, false, errors.Wrapf(err, "failed to find a manifest digest for version %s", install.Version)
-		}
-		install.Version = digest
+	err = validVersionOption(install.Version)
+	if err != nil {
+		return nil, true, err
 	}
+
+	var validTag bool
+
+	validTag, err = p.dockerClient.ValidTag(install.Version, install.Image)
+	if err != nil {
+		p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", install.Image, install.Version).Error())
+	}
+	if !validTag {
+		return nil, true, errors.Errorf("%s is not a valid docker tag for repository %s", install.Version, install.Image)
+	}
+
+	var digest string
+	digest, err = p.dockerClient.GetDigestForTag(install.Version, install.Image)
+	if err != nil {
+		return nil, false, errors.Wrapf(err, "failed to find a manifest digest for version %s", install.Version)
+	}
+	install.Version = digest
 
 	req := &cloud.CreateInstallationRequest{
 		OwnerID:   extra.UserId,
