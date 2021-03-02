@@ -170,6 +170,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		license = config.E20License
 	}
 
+
 	err = validVersionOption(install.Version)
 	if err != nil {
 		return nil, true, err
