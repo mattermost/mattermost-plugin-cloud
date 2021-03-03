@@ -172,7 +172,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 
 	err = validVersionOption(install.Version)
 	if err != nil {
-		return nil, true, err
+		return nil, true, errors.Wrap(err, "Invalid version number")
 	}
 
 	validTag, err := p.dockerClient.ValidTag(install.Version, install.Image)
