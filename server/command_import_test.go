@@ -50,75 +50,74 @@ func TestImport(t *testing.T) {
 		assert.Nil(t, resp)
 	})
 
-	t.Run("cloud installation not found based on DNS", func(t *testing.T) {
-		plugin := Plugin{
-			cloudClient: &MockClient{
-				returnNilDNSInstalation: true,
-			},
-		}
-		resp, isUserError, err := plugin.runImportCommand([]string{"name1.dev.cloud.mattermost.com"}, &model.CommandArgs{})
+	t.Run("installs", func(t *testing.T) {
+		t.Run("cloud installation not found based on DNS", func(t *testing.T) {
+			pluginInstalls := Plugin{
+				cloudClient: &MockClient{
+					returnNilDNSInstalation: true,
+				},
+			}
+			resp, isUserError, err := pluginInstalls.runImportCommand([]string{"name1.dev.cloud.mattermost.com"}, &model.CommandArgs{})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "no installation for the DNS provided")
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+
+		})
+
+		t.Run("cloud installation not found based on DNS", func(t *testing.T) {
+			pluginInstalls := Plugin{
+				cloudClient: &MockClient{
+					returnDNSErrorOverride: errors.New("it broke"),
+				},
+			}
+			resp, isUserError, err := pluginInstalls.runImportCommand([]string{"name1.dev.cloud.mattermost.com"}, &model.CommandArgs{})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "failed to get installation by DNS")
+			assert.False(t, isUserError)
+			assert.Nil(t, resp)
+
+		})
+	})
+
+	t.Run("get import successfully from valid https DNS", func(t *testing.T) {
+		resp, isUserError, err := plugin.runImportCommand([]string{"https://import-me.dev.cloud.mattermost.com"}, &model.CommandArgs{})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, "Installation imported")
+	})
+
+	t.Run("Bad https value", func(t *testing.T) {
+		resp, isUserError, err := plugin.runImportCommand([]string{" https://import-me.dev.cloud.mattermost.com"}, &model.CommandArgs{})
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "no installation for the DNS provided")
+		assert.Contains(t, err.Error(), "error parsing url")
 		assert.True(t, isUserError)
 		assert.Nil(t, resp)
-
 	})
-
-	t.Run("cloud installation not found based on DNS", func(t *testing.T) {
-		plugin := Plugin{
-			cloudClient: &MockClient{
-				returnDNSErrorOverride: errors.New("it broke"),
-			},
-		}
-		resp, isUserError, err := plugin.runImportCommand([]string{"name1.dev.cloud.mattermost.com"}, &model.CommandArgs{})
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "failed to get installation by DNS")
+	t.Run("get import successfully from valid http DNS", func(t *testing.T) {
+		resp, isUserError, err := plugin.runImportCommand([]string{"http://import-me.dev.cloud.mattermost.com"}, &model.CommandArgs{})
+		require.NoError(t, err)
 		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, "Installation imported")
+	})
+
+	t.Run("Bad http value", func(t *testing.T) {
+		resp, isUserError, err := plugin.runImportCommand([]string{" http://import-me.dev.cloud.mattermost.com"}, &model.CommandArgs{})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "error parsing url")
+		assert.True(t, isUserError)
 		assert.Nil(t, resp)
-
 	})
-	t.Run("http/https testing", func(t *testing.T) {
-
-		t.Run("get import successfully from valid https DNS", func(t *testing.T) {
-			resp, isUserError, err := plugin.runImportCommand([]string{"https://import-me.dev.cloud.mattermost.com"}, &model.CommandArgs{})
-			require.NoError(t, err)
-			assert.False(t, isUserError)
-			assert.Contains(t, resp.Text, "Installation imported")
-		})
-
-		t.Run("Bad https value", func(t *testing.T) {
-			resp, isUserError, err := plugin.runImportCommand([]string{" https://import-me.dev.cloud.mattermost.com"}, &model.CommandArgs{})
-			require.Error(t, err)
-			assert.Contains(t, err.Error(), "error parsing url")
-			assert.True(t, isUserError)
-			assert.Nil(t, resp)
-		})
-		t.Run("get import successfully from valid http DNS", func(t *testing.T) {
-			resp, isUserError, err := plugin.runImportCommand([]string{"http://import-me.dev.cloud.mattermost.com"}, &model.CommandArgs{})
-			require.NoError(t, err)
-			assert.False(t, isUserError)
-			assert.Contains(t, resp.Text, "Installation imported")
-		})
-
-		t.Run("Bad http value", func(t *testing.T) {
-			resp, isUserError, err := plugin.runImportCommand([]string{" http://import-me.dev.cloud.mattermost.com"}, &model.CommandArgs{})
-			require.Error(t, err)
-			assert.Contains(t, err.Error(), "error parsing url")
-			assert.True(t, isUserError)
-			assert.Nil(t, resp)
-		})
-		t.Run("get import successfully from http url with query parameters", func(t *testing.T) {
-			resp, isUserError, err := plugin.runImportCommand([]string{"http://import-me.dev.cloud.mattermost.com/api/v1/ping?q=v2"}, &model.CommandArgs{})
-			require.NoError(t, err)
-			assert.False(t, isUserError)
-			assert.Contains(t, resp.Text, "Installation imported")
-		})
-		t.Run("get import successfully from https url with query parameters", func(t *testing.T) {
-			resp, isUserError, err := plugin.runImportCommand([]string{"https://import-me.dev.cloud.mattermost.com/api/v1/ping?q=v2"}, &model.CommandArgs{})
-			require.NoError(t, err)
-			assert.False(t, isUserError)
-			assert.Contains(t, resp.Text, "Installation imported")
-		})
+	t.Run("get import successfully from http url with query parameters", func(t *testing.T) {
+		resp, isUserError, err := plugin.runImportCommand([]string{"http://import-me.dev.cloud.mattermost.com/api/v1/ping?q=v2"}, &model.CommandArgs{})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, "Installation imported")
 	})
-
+	t.Run("get import successfully from https url with query parameters", func(t *testing.T) {
+		resp, isUserError, err := plugin.runImportCommand([]string{"https://import-me.dev.cloud.mattermost.com/api/v1/ping?q=v2"}, &model.CommandArgs{})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, "Installation imported")
+	})
 }
