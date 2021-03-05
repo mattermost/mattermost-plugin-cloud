@@ -79,45 +79,46 @@ func TestImport(t *testing.T) {
 
 		})
 	})
+	t.Run("URL with https/https and queries", func(t *testing.T) {
+		t.Run("get import successfully from valid https DNS", func(t *testing.T) {
+			resp, isUserError, err := plugin.runImportCommand([]string{"https://import-me.dev.cloud.mattermost.com"}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation imported")
+		})
 
-	t.Run("get import successfully from valid https DNS", func(t *testing.T) {
-		resp, isUserError, err := plugin.runImportCommand([]string{"https://import-me.dev.cloud.mattermost.com"}, &model.CommandArgs{})
-		require.NoError(t, err)
-		assert.False(t, isUserError)
-		assert.Contains(t, resp.Text, "Installation imported")
-	})
+		t.Run("Bad https value", func(t *testing.T) {
+			resp, isUserError, err := plugin.runImportCommand([]string{" https://import-me.dev.cloud.mattermost.com"}, &model.CommandArgs{})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "error parsing url")
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+		})
+		t.Run("get import successfully from valid http DNS", func(t *testing.T) {
+			resp, isUserError, err := plugin.runImportCommand([]string{"http://import-me.dev.cloud.mattermost.com"}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation imported")
+		})
 
-	t.Run("Bad https value", func(t *testing.T) {
-		resp, isUserError, err := plugin.runImportCommand([]string{" https://import-me.dev.cloud.mattermost.com"}, &model.CommandArgs{})
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "error parsing url")
-		assert.True(t, isUserError)
-		assert.Nil(t, resp)
-	})
-	t.Run("get import successfully from valid http DNS", func(t *testing.T) {
-		resp, isUserError, err := plugin.runImportCommand([]string{"http://import-me.dev.cloud.mattermost.com"}, &model.CommandArgs{})
-		require.NoError(t, err)
-		assert.False(t, isUserError)
-		assert.Contains(t, resp.Text, "Installation imported")
-	})
-
-	t.Run("Bad http value", func(t *testing.T) {
-		resp, isUserError, err := plugin.runImportCommand([]string{" http://import-me.dev.cloud.mattermost.com"}, &model.CommandArgs{})
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "error parsing url")
-		assert.True(t, isUserError)
-		assert.Nil(t, resp)
-	})
-	t.Run("get import successfully from http url with query parameters", func(t *testing.T) {
-		resp, isUserError, err := plugin.runImportCommand([]string{"http://import-me.dev.cloud.mattermost.com/api/v1/ping?q=v2"}, &model.CommandArgs{})
-		require.NoError(t, err)
-		assert.False(t, isUserError)
-		assert.Contains(t, resp.Text, "Installation imported")
-	})
-	t.Run("get import successfully from https url with query parameters", func(t *testing.T) {
-		resp, isUserError, err := plugin.runImportCommand([]string{"https://import-me.dev.cloud.mattermost.com/api/v1/ping?q=v2"}, &model.CommandArgs{})
-		require.NoError(t, err)
-		assert.False(t, isUserError)
-		assert.Contains(t, resp.Text, "Installation imported")
+		t.Run("Bad http value", func(t *testing.T) {
+			resp, isUserError, err := plugin.runImportCommand([]string{" http://import-me.dev.cloud.mattermost.com"}, &model.CommandArgs{})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "error parsing url")
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+		})
+		t.Run("get import successfully from http url with query parameters", func(t *testing.T) {
+			resp, isUserError, err := plugin.runImportCommand([]string{"http://import-me.dev.cloud.mattermost.com/api/v1/ping?q=v2"}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation imported")
+		})
+		t.Run("get import successfully from https url with query parameters", func(t *testing.T) {
+			resp, isUserError, err := plugin.runImportCommand([]string{"https://import-me.dev.cloud.mattermost.com/api/v1/ping?q=v2"}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation imported")
+		})
 	})
 }
