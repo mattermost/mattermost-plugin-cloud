@@ -159,3 +159,4 @@ func getFakePluginInstallationsWithDNS() ([]*Installation, []byte, error) {
 
 	return installations, b, err
 }
+

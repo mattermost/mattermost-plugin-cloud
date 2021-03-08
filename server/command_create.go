@@ -180,7 +180,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", install.Image, install.Version).Error())
 	}
 	if !validTag {
-		return nil, true, errors.Errorf("%s is not a valid docker tag for repository %s\n\n Review valid tags at: https://hub.docker.com/r/%s/tags?page=1&ordering=last_updated", install.Version, install.Image, install.Image)
+		return nil, true, errors.Errorf("%s is not a valid docker tag for repository %s", install.Version, install.Image)
 	}
 
 	var digest string
