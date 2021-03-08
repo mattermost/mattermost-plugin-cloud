@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"net/url"
 	"strings"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
@@ -15,13 +16,24 @@ func (p *Plugin) runImportCommand(args []string, extra *model.CommandArgs) (*mod
 	}
 	installationDNS := standardizeName(args[0])
 
-	splitDNS := strings.Split(installationDNS, ".")
+	u, err := url.Parse(installationDNS)
+	if err != nil {
+		return nil, true, errors.Wrap(err, "error parsing url")
+	}
+
+	hostname := u.Hostname()
+
+	if hostname == "" {
+		hostname = installationDNS
+	}
+
+	splitDNS := strings.Split(hostname, ".")
 	if len(splitDNS) < 2 {
-		return nil, true, errors.New("failed to parse DNS value")
+		return nil, true, errors.Errorf("failed to parse DNS value: %s", hostname)
 	}
 	name := splitDNS[0]
 
-	cloudInstall, err := p.cloudClient.GetInstallationByDNS(installationDNS, nil)
+	cloudInstall, err := p.cloudClient.GetInstallationByDNS(hostname, nil)
 	if err != nil {
 		return nil, false, errors.Wrap(err, "failed to get installation by DNS")
 	}
