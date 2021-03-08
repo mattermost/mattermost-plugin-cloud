@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"testing"
 
+	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
 	"github.com/stretchr/testify/assert"
@@ -121,4 +123,40 @@ func TestImport(t *testing.T) {
 			assert.Contains(t, resp.Text, "Installation imported")
 		})
 	})
+}
+
+func installsExist(t *testing.T) {
+	plugin := Plugin{}
+	plugin.cloudClient = &MockClient{}
+	api := &plugintest.API{}
+	plugin.SetAPI(api)
+
+	t.Run("installation already imported", func(t *testing.T) {
+		pluginInstalls, installationBytes, err := getFakePluginInstallationsWithDNS()
+		require.NoError(t, err)
+		api.On("KVGet", mock.AnythingOfType("string")).Return(installationBytes, nil)
+		api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
+
+		installations, err := plugin.getUpdatedInstallsForUser("owner 1")
+		require.NoError(t, err)
+
+		resp, isUserError, err := plugin.runImportCommand([]string{"indu.dev.cloud.mattermost.com"}, &model.CommandArgs{})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, "Installation imported")
+	})
+
+}
+
+func getFakePluginInstallationsWithDNS() ([]*Installation, []byte, error) {
+	installations := []*Installation{
+		{Name: "installation-one", Installation: cloud.Installation{ID: "id1", OwnerID: "owner 1", DNS: "installation-one.dev.cloud.mattermost.com"}},
+		{Name: "installation-two", Installation: cloud.Installation{ID: "id2", OwnerID: "owner 1", DNS: "installation-two.dev.cloud.mattermost.com"}},
+		{Name: "installation-three", Installation: cloud.Installation{ID: "id3", OwnerID: "owner 1", DNS: "installation-three.dev.cloud.mattermost.com"}},
+		{Name: "installation-four", Installation: cloud.Installation{ID: "id4", OwnerID: "owner 1", DNS: "installation-four.dev.cloud.mattermost.com"}},
+		{Name: "installation-five", Installation: cloud.Installation{ID: "id5", OwnerID: "owner 1", DNS: "installation-five.dev.cloud.mattermost.com"}},
+	}
+	b, err := json.Marshal(installations)
+
+	return installations, b, err
 }
