@@ -2,12 +2,12 @@ package main
 
 import (
 	"encoding/json"
-	"errors"
 	"testing"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -125,25 +125,24 @@ func TestImport(t *testing.T) {
 	})
 }
 
-func installsExist(t *testing.T) {
+func TestInstallExist(t *testing.T) {
 	plugin := Plugin{}
-	plugin.cloudClient = &MockClient{}
+	plugin.cloudClient = &MockClient{overrideGetInstallationDTO: &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "id1", DNS: "installation-one.dev.cloud.mattermost.com"}}}
 	api := &plugintest.API{}
 	plugin.SetAPI(api)
 
 	t.Run("installation already imported", func(t *testing.T) {
-		pluginInstalls, installationBytes, err := getFakePluginInstallationsWithDNS()
+		_, installationBytes, err := getFakePluginInstallationsWithDNS()
 		require.NoError(t, err)
 		api.On("KVGet", mock.AnythingOfType("string")).Return(installationBytes, nil)
 		api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
+		api.On("LogWarn", mock.AnythingOfType("string")).Return(nil)
 
-		installations, err := plugin.getUpdatedInstallsForUser("owner 1")
-		require.NoError(t, err)
-
-		resp, isUserError, err := plugin.runImportCommand([]string{"indu.dev.cloud.mattermost.com"}, &model.CommandArgs{})
-		require.NoError(t, err)
-		assert.False(t, isUserError)
-		assert.Contains(t, resp.Text, "Installation imported")
+		resp, isUserError, err := plugin.runImportCommand([]string{"installation-one.dev.cloud.mattermost.com"}, &model.CommandArgs{})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "installation has already been imported to cloud plugin")
+		assert.True(t, isUserError)
+		assert.Nil(t, resp)
 	})
 
 }
