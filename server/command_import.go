@@ -24,6 +24,7 @@ func (p *Plugin) runImportCommand(args []string, extra *model.CommandArgs) (*mod
 	hostname := u.Hostname()
 
 	if hostname == "" {
+		// If the initial DNS does not contain HTTP/HTTPS Hostname() will return an empty string so we use the initial DNS instead
 		hostname = installationDNS
 	}
 

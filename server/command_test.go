@@ -45,6 +45,9 @@ func (mc *MockClient) GetInstallationByDNS(DNS string, request *cloud.GetInstall
 	if mc.returnDNSErrorOverride != nil {
 		return nil, mc.returnDNSErrorOverride
 	}
+	if mc.overrideGetInstallationDTO != nil {
+		return mc.overrideGetInstallationDTO, nil
+	}
 
 	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid", DNS: DNS}}, nil
 }

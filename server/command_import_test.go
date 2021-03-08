@@ -1,11 +1,13 @@
 package main
 
 import (
-	"errors"
+	"encoding/json"
 	"testing"
 
+	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/model"
 	"github.com/mattermost/mattermost-server/plugin/plugintest"
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -122,3 +124,39 @@ func TestImport(t *testing.T) {
 		})
 	})
 }
+
+func TestInstallExist(t *testing.T) {
+	plugin := Plugin{}
+	plugin.cloudClient = &MockClient{overrideGetInstallationDTO: &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "id1", DNS: "installation-one.dev.cloud.mattermost.com"}}}
+	api := &plugintest.API{}
+	plugin.SetAPI(api)
+
+	t.Run("installation already imported", func(t *testing.T) {
+		_, installationBytes, err := getFakePluginInstallationsWithDNS()
+		require.NoError(t, err)
+		api.On("KVGet", mock.AnythingOfType("string")).Return(installationBytes, nil)
+		api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
+		api.On("LogWarn", mock.AnythingOfType("string")).Return(nil)
+
+		resp, isUserError, err := plugin.runImportCommand([]string{"installation-one.dev.cloud.mattermost.com"}, &model.CommandArgs{})
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "installation has already been imported to cloud plugin")
+		assert.True(t, isUserError)
+		assert.Nil(t, resp)
+	})
+
+}
+
+func getFakePluginInstallationsWithDNS() ([]*Installation, []byte, error) {
+	installations := []*Installation{
+		{Name: "installation-one", Installation: cloud.Installation{ID: "id1", OwnerID: "owner 1", DNS: "installation-one.dev.cloud.mattermost.com"}},
+		{Name: "installation-two", Installation: cloud.Installation{ID: "id2", OwnerID: "owner 1", DNS: "installation-two.dev.cloud.mattermost.com"}},
+		{Name: "installation-three", Installation: cloud.Installation{ID: "id3", OwnerID: "owner 1", DNS: "installation-three.dev.cloud.mattermost.com"}},
+		{Name: "installation-four", Installation: cloud.Installation{ID: "id4", OwnerID: "owner 1", DNS: "installation-four.dev.cloud.mattermost.com"}},
+		{Name: "installation-five", Installation: cloud.Installation{ID: "id5", OwnerID: "owner 1", DNS: "installation-five.dev.cloud.mattermost.com"}},
+	}
+	b, err := json.Marshal(installations)
+
+	return installations, b, err
+}
+
