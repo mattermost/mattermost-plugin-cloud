@@ -137,6 +137,16 @@ endif
 .PHONY: dist
 dist:	apply server webapp bundle
 
+.PHONY: debug-dist
+debug-dist: apply server webapp-debug bundle
+
+## Builds the webapp in debug mode, if it exists.
+webapp-debug: webapp/.npminstall
+ifneq ($(HAS_WEBAPP),)
+	cd webapp && \
+	$(NPM) run debug;
+endif
+
 ## Installs the plugin to a (development) server.
 .PHONY: deploy
 deploy: dist
