@@ -3,21 +3,25 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-//question
-import {telemetry, setRhsVisible} from '../../actions';
-
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
+import {telemetry, setRhsVisible,getCloudUserData} from '../../actions';
+import {installsForUser} from '../../selectors';
 import SidebarRight from './sidebar_right.jsx';
 
 function mapStateToProps(state) {
-    /*return {
-        rhsState: state['plugins-com.mattermost.plugin-cloud'].rhsState,
-    };*/
+    const id = getCurrentUserId(state);
+    const installs = installsForUser(state, id);
+    return {
+       id,
+       installs,
+    };
 }
 
 function mapDispatchToProps(dispatch) {
     return {
         actions: bindActionCreators({
             telemetry,
+            getCloudUserData,
             setVisible: setRhsVisible,
         }, dispatch),
     };

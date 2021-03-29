@@ -5,7 +5,7 @@ import (
 	"time"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	flag "github.com/spf13/pflag"
 )
 

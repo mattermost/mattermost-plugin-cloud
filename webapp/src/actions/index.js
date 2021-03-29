@@ -7,6 +7,7 @@ import {id as pluginId} from '../manifest';
 import {installsForUser} from 'selectors';
 
 import {
+    RECEIVED_USER_INSTALLS,
     RECEIVED_SHOW_RHS_ACTION,
     UPDATE_RHS_STATE,
     SET_RHS_VISIBLE,
@@ -31,7 +32,7 @@ export function getCloudUserData(userID) {
         } catch (error) {
             if (error.status === 404) {
                 dispatch({
-                    type: ActionTypes.RECEIVED_USER_INSTALLS,
+                    type: RECEIVED_USER_INSTALLS,
                     userID,
                     data: {last_try: Date.now()},
                 });
@@ -40,7 +41,7 @@ export function getCloudUserData(userID) {
         }
 
         dispatch({
-            type: ActionTypes.RECEIVED_USER_INSTALLS,
+            type: RECEIVED_USER_INSTALLS,
             userID,
             data,
         });

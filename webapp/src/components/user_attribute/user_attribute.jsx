@@ -11,6 +11,7 @@ export default class UserAttribute extends React.PureComponent {
     };
 
     componentDidMount() {
+        console.log("user attribute id"+this.props.id);
         this.props.actions.getCloudUserData(this.props.id);
     }
 
