@@ -63,9 +63,11 @@ export default class SidebarRight extends React.PureComponent {
         }
 
         const entries = installs.map((install) => (
-            <li style={style.li}
+            <li
+                style={style.li}
                 key={install.ID}>
-                <div style={style.name}>
+                <div style={style.name}
+            >
                     <span><b style={style.nameText}>{install.Name}</b></span>
                 </div>
                 <div style={style.installinfo}>
