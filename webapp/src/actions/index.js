@@ -1,6 +1,5 @@
-import Client from '../client';
-import ActionTypes from '../action_types';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import Client from '../client';
 import {Client4} from 'mattermost-redux/client';
 import {id as pluginId} from '../manifest';
 
