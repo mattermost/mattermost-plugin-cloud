@@ -8,7 +8,7 @@ import {isRhsVisible} from '../../selectors';
 
 import {showRHSPlugin} from '../../actions/index.js';
 
-import ChannelHeaderButton from './channel_header_button.tsx';
+import ChannelHeaderButton from './channel_header_button.jsx';
 
 function mapStateToProps(state) {
     return {
@@ -19,7 +19,7 @@ function mapStateToProps(state) {
 function mapDispatchToProp(dispatch) {
     return {
         actions: bindActionCreators({
-          showRHSPlugin,
+            showRHSPlugin,
         }, dispatch),
     };
 }

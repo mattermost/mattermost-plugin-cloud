@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import Scrollbars from 'react-custom-scrollbars';
-import { Badge } from 'react-bootstrap';
+import {Badge} from 'react-bootstrap';
 
 export function renderView(props) {
     return (
@@ -47,7 +47,6 @@ export default class SidebarRight extends React.PureComponent {
 
     componentDidMount() {
         this.props.actions.setVisible(true);
-        console.log("this is the id" + this.props.id);
         this.props.actions.getCloudUserData(this.props.id);
     }
 
@@ -55,24 +54,22 @@ export default class SidebarRight extends React.PureComponent {
         this.props.actions.setVisible(false);
     }
 
-
-
     render() {
         const installs = this.props.installs;
         var noInstalls = false;
 
-        if (installs.length == 0) {
+        if (installs.length === 0) {
             noInstalls = true;
         }
 
-
         const entries = installs.map((install) => (
-            <li style={style.li} key={install.ID}>
+            <li style={style.li}
+                key={install.ID}>
                 <div style={style.name}>
                     <span><b style={style.nameText}>{install.Name}</b></span>
                 </div>
                 <div style={style.installinfo}>
-                    {install.State == "stable" ? <div>
+                    {install.State === 'stable' ? <div>
                         <span style={style.col1}>State:</span>
                         <span><Badge style={style.successBadge}>{install.State}</Badge></span>
                     </div> :
@@ -91,7 +88,7 @@ export default class SidebarRight extends React.PureComponent {
                         <span>{install.Image}</span>
                     </div>
                     <div>
-                        {install.Tag == "" ?
+                        {install.Tag === "" ?
                             <div>
                                 <span style={style.col1}>Version:</span>
                                 <span>{install.Version}</span>
