@@ -6,7 +6,7 @@ import {bindActionCreators} from 'redux';
 
 import {isRhsVisible} from '../../selectors';
 
-import {showRHSPlugin} from '../../actions';
+import {showRHSPlugin} from '../../actions/index.js';
 
 import ChannelHeaderButton from './channel_header_button.tsx';
 
@@ -19,7 +19,7 @@ function mapStateToProps(state) {
 function mapDispatchToProp(dispatch) {
     return {
         actions: bindActionCreators({
-            showRHSPlugin,
+          showRHSPlugin,
         }, dispatch),
     };
 }

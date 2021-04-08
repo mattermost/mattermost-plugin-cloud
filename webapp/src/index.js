@@ -20,8 +20,8 @@ class Plugin {
                 telemetry('channel_header_click');
                 store.dispatch(toggleRHSPlugin);
             },
-            'Cloud plugin',
-            'Create an installation',
+            'Cloud Plugin',
+            'Cloud Plugin',
         );
 
     }

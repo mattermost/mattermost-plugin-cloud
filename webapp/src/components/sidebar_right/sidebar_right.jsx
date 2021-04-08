@@ -1,10 +1,7 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 import React from 'react';
 import PropTypes from 'prop-types';
 import Scrollbars from 'react-custom-scrollbars';
-import './sidebar_right.scss';
+import { Badge } from 'react-bootstrap';
 
 export function renderView(props) {
     return (
@@ -50,7 +47,7 @@ export default class SidebarRight extends React.PureComponent {
 
     componentDidMount() {
         this.props.actions.setVisible(true);
-        console.log("this is the id"+ this.props.id);
+        console.log("this is the id" + this.props.id);
         this.props.actions.getCloudUserData(this.props.id);
     }
 
@@ -61,28 +58,81 @@ export default class SidebarRight extends React.PureComponent {
 
 
     render() {
+        const installs = this.props.installs;
+        var noInstalls = false;
 
-       // const installs = [{ ID: 1, DNS: "indu.dev", Name: "indu" }, { ID: 2, DNS: "bob.dev", Name: "bob" }, { ID: 3, DNS: "test.dev", Name: "test" }]
-         const installs = this.props.installs;
-         var noInstalls = ""
+        if (installs.length == 0) {
+            noInstalls = true;
+        }
 
-         if (installs.length == 0) {
-             noInstalls = "No installs for user"
-             return null;
-         }
-  
-          const entries = installs.map((install) => (
-              <li key={install.ID}>
-                  <a
-                      href={'https://' + install.DNS}
-                      target='_blank'
-                      rel='noopener noreferrer'
-                  >
-                      {install.Name}
-                  </a>
-              </li>
-          ));
-          
+
+        const entries = installs.map((install) => (
+            <li style={style.li} key={install.ID}>
+                <div style={style.name}>
+                    <span><b style={style.nameText}>{install.Name}</b></span>
+                </div>
+                <div style={style.installinfo}>
+                    {install.State == "stable" ? <div>
+                        <span style={style.col1}>State:</span>
+                        <span><Badge style={style.successBadge}>{install.State}</Badge></span>
+                    </div> :
+                        <div>
+                            <span style={style.col1}>State:</span>
+                            <span><Badge style={style.warningBadge}>{install.State}</Badge></span>
+                        </div>
+
+                    }
+                    <div>
+                        <span style={style.col1}>DNS:</span>
+                        <span>{install.DNS}</span>
+                    </div>
+                    <div>
+                        <span style={style.col1}>Image:</span>
+                        <span>{install.Image}</span>
+                    </div>
+                    <div>
+                        {install.Tag == "" ?
+                            <div>
+                                <span style={style.col1}>Version:</span>
+                                <span>{install.Version}</span>
+                            </div> :
+                            <div>
+                                <span style={style.col1}>Tag:</span>
+                                <span>{install.Tag}</span>
+                            </div>
+                        }
+                    </div>
+                    <div>
+                        <span style={style.col1}>Database:</span>
+                        <span>{install.Database}</span>
+                    </div>
+                    <div>
+                        <span style={style.col1}>Filestore:</span>
+                        <span>{install.Filestore}</span>
+                    </div>
+                    <div>
+                        <span style={style.col1}>Size:</span>
+                        <span>{install.Size}</span>
+                    </div>
+                </div>
+
+                <a
+                    href={'https://' + install.DNS}
+                    target='_blank'
+                    rel='noopener noreferrer'
+                >
+                    <div>
+                        <button
+                            className='btn btn-primary btn-block'
+                        >{'View Installation'}
+                        </button>
+
+                    </div>
+
+                </a>
+            </li>
+        ));
+
 
         return (
             <React.Fragment>
@@ -95,16 +145,21 @@ export default class SidebarRight extends React.PureComponent {
                     renderView={renderView}
                     className='SidebarRight'
                 >
-                    <div className='header-menu'>
-                        {noInstalls}
-                    </div>
+                    {noInstalls ?
+                        <div style={style.noInstalls}>
 
-                    <div style={style.container}>
-                        <div>{'Cloud Servers'}</div>
-                        <ul style={style.ul}>
-                            {entries}
-                        </ul>
-                    </div>
+                            <p>There are no installations, use the '/cloud create' command to add an installation.</p>
+
+                            <div style={style.serverIcon}>
+                                <i className="fa fa-server fa-4x" />
+                            </div>
+
+                        </div> :
+                        <div style={style.container}>
+                            <ul style={style.ul}>
+                                {entries}
+                            </ul>
+                        </div>}
                 </Scrollbars>
             </React.Fragment>
         );
@@ -112,14 +167,49 @@ export default class SidebarRight extends React.PureComponent {
 }
 const style = {
     container: {
-        margin: '5px 0',
+        margin: '0px 0',
     },
-    ul:{
-        listStyleType:"none",
+    ul: {
+        listStyleType: "none",
+        padding: "0px",
+        margin:'0px',
     },
-    li:{
-        width:"300px",
-        border:"1px solid #000",
-        padding:"20px",
+    li: {
+        borderTop: "1px solid #D3D3D3",
+        padding: "20px",
+    },
+    col1: {
+        width: "100px",
+        float: 'left',
+    },
+    name: {
+        marginBottom: "5px",
+    },
+    installinfo: {
+        marginBottom: "15px",
+    },
+    nameText: {
+        fontSize: "15px",
+    },
+    successBadge: {
+        width: '50px',
+        display: 'inline',
+        backgroundColor: '#00FF7F',
+    },
+    warningBadge: {
+        width: '50px',
+        display: 'inline',
+        backgroundColor: '#FF8C00',
+    },
+    noInstalls: {
+        margin: 'auto',
+        width: '50%',
+        marginTop: '50px',
+    },
+    serverIcon: {
+        margin: '0 auto',
+        width: '50%',
     }
+
 };
+
