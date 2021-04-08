@@ -75,10 +75,10 @@ export default class SidebarRight extends React.PureComponent {
                         <span style={style.col1}>State:</span>
                         <span><Badge style={style.successBadge}>{install.State}</Badge></span>
                     </div> :
-                        <div>
-                            <span style={style.col1}>State:</span>
-                            <span><Badge style={style.warningBadge}>{install.State}</Badge></span>
-                        </div>
+                    <div>
+                        <span style={style.col1}>State:</span>
+                        <span><Badge style={style.warningBadge}>{install.State}</Badge></span>
+                    </div>
 
                     }
                     <div>
@@ -90,7 +90,7 @@ export default class SidebarRight extends React.PureComponent {
                         <span>{install.Image}</span>
                     </div>
                     <div>
-                        {install.Tag === "" ?
+                        {install.Tag === '' ?
                             <div>
                                 <span style={style.col1}>Version:</span>
                                 <span>{install.Version}</span>
@@ -132,7 +132,6 @@ export default class SidebarRight extends React.PureComponent {
             </li>
         ));
 
-
         return (
             <React.Fragment>
                 <Scrollbars
@@ -147,10 +146,10 @@ export default class SidebarRight extends React.PureComponent {
                     {noInstalls ?
                         <div style={style.noInstalls}>
 
-                            <p>There are no installations, use the '/cloud create' command to add an installation.</p>
+                            <p>There are no installations, use the /cloud create command to add an installation.</p>
 
                             <div style={style.serverIcon}>
-                                <i className="fa fa-server fa-4x" />
+                                <i className='fa fa-server fa-4x'/>
                             </div>
 
                         </div> :
@@ -169,26 +168,26 @@ const style = {
         margin: '0px 0',
     },
     ul: {
-        listStyleType: "none",
-        padding: "0px",
+        listStyleType: 'none',
+        padding: '0px',
         margin:'0px',
     },
     li: {
-        borderTop: "1px solid #D3D3D3",
-        padding: "20px",
+        borderTop: '1px solid #D3D3D3',
+        padding: '20px',
     },
     col1: {
-        width: "100px",
+        width: '100px',
         float: 'left',
     },
     name: {
-        marginBottom: "5px",
+        marginBottom: '5px',
     },
     installinfo: {
-        marginBottom: "15px",
+        marginBottom: '15px',
     },
     nameText: {
-        fontSize: "15px",
+        fontSize: '15px',
     },
     successBadge: {
         width: '50px',
