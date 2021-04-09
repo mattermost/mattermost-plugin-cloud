@@ -23,7 +23,6 @@ class Plugin {
             'Cloud Plugin',
             'Cloud Plugin',
         );
-
     }
 }
 
