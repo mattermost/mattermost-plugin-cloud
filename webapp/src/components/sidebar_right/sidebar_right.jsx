@@ -75,10 +75,10 @@ export default class SidebarRight extends React.PureComponent {
                         <span style={style.col1}>State:</span>
                         <span><Badge style={style.successBadge}>{install.State}</Badge></span>
                     </div> :
-                    <div>
-                        <span style={style.col1}>State:</span>
-                        <span><Badge style={style.warningBadge}>{install.State}</Badge></span>
-                    </div>
+                        <div>
+                            <span style={style.col1}>State:</span>
+                            <span><Badge style={style.warningBadge}>{install.State}</Badge></span>
+                        </div>
 
                     }
                     <div>
@@ -170,7 +170,7 @@ const style = {
     ul: {
         listStyleType: 'none',
         padding: '0px',
-        margin:'0px',
+        margin: '0px',
     },
     li: {
         borderTop: '1px solid #D3D3D3',
@@ -207,7 +207,7 @@ const style = {
     serverIcon: {
         margin: '0 auto',
         width: '50%',
-    }
+    },
 
 };
 

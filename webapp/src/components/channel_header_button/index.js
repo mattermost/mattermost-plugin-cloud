@@ -8,7 +8,7 @@ import {isRhsVisible} from '../../selectors';
 
 import {showRHSPlugin} from '../../actions/index.js';
 
-import ChannelHeaderButton from './channel_header_button.jsx';
+import ChannelHeaderButton from './channel_header_button';
 
 function mapStateToProps(state) {
     return {
