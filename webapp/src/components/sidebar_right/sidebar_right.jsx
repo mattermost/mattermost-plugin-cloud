@@ -71,15 +71,15 @@ export default class SidebarRight extends React.PureComponent {
                     <span><b style={style.nameText}>{install.Name}</b></span>
                 </div>
                 <div style={style.installinfo}>
-                    {install.State === 'stable' ? <div>
-                        <span style={style.col1}>State:</span>
-                        <span><Badge style={style.successBadge}>{install.State}</Badge></span>
-                    </div> :
+                    {install.State === 'stable' ? 
+                        <div>
+                            <span style={style.col1}>State:</span>
+                            <span><Badge style={style.successBadge}>{install.State}</Badge></span>
+                        </div> :
                         <div>
                             <span style={style.col1}>State:</span>
                             <span><Badge style={style.warningBadge}>{install.State}</Badge></span>
                         </div>
-
                     }
                     <div>
                         <span style={style.col1}>DNS:</span>

@@ -1,6 +1,6 @@
 import {combineReducers} from 'redux';
 
-import {RECEIVED_USER_INSTALLS,RECEIVED_SHOW_RHS_ACTION,UPDATE_RHS_STATE,SET_RHS_VISIBLE} from '../action_types';
+import {RECEIVED_USER_INSTALLS, RECEIVED_SHOW_RHS_ACTION, UPDATE_RHS_STATE, SET_RHS_VISIBLE} from '../action_types';
 
 function cloudUserInstalls(state = {}, action) {
     switch (action.type) {

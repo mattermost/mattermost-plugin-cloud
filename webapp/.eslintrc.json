@@ -632,5 +632,36 @@
         "onlyEquality": false
       }
     ]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["**/*.tsx", "**/*.ts"],
+      "extends": "plugin:@typescript-eslint/recommended",
+      "rules": {
+        "@typescript-eslint/ban-ts-ignore": 0,
+        "@typescript-eslint/ban-types": 1,
+        "@typescript-eslint/ban-ts-comment": 0,
+        "@typescript-eslint/no-var-requires": 0,
+        "@typescript-eslint/prefer-interface": 0,
+        "@typescript-eslint/explicit-function-return-type": 0,
+        "@typescript-eslint/explicit-module-boundary-types": 0,
+        "@typescript-eslint/indent": [
+          2,
+          4,
+          {
+            "SwitchCase": 0
+          }
+        ],
+        "@typescript-eslint/no-use-before-define": [
+          2,
+          {
+            "classes": false,
+            "functions": false,
+            "variables": false
+          }
+        ],
+        "react/jsx-filename-extension": 0
+      }
+    }
+  ]
 }

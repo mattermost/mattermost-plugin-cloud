@@ -13,6 +13,7 @@
     "test-ci": "jest --forceExit --detectOpenHandles --maxWorkers=2"
   },
   "dependencies": {
+    "jshint": "^2.12.0",
     "mattermost-redux": "5.23.0",
     "prop-types": "15.7.2",
     "react": "16.13.1",
