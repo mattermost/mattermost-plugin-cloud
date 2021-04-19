@@ -1,4 +1,5 @@
 import request from 'superagent';
+import {Client4} from 'mattermost-redux/client';
 
 export default class Client {
     constructor() {
@@ -77,5 +78,20 @@ export default class Client {
         }
 
         return response.body;
+    }
+    clientExecuteCommand = async (getState, command) => {
+        const currentChannel = getCurrentChannel(getState());
+        const currentTeamId = getCurrentTeamId(getState());
+
+        const args = {
+            channel_id: currentChannel.id,
+            team_id: currentTeamId,
+        };
+
+        try {
+            await Client4.executeCommand(command, args);
+        } catch (error) {
+            console.error(error); //eslint-disable-line no-console
+        }
     }
 }

@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 
-import {telemetry, setRhsVisible, getCloudUserData} from '../../actions';
+import {telemetry, setRhsVisible, getCloudUserData, addInstall} from '../../actions';
 
 import {installsForUser} from '../../selectors';
 
@@ -25,6 +25,7 @@ function mapDispatchToProps(dispatch) {
         actions: bindActionCreators({
             telemetry,
             getCloudUserData,
+            addInstall,
             setVisible: setRhsVisible,
         }, dispatch),
     };

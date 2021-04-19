@@ -71,6 +71,18 @@ export function updateRhsState(rhsState) {
         state: rhsState,
     };
 }
+export function addInstall(name){
+    return async (dispatch, getState) => {
+        if (!name) {
+            return {};
+        }
+        const command = `/cloud create ${name}`;
+        await Client.clientExecuteCommand(getState, command);
+
+        return {data: null};
+    };
+}
+
 export const getPluginServerRoute = (state) => {
     const config = getConfig(state);
 
