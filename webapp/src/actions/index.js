@@ -9,13 +9,29 @@ import {id as pluginId} from '../manifest';
 import {installsForUser} from 'selectors';
 
 import {
+    OPEN_ROOT_MODAL,
+    CLOSE_ROOT_MODAL,
     RECEIVED_USER_INSTALLS,
     RECEIVED_SHOW_RHS_ACTION,
     UPDATE_RHS_STATE,
-    SET_RHS_VISIBLE,
+    SET_RHS_VISIBLE, 
 } from '../action_types';
 
 const CLOUD_USER_GET_TIMEOUT_MILLISECONDS = 1000 * 60; // 1 minute
+
+export const openRootModal = () => (dispatch) => {
+    console.log("opened 2");
+    dispatch({
+        type: OPEN_ROOT_MODAL,
+    });
+};
+
+export const closeRootModal = () => (dispatch) => {
+    console.log("closed");
+    dispatch({
+        type: CLOSE_ROOT_MODAL,
+    });
+};
 
 export function getCloudUserData(userID) {
     return async (dispatch, getState) => {

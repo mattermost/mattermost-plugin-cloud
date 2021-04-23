@@ -1,7 +1,18 @@
 import {combineReducers} from 'redux';
 
-import {RECEIVED_USER_INSTALLS, RECEIVED_SHOW_RHS_ACTION, UPDATE_RHS_STATE, SET_RHS_VISIBLE} from '../action_types';
+import {OPEN_ROOT_MODAL, CLOSE_ROOT_MODAL, RECEIVED_USER_INSTALLS, RECEIVED_SHOW_RHS_ACTION, UPDATE_RHS_STATE, SET_RHS_VISIBLE} from '../action_types';
 
+const rootModalVisible = (state = false, action) => {
+    console.log(action.type);
+    switch (action.type) {
+    case OPEN_ROOT_MODAL:
+        return true;
+    case CLOSE_ROOT_MODAL:
+        return false;
+    default:
+        return state;
+    }
+};
 function cloudUserInstalls(state = {}, action) {
     switch (action.type) {
     case RECEIVED_USER_INSTALLS: {
@@ -41,6 +52,7 @@ function isRhsVisible(state = false, action) {
 }
 
 export default combineReducers({
+    rootModalVisible,
     cloudUserInstalls,
     rhsPluginAction,
     rhsState,

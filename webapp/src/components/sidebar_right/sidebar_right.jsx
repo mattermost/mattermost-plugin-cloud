@@ -35,6 +35,7 @@ export default class SidebarRight extends React.PureComponent {
         actions: PropTypes.shape({
             setVisible: PropTypes.func.isRequired,
             telemetry: PropTypes.func.isRequired,
+            openRootModal: PropTypes.func.isRequired,
             addInstall: PropTypes.func.isRequired,
             getCloudUserData: PropTypes.func.isRequired,
         }).isRequired,
@@ -54,7 +55,7 @@ export default class SidebarRight extends React.PureComponent {
     componentWillUnmount() {
         this.props.actions.setVisible(false);
     }
-    addInstallation(){
+    addInstallation=()=>{
         console.log("add worked")
         this.props.actions.addInstall("hello"); 
     }
@@ -158,7 +159,8 @@ export default class SidebarRight extends React.PureComponent {
                             </div>
 
                         </div> :
-                        <div onClick={this.addInstallation} style={style.container}>
+                        <div onClick={()=>{this.props.actions.openRootModal(); 
+                        console.log("clicked")}} style={style.container}>
                                                <div
                         className='section-header'
                     >

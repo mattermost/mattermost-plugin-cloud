@@ -1,5 +1,7 @@
 import request from 'superagent';
 import {Client4} from 'mattermost-redux/client';
+import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 export default class Client {
     constructor() {

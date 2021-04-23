@@ -1,7 +1,7 @@
 import UserAttribute from './components/user_attribute';
 import Reducer from './reducers';
 import {id as pluginId} from './manifest';
-
+import Root from './components/root';
 import {setShowRHSAction, telemetry} from './actions/index.js';
 import ChannelHeaderButton from './components/channel_header_button';
 import SidebarRight from './components/sidebar_right';
@@ -9,7 +9,7 @@ import SidebarRight from './components/sidebar_right';
 class Plugin {
     async initialize(registry, store) {
         registry.registerReducer(Reducer);
-
+        registry.registerRootComponent(Root);
         registry.registerPopoverUserAttributesComponent(UserAttribute);
 
         const {toggleRHSPlugin, showRHSPlugin} = registry.registerRightHandSidebarComponent(SidebarRight, 'Cloud Plugin');
