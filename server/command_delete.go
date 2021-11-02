@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (p *Plugin) runDeleteCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {

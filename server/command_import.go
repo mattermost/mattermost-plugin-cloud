@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
 )
 
