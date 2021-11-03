@@ -52,9 +52,9 @@ func deploy() error {
 		if adminUsername != "" && adminPassword != "" {
 			client := model.NewAPIv4Client(siteURL)
 			log.Printf("Authenticating as %s against %s.", adminUsername, siteURL)
-			_, resp := client.Login(adminUsername, adminPassword)
-			if resp.Error != nil {
-				return errors.Wrapf(resp.Error, "failed to login as %s", adminUsername)
+			_, _, err := client.Login(adminUsername, adminPassword)
+			if err != nil {
+				return errors.Wrapf(err, "failed to login as %s", adminUsername)
 			}
 
 			return uploadPlugin(client, pluginID, bundlePath)
@@ -83,15 +83,15 @@ func uploadPlugin(client *model.Client4, pluginID, bundlePath string) error {
 	defer pluginBundle.Close()
 
 	log.Print("Uploading plugin via API.")
-	_, resp := client.UploadPluginForced(pluginBundle)
-	if resp.Error != nil {
-		return fmt.Errorf("Failed to upload plugin bundle: %s", resp.Error.Error())
+	_, _, err = client.UploadPluginForced(pluginBundle)
+	if err != nil {
+		return fmt.Errorf("Failed to upload plugin bundle: %s", err.Error())
 	}
 
 	log.Print("Enabling plugin.")
-	_, resp = client.EnablePlugin(pluginID)
-	if resp.Error != nil {
-		return fmt.Errorf("Failed to enable plugin: %s", resp.Error.Error())
+	_, err = client.EnablePlugin(pluginID)
+	if err != nil {
+		return fmt.Errorf("Failed to enable plugin: %s", err.Error())
 	}
 
 	return nil

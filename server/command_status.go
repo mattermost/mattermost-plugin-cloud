@@ -47,9 +47,7 @@ func (p *Plugin) runStatusCommand(args []string, extra *model.CommandArgs) (*mod
 	}
 
 	installations, err := p.cloudClient.GetInstallations(&cloud.GetInstallationsRequest{
-		Page:           0,
-		PerPage:        100,
-		IncludeDeleted: false,
+		Paging: cloud.AllPagesNotDeleted(),
 	})
 	if err != nil {
 		return nil, false, err
@@ -70,13 +68,11 @@ func (p *Plugin) runStatusCommand(args []string, extra *model.CommandArgs) (*mod
 	}
 
 	if !includeClusters {
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, status), false, nil
+		return getCommandResponse(model.CommandResponseTypeEphemeral, status), false, nil
 	}
 
 	clusters, err := p.cloudClient.GetClusters(&cloud.GetClustersRequest{
-		Page:           0,
-		PerPage:        100,
-		IncludeDeleted: false,
+		Paging: cloud.AllPagesNotDeleted(),
 	})
 	if err != nil {
 		return nil, false, err
@@ -92,7 +88,7 @@ func (p *Plugin) runStatusCommand(args []string, extra *model.CommandArgs) (*mod
 		)
 	}
 
-	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, status), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, status), false, nil
 }
 
 func getTimeFromMillis(millis int64) time.Time {

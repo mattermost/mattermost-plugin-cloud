@@ -58,15 +58,13 @@ func (p *Plugin) runMattermostCLICommand(args []string, extra *model.CommandArgs
 		codeBlock(string(output)),
 	)
 
-	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, resp), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, resp), false, nil
 }
 
 func (p *Plugin) execMattermostCLI(installationID string, subcommand []string) ([]byte, error) {
 	clusterInstallations, err := p.cloudClient.GetClusterInstallations(&cloud.GetClusterInstallationsRequest{
 		InstallationID: installationID,
-		Page:           0,
-		PerPage:        100,
-		IncludeDeleted: false,
+		Paging:         cloud.AllPagesNotDeleted(),
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get cluster installations")

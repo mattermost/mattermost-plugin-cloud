@@ -68,14 +68,15 @@ func (p *Plugin) OnActivate() error {
 		return err
 	}
 
-	botID, err := p.Helpers.EnsureBot(&model.Bot{
+	bot, apperr := p.API.CreateBot(&model.Bot{
 		Username:    "cloud",
 		DisplayName: "Cloud",
 		Description: "Created by the Mattermost Private Cloud plugin.",
 	})
-	if err != nil {
-		return errors.Wrap(err, "failed to ensure github bot")
+	if apperr != nil {
+		return errors.Wrap(apperr, "failed to ensure github bot")
 	}
+	botID := bot.UserId
 	p.BotUserID = botID
 
 	bundlePath, err := p.API.GetBundlePath()

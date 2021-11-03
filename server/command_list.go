@@ -16,7 +16,7 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 	}
 
 	if len(installsForUser) == 0 {
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "No installations found."), false, nil
+		return getCommandResponse(model.CommandResponseTypeEphemeral, "No installations found."), false, nil
 	}
 
 	data, err := json.Marshal(installsForUser)
@@ -24,7 +24,7 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 		return nil, false, err
 	}
 
-	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, jsonCodeBlock(prettyPrintJSON(string(data)))), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, jsonCodeBlock(prettyPrintJSON(string(data)))), false, nil
 }
 
 func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, error) {
@@ -39,8 +39,7 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, erro
 	cloudInstalls, err := p.cloudClient.GetInstallations(&cloud.GetInstallationsRequest{
 		OwnerID:            userID,
 		IncludeGroupConfig: true,
-		IncludeDeleted:     false,
-		PerPage:            cloud.AllPerPage,
+		Paging:             cloud.AllPagesNotDeleted(),
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to get installations from cloud server")
