@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/v5/model"
-	"github.com/mattermost/mattermost-server/v5/plugin"
+	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
 func getHelp() string {
@@ -79,14 +79,14 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		}
 
 		if !strings.HasSuffix(user.Email, config.AllowedEmailDomain) {
-			return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Permission denied. Please talk to your system administrator to get access."), nil
+			return getCommandResponse(model.CommandResponseTypeEphemeral, "Permission denied. Please talk to your system administrator to get access."), nil
 		}
 	}
 
 	stringArgs := strings.Split(args.Command, " ")
 
 	if len(stringArgs) < 2 {
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, getHelp()), nil
+		return getCommandResponse(model.CommandResponseTypeEphemeral, getHelp()), nil
 	}
 
 	command := stringArgs[1]
@@ -113,17 +113,17 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	}
 
 	if handler == nil {
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, getHelp()), nil
+		return getCommandResponse(model.CommandResponseTypeEphemeral, getHelp()), nil
 	}
 
 	resp, isUserError, err := handler(stringArgs[2:], args)
 
 	if err != nil {
 		if isUserError {
-			return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, fmt.Sprintf("__Error: %s__\n\nRun `/cloud help` for usage instructions.", err.Error())), nil
+			return getCommandResponse(model.CommandResponseTypeEphemeral, fmt.Sprintf("__Error: %s__\n\nRun `/cloud help` for usage instructions.", err.Error())), nil
 		}
 		p.API.LogError(err.Error())
-		return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "An unknown error occurred. Please talk to your resident cloud team for help."), nil
+		return getCommandResponse(model.CommandResponseTypeEphemeral, "An unknown error occurred. Please talk to your resident cloud team for help."), nil
 	}
 
 	return resp, nil
@@ -134,5 +134,5 @@ func (p *Plugin) runInfoCommand(args []string, extra *model.CommandArgs) (*model
 		"[%s](https://github.com/mattermost/mattermost-plugin-cloud/commit/%s), built %s\n",
 		manifest.Version, BuildHashShort, BuildHash, BuildDate)
 
-	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, resp), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, resp), false, nil
 }

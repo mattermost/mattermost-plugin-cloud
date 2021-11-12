@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 )
 
 func (p *Plugin) runDeleteCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
@@ -42,5 +42,5 @@ func (p *Plugin) runDeleteCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, false, err
 	}
 
-	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, fmt.Sprintf("Installation %s deleted.", name)), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, fmt.Sprintf("Installation %s deleted.", name)), false, nil
 }

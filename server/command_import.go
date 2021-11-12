@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
 )
 
@@ -79,6 +79,6 @@ func (p *Plugin) runImportCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, false, errors.Wrap(err, "failed to Marshal installation")
 	}
 
-	return getCommandResponse(model.COMMAND_RESPONSE_TYPE_EPHEMERAL, "Installation imported:\n\n"+jsonCodeBlock(prettyPrintJSON(string(dataInstall)))), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, "Installation imported:\n\n"+jsonCodeBlock(prettyPrintJSON(string(dataInstall)))), false, nil
 
 }

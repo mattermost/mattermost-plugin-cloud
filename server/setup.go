@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
 )
 
@@ -39,12 +39,12 @@ func (p *Plugin) setupInstallation(install *Installation) error {
 
 func (p *Plugin) waitForDNS(client *model.Client4) error {
 	for i := 0; i < 60; i++ {
-		_, resp := client.GetPing()
+		_, resp, err := client.GetPing()
 		if resp.StatusCode == http.StatusOK {
 			return nil
 		}
-		if resp.Error != nil {
-			p.API.LogDebug(resp.Error.Error())
+		if err != nil {
+			p.API.LogDebug(err.Error())
 		}
 		time.Sleep(time.Second * 10)
 	}
@@ -53,23 +53,29 @@ func (p *Plugin) waitForDNS(client *model.Client4) error {
 }
 
 func (p *Plugin) createAndLoginAdminUser(client *model.Client4) error {
-	_, resp := client.CreateUser(&model.User{Username: defaultAdminUsername, Password: defaultAdminPassword, Email: defaultAdminEmail})
-	if resp.Error != nil {
-		return resp.Error
+	_, _, err := client.CreateUser(
+		&model.User{
+			Username: defaultAdminUsername,
+			Password: defaultAdminPassword,
+			Email:    defaultAdminEmail,
+		},
+	)
+	if err != nil {
+		return err
 	}
 
-	_, resp = client.Login(defaultAdminUsername, defaultAdminPassword)
-	if resp.Error != nil {
-		return resp.Error
+	_, _, err = client.Login(defaultAdminUsername, defaultAdminPassword)
+	if err != nil {
+		return err
 	}
 
 	return nil
 }
 
 func (p *Plugin) setupInstallationConfiguration(client *model.Client4, install *Installation) error {
-	config, resp := client.GetConfig()
-	if resp.Error != nil {
-		return resp.Error
+	config, _, err := client.GetConfig()
+	if err != nil {
+		return err
 	}
 
 	pluginConfig := p.getConfiguration()
@@ -82,13 +88,13 @@ func (p *Plugin) setupInstallationConfiguration(client *model.Client4, install *
 		config.TeamSettings.EnableOpenServer = NewBool(true)
 		config.PluginSettings.EnableUploads = NewBool(true)
 
-		_, resp = client.UpdateConfig(config)
-		if resp.Error != nil {
-			return errors.Wrap(resp.Error, "unable to update installation config")
+		_, _, err = client.UpdateConfig(config)
+		if err != nil {
+			return errors.Wrap(err, "unable to update installation config")
 		}
 	}
 
-	err := p.createTestData(client, install)
+	err = p.createTestData(client, install)
 	if err != nil {
 		return errors.Wrap(err, "unable to generate installation sample data")
 	}
