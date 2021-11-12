@@ -1,9 +1,13 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 	"regexp"
 	"strings"
+	"time"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -21,6 +25,11 @@ var dockerRepoWhitelist = []string{
 }
 var installationNameMatcher = regexp.MustCompile(`^[a-zA-Z0-9-]*$`)
 
+type latestMattermostVersionCache struct {
+	version   string
+	timestamp time.Time
+}
+
 func getCreateFlagSet() *flag.FlagSet {
 	createFlagSet := flag.NewFlagSet("create", flag.ContinueOnError)
 	createFlagSet.String("size", "miniSingleton", "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'")
@@ -35,7 +44,7 @@ func getCreateFlagSet() *flag.FlagSet {
 }
 
 // parseCreateArgs is responsible for reading in arguments and basic input validation
-func parseCreateArgs(args []string, install *Installation) error {
+func (p *Plugin) parseCreateArgs(args []string, install *Installation) error {
 	createFlagSet := getCreateFlagSet()
 	err := createFlagSet.Parse(args)
 	if err != nil {
@@ -46,11 +55,22 @@ func parseCreateArgs(args []string, install *Installation) error {
 	if err != nil {
 		return err
 	}
+
 	install.Version, err = createFlagSet.GetString("version")
 	if err != nil {
 		return err
 	}
 
+	if install.Version == "latest" {
+		install.Version, err = p.githubLatestVersion()
+		if err != nil {
+			return errors.Wrap(err, "failed to determine latest tag for requested version 'latest'")
+		}
+		install.Version, err = p.githubLatestVersion()
+		if err != nil {
+			return errors.Wrap(err, "failed to determine latest tag for requested version 'latest'")
+		}
+	}
 	install.Tag = install.Version
 
 	install.Affinity, err = createFlagSet.GetString("affinity")
@@ -156,7 +176,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, true, errors.Errorf("Installation name %s already exists. Names are case insensitive and must be unique so you must choose a new name and try again", install.Name)
 	}
 
-	err = parseCreateArgs(args, install)
+	err = p.parseCreateArgs(args, install)
 	if err != nil {
 		return nil, true, err
 	}
@@ -244,4 +264,54 @@ func validImageName(imageName string) bool {
 		}
 	}
 	return false
+}
+
+type githubReleaseMetadata struct {
+	TagName string `json:"tag_name"`
+}
+
+func (p *Plugin) githubLatestVersion() (string, error) {
+
+	// avoids Github rate limiting for unauthenticated requests
+	if p.latestMattermostVersion != nil &&
+		p.latestMattermostVersion.version != "" &&
+		p.latestMattermostVersion.timestamp.After(time.Now().Add(time.Minute*time.Duration(-5))) {
+
+		return p.latestMattermostVersion.version, nil
+	}
+
+	// else version is more than five minutes old or doesn't exist, so get it from Github
+	resp, err := http.Get("https://api.github.com/repos/mattermost/mattermost-server/releases/latest")
+	if err != nil {
+		return "", errors.Wrap(err, "failed to find latest release from GitHub")
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		return "", errors.Errorf("got unexpected status code %d while determining latest release from GitHub", resp.StatusCode)
+	}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to read response body")
+	}
+
+	grm := new(githubReleaseMetadata)
+	err = json.Unmarshal(body, grm)
+	if err != nil {
+		return "", errors.Wrap(err, "failed to unmarshal JSON from GitHub to determine latest release")
+	}
+
+	if grm.TagName == "" {
+		return "", errors.New("tag name was empty in response from GitHub")
+	}
+
+	grm.TagName = strings.TrimPrefix(grm.TagName, "v")
+
+	p.latestMattermostVersion =
+		&latestMattermostVersionCache{
+			timestamp: time.Now(),
+			version:   grm.TagName,
+		}
+
+	return grm.TagName, nil
 }

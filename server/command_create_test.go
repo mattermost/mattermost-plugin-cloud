@@ -3,6 +3,7 @@ package main
 import (
 	"testing"
 
+	"github.com/blang/semver/v4"
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
@@ -24,6 +25,14 @@ func TestCreateCommand(t *testing.T) {
 	api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
 
 	plugin.SetAPI(api)
+
+	t.Run("ensure latest version lookup routine still works", func(t *testing.T) {
+		latest, err := plugin.githubLatestVersion()
+		require.NoError(t, err)
+		assert.NotEmpty(t, latest)
+		_, err = semver.Parse(latest)
+		assert.NoError(t, err)
+	})
 
 	t.Run("create installation successfully", func(t *testing.T) {
 		resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest"}, &model.CommandArgs{})
