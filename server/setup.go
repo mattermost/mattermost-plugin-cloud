@@ -20,6 +20,9 @@ const (
 
 func (p *Plugin) setupInstallation(install *Installation) error {
 	client := model.NewAPIv4Client(fmt.Sprintf("https://%s", install.DNS))
+	if client == nil {
+		return errors.New("got nil APIv4 Mattermost client for some reason")
+	}
 
 	err := p.waitForDNS(client)
 	if err != nil {
@@ -75,9 +78,12 @@ func (p *Plugin) createAndLoginAdminUser(client *model.Client4) error {
 }
 
 func (p *Plugin) setupInstallationConfiguration(client *model.Client4, install *Installation) error {
-	config, _, err := client.GetConfig()
+	config, resp, err := client.GetConfig()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to get Mattermost config")
+	}
+	if resp.StatusCode != http.StatusOK {
+		return errors.New("got unexpected status %d while getting Mattermost config")
 	}
 
 	pluginConfig := p.getConfiguration()
@@ -127,7 +133,7 @@ func (p *Plugin) createTestData(client *model.Client4, install *Installation) er
 	}
 
 	if mmReleaseVersion.LT(semver.MustParse("6.0.0")) {
-		_, err := p.execMattermostCLI(install.ID, []string{"sampledata"})
+		_, err = p.execMattermostCLI(install.ID, []string{"sampledata"})
 		if err != nil {
 			// This probably won't complete before the AWS API Gateway timeout so
 			// log and move on.

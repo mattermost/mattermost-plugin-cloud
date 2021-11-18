@@ -90,7 +90,7 @@ func (p *Plugin) OnActivate() error {
 			return errors.Wrap(err, "failed to determine existing bot ID by username")
 		}
 		if !user.IsBot {
-			return errors.New("found existing user with Cloud Bot username, but the user is not a bot! Cannot continue..")
+			return errors.New("found existing user with Cloud Bot username, but the user is not a bot! Cannot continue")
 		}
 		bot, err = p.API.GetBot(user.Id, false)
 		if err != nil {
