@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/blang/semver/v4"
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
@@ -66,9 +67,8 @@ func (p *Plugin) parseCreateArgs(args []string, install *Installation) error {
 		if err != nil {
 			return errors.Wrap(err, "failed to determine latest tag for requested version 'latest'")
 		}
-		install.Version, err = p.githubLatestVersion()
-		if err != nil {
-			return errors.Wrap(err, "failed to determine latest tag for requested version 'latest'")
+		if install.Version == "" {
+			return errors.New("failed to determine latest tag for requested version 'latest': got empty version")
 		}
 	}
 	install.Tag = install.Version
@@ -281,7 +281,8 @@ func (p *Plugin) githubLatestVersion() (string, error) {
 	}
 
 	// else version is more than five minutes old or doesn't exist, so get it from Github
-	resp, err := http.Get("https://api.github.com/repos/mattermost/mattermost-server/releases/latest")
+	// use the releases endpoint and not releases/latest to avoid getting a dot release
+	resp, err := http.Get("https://api.github.com/repos/mattermost/mattermost-server/releases")
 	if err != nil {
 		return "", errors.Wrap(err, "failed to find latest release from GitHub")
 	}
@@ -295,23 +296,44 @@ func (p *Plugin) githubLatestVersion() (string, error) {
 		return "", errors.Wrap(err, "failed to read response body")
 	}
 
-	grm := new(githubReleaseMetadata)
-	err = json.Unmarshal(body, grm)
+	grm := []githubReleaseMetadata{}
+	err = json.Unmarshal(body, &grm)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to unmarshal JSON from GitHub to determine latest release")
 	}
 
-	if grm.TagName == "" {
-		return "", errors.New("tag name was empty in response from GitHub")
+	var (
+		latestTag        string
+		latestTagVersion semver.Version
+	)
+
+	for _, release := range grm {
+		if release.TagName == "" {
+			return "", errors.New("tag name was empty in response from GitHub")
+		}
+		currentTag := strings.TrimPrefix(release.TagName, "v")
+		currentTagVersion, err := semver.Parse(currentTag)
+		if err != nil {
+			p.API.LogError(err.Error())
+			continue
+		}
+
+		if latestTag == "" || currentTagVersion.GE(latestTagVersion) {
+			latestTag = currentTag
+			latestTagVersion = currentTagVersion
+			continue
+		}
 	}
 
-	grm.TagName = strings.TrimPrefix(grm.TagName, "v")
+	if latestTag == "" {
+		return "", errors.New("failed to determine latest version of Mattermost")
+	}
 
 	p.latestMattermostVersion =
 		&latestMattermostVersionCache{
 			timestamp: time.Now(),
-			version:   grm.TagName,
+			version:   latestTag,
 		}
 
-	return grm.TagName, nil
+	return latestTag, nil
 }

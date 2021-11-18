@@ -22,6 +22,10 @@ type MockClient struct {
 	err error
 }
 
+func (mc *MockClient) ExecClusterInstallationCLI(clusterInstallationID, command string, subcommand []string) ([]byte, error) {
+	return []byte{}, nil
+}
+
 func (mc *MockClient) GetClusters(request *cloud.GetClustersRequest) ([]*cloud.ClusterDTO, error) {
 	return mc.mockedCloudClustersDTO, mc.err
 }
