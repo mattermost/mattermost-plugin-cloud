@@ -286,6 +286,7 @@ func (p *Plugin) githubLatestVersion() (string, error) {
 	if err != nil {
 		return "", errors.Wrap(err, "failed to find latest release from GitHub")
 	}
+	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		return "", errors.Errorf("got unexpected status code %d while determining latest release from GitHub", resp.StatusCode)
