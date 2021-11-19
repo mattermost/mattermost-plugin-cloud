@@ -310,7 +310,7 @@ func (p *Plugin) githubLatestVersion() (string, error) {
 
 	for _, release := range grm {
 		if release.TagName == "" {
-			return "", errors.New("tag name was empty in response from GitHub")
+			continue
 		}
 		currentTag := strings.TrimPrefix(release.TagName, "v")
 		currentTagVersion, err := semver.Parse(currentTag)
