@@ -3,6 +3,7 @@ package main
 import (
 	"io/ioutil"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -27,6 +28,8 @@ type Plugin struct {
 	// configuration is the active plugin configuration. Consult getConfiguration and
 	// setConfiguration for usage.
 	configuration *configuration
+
+	latestMattermostVersion *latestMattermostVersionCache
 }
 
 // CloudClient is the interface for managing cloud installations.
@@ -41,6 +44,7 @@ type CloudClient interface {
 
 	GetClusterInstallations(request *cloud.GetClusterInstallationsRequest) ([]*cloud.ClusterInstallation, error)
 	RunMattermostCLICommandOnClusterInstallation(clusterInstallationID string, subcommand []string) ([]byte, error)
+	ExecClusterInstallationCLI(clusterInstallationID, command string, subcommand []string) ([]byte, error)
 
 	GetGroup(groupID string) (*cloud.Group, error)
 }
@@ -60,6 +64,9 @@ var BuildHashShort string
 // BuildDate is the build date of the build.
 var BuildDate string
 
+// cloud is the username (not display name) of the Cloud Bot. TODO: make this configurable?
+const botName string = "cloud"
+
 // OnActivate runs when the plugin activates and ensures the plugin is properly
 // configured.
 func (p *Plugin) OnActivate() error {
@@ -68,14 +75,33 @@ func (p *Plugin) OnActivate() error {
 		return err
 	}
 
-	bot, apperr := p.API.CreateBot(&model.Bot{
-		Username:    "cloud",
+	bot, appErr := p.API.CreateBot(&model.Bot{
+		Username:    botName,
 		DisplayName: "Cloud",
 		Description: "Created by the Mattermost Private Cloud plugin.",
 	})
-	if apperr != nil {
-		return errors.Wrap(apperr, "failed to ensure github bot")
+
+	if appErr != nil {
+		if !strings.Contains(appErr.Error(), "account with that username already exists") {
+			return errors.Wrap(appErr, "failed to ensure Cloud bot")
+		}
+		user, err := p.API.GetUserByUsername(botName)
+		if err != nil {
+			return errors.Wrap(err, "failed to determine existing bot ID by username")
+		}
+		if !user.IsBot {
+			return errors.New("found existing user with Cloud Bot username, but the user is not a bot! Cannot continue")
+		}
+		bot, err = p.API.GetBot(user.Id, false)
+		if err != nil {
+			return errors.Wrapf(err, "failed to get bot user ID %s", user.Id)
+		}
 	}
+
+	if bot == nil {
+		return errors.New("still failed to ensure bot after trying everything, but no errors were reported by the process")
+	}
+
 	botID := bot.UserId
 	p.BotUserID = botID
 
@@ -89,7 +115,7 @@ func (p *Plugin) OnActivate() error {
 		return errors.Wrap(err, "couldn't read profile image")
 	}
 
-	appErr := p.API.SetProfileImage(botID, profileImage)
+	appErr = p.API.SetProfileImage(botID, profileImage)
 	if appErr != nil {
 		return errors.Wrap(appErr, "couldn't set profile image")
 	}

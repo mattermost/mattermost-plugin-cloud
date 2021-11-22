@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/blang/semver/v4"
+	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
 )
@@ -18,6 +20,9 @@ const (
 
 func (p *Plugin) setupInstallation(install *Installation) error {
 	client := model.NewAPIv4Client(fmt.Sprintf("https://%s", install.DNS))
+	if client == nil {
+		return errors.New("got nil APIv4 Mattermost client for some reason")
+	}
 
 	err := p.waitForDNS(client)
 	if err != nil {
@@ -73,9 +78,12 @@ func (p *Plugin) createAndLoginAdminUser(client *model.Client4) error {
 }
 
 func (p *Plugin) setupInstallationConfiguration(client *model.Client4, install *Installation) error {
-	config, _, err := client.GetConfig()
+	config, resp, err := client.GetConfig()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to get Mattermost config")
+	}
+	if resp.StatusCode != http.StatusOK {
+		return errors.New("got unexpected status %d while getting Mattermost config")
 	}
 
 	pluginConfig := p.getConfiguration()
@@ -119,17 +127,54 @@ func (p *Plugin) createTestData(client *model.Client4, install *Installation) er
 		return nil
 	}
 
-	_, err := p.execMattermostCLI(install.ID, []string{"sampledata"})
+	mmReleaseVersion, err := semver.Parse(install.Tag)
 	if err != nil {
-		// This probably won't complete before the AWS API Gateway timeout so
-		// log and move on.
+		return errors.Wrapf(err, "failed to parse version %s", install.Tag)
+	}
+
+	if mmReleaseVersion.LT(semver.MustParse("6.0.0")) {
+		_, err = p.execMattermostCLI(install.ID, []string{"sampledata"})
+		if err != nil {
+			// This probably won't complete before the AWS API Gateway timeout so
+			// log and move on.
+			p.API.LogWarn(errors.Wrapf(err, "Unable to finish generating test data for cloud installation %s", install.Name).Error())
+		}
+
+		// Test data generation overrides the sysadmin password, so need to reset
+		_, err = p.execMattermostCLI(install.ID, []string{"user", "password", defaultAdminUsername, defaultAdminPassword})
+		if err != nil {
+			return errors.Wrap(err, "failed to reset sysadmin password back to the default")
+		}
+
+		return nil
+	}
+
+	clusterInstallations, err := p.cloudClient.GetClusterInstallations(
+		&cloud.GetClusterInstallationsRequest{
+			// any single CI will do, so only fetch one
+			Paging:         cloud.AllPagesNotDeleted(),
+			InstallationID: install.ID,
+		})
+	if err != nil {
+		return errors.Wrap(err, "failed to get ClusterInstallations for Installation")
+	}
+	if len(clusterInstallations) != 1 {
+		return errors.Errorf("got unexpected number of ClusterInstallations (%d)", len(clusterInstallations))
+	}
+
+	_, err = p.cloudClient.ExecClusterInstallationCLI(clusterInstallations[0].ID,
+		"mmctl", []string{"--local", "sampledata"})
+	if err != nil {
+		// Gabe thinks this might not complete before the AWS API Gateway timeout so
+		// log and move on the same as we do for versions previous to 6.0, seen earlier in this method.
 		p.API.LogWarn(errors.Wrapf(err, "Unable to finish generating test data for cloud installation %s", install.Name).Error())
 	}
 
-	// Test data generation overrides the sysadmin password, so need to reset
-	_, err = p.execMattermostCLI(install.ID, []string{"user", "password", defaultAdminUsername, defaultAdminPassword})
+	// Test data generation overrides the sysadmin password, so need to reset (using mmctl)
+	_, err = p.cloudClient.ExecClusterInstallationCLI(clusterInstallations[0].ID,
+		"mmctl", []string{"--local", "user", "change-password", defaultAdminUsername, "--password", defaultAdminPassword})
 	if err != nil {
-		return err
+		return errors.Wrap(err, "failed to reset sysadmin password back to the default")
 	}
 
 	return nil
