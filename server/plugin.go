@@ -82,7 +82,7 @@ func (p *Plugin) OnActivate() error {
 	})
 
 	if appErr != nil {
-		if !strings.Contains(appErr.Error(), "account with that username already exists") {
+		if !strings.Contains(appErr.Error(), "already exists") {
 			return errors.Wrap(appErr, "failed to ensure Cloud bot")
 		}
 		user, err := p.API.GetUserByUsername(botName)
