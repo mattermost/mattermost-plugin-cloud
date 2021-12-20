@@ -44,6 +44,7 @@ type CloudClient interface {
 
 	GetClusterInstallations(request *cloud.GetClusterInstallationsRequest) ([]*cloud.ClusterInstallation, error)
 	RunMattermostCLICommandOnClusterInstallation(clusterInstallationID string, subcommand []string) ([]byte, error)
+	RunMmctlCommandOnClusterInstallation(clusterInstallationID string, subcommand []string) ([]byte, error)
 	ExecClusterInstallationCLI(clusterInstallationID, command string, subcommand []string) ([]byte, error)
 
 	GetGroup(groupID string) (*cloud.Group, error)
