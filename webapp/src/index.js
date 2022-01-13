@@ -29,7 +29,7 @@ class Plugin {
             registry.registerAppBarComponent(
                 iconURL,
                 () => {
-                    telemetry('channel_header_click');
+                    telemetry('app_bar_click');
                     store.dispatch(toggleRHSPlugin);
                 },
                 'Cloud Plugin',
