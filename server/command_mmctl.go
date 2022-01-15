@@ -74,13 +74,14 @@ func (p *Plugin) execMmctl(installationID string, subcommand []string) ([]byte, 
 		return nil, fmt.Errorf("no cluster installations found for installation %s", installationID)
 	}
 
-	output, err := p.cloudClient.RunMmctlCommandOnClusterInstallation(clusterInstallations[0].ID, subcommand)
+	subcommand = append(subcommand, "--local")
+	output, err := p.cloudClient.ExecClusterInstallationCLI(clusterInstallations[0].ID, "mmctl", subcommand)
 	if err != nil && err.Error() == "failed with status code 504" {
 		// TODO: make this not gross.
 		// Return an error type that can be checked or allow us to pass in
 		// something with a timeout that we can control.
-		p.API.LogWarn(errors.Wrapf(err, "Command %s didn't complete before the connection was closed", strings.Join(subcommand, " ")).Error())
-		return []byte(fmt.Sprintf("Command %s didn't complete before the connection was closed. It will continue running until it is completed.", strings.Join(subcommand, " "))), nil
+		p.API.LogWarn(errors.Wrapf(err, "Command /mmctl %s didn't complete before the connection was closed", strings.Join(subcommand, " ")).Error())
+		return []byte(fmt.Sprintf("Command /mmctl %s didn't complete before the connection was closed. It will continue running until it is completed.", strings.Join(subcommand, " "))), nil
 	} else if err != nil {
 		return nil, err
 	}

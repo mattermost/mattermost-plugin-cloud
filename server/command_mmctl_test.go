@@ -33,7 +33,7 @@ func TestMmctlCommand(t *testing.T) {
 		resp, isUserError, err := plugin.runMmctlCommand([]string{"gabesinstall", "version"}, &model.CommandArgs{UserId: "gabeid"})
 		require.NoError(t, err)
 		assert.False(t, isUserError)
-		assert.Contains(t, resp.Text, "mocked command output")
+		assert.Contains(t, resp.Text, "Installation: gabesinstall\n\nCommand: mmctl version\n\nResponse:\n```\n\n```")
 	})
 
 	t.Run("run command successfully with caps in name to show name is case insensitive", func(t *testing.T) {
@@ -42,7 +42,7 @@ func TestMmctlCommand(t *testing.T) {
 		resp, isUserError, err := plugin.runMmctlCommand([]string{"GabesInstall", "version"}, &model.CommandArgs{UserId: "gabeid"})
 		require.NoError(t, err)
 		assert.False(t, isUserError)
-		assert.Contains(t, resp.Text, "mocked command output")
+		assert.Contains(t, resp.Text, "Installation: gabesinstall\n\nCommand: mmctl version\n\nResponse:\n```\n\n```")
 	})
 
 	t.Run("no name provided", func(t *testing.T) {
