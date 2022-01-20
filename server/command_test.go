@@ -76,6 +76,10 @@ func (mc *MockClient) RunMattermostCLICommandOnClusterInstallation(clusterInstal
 	return []byte("mocked command output"), nil
 }
 
+func (mc *MockClient) RunMmctlCommandOnClusterInstallation(clusterInstallationID string, subcommand []string) ([]byte, error) {
+	return []byte("mocked mmctl command output"), nil
+}
+
 func (mc *MockClient) GetGroup(groupID string) (*cloud.Group, error) {
 	return &cloud.Group{ID: groupID, Name: "test-group"}, nil
 }

@@ -21,7 +21,7 @@ list
 	Lists the Mattermost installations created by you.
 
 import [DNS]
-	Imports installation using DNS value. 
+	Imports installation using DNS value.
 
 upgrade [name] [flags]
 	Upgades a Mattermost installaton.
@@ -34,6 +34,12 @@ mmcli [name] [mattermost-subcommand]
 
 	example: /cloud mmcli myinstallation version
 		(equivalent to running 'mattermost version' on myinstallation)
+
+mmctl [name] [mmctl-subcommand]
+	Runs mmctl commands on an installation.
+
+	example: /cloud mmctl myinstallation config get ServiceSettings.SiteURL
+		(equivalent to running 'mmctl config get ServiceSettings.SiteURL' on myinstallation)
 
 delete [name]
 	Deletes a Mattermost installation.
@@ -98,6 +104,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		handler = p.runCreateCommand
 	case "mmcli":
 		handler = p.runMattermostCLICommand
+	case "mmctl":
+		handler = p.runMmctlCommand
 	case "list":
 		handler = p.runListCommand
 	case "upgrade":
