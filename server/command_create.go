@@ -17,6 +17,10 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
+const (
+	defaultMultiTenantAnnotation = "multi-tenant"
+)
+
 var dockerRepoWhitelist = []string{
 	"mattermost/mattermost-enterprise-edition",
 	"mattermost/mm-ee-test",
@@ -211,16 +215,17 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 	install.Version = digest
 
 	req := &cloud.CreateInstallationRequest{
-		OwnerID:   extra.UserId,
-		GroupID:   config.GroupID,
-		Affinity:  install.Affinity,
-		DNS:       fmt.Sprintf("%s.%s", install.Name, config.InstallationDNS),
-		Database:  install.Database,
-		Filestore: install.Filestore,
-		License:   license,
-		Size:      install.Size,
-		Version:   install.Version,
-		Image:     install.Image,
+		OwnerID:     extra.UserId,
+		GroupID:     config.GroupID,
+		Affinity:    install.Affinity,
+		DNS:         fmt.Sprintf("%s.%s", install.Name, config.InstallationDNS),
+		Database:    install.Database,
+		Filestore:   install.Filestore,
+		License:     license,
+		Size:        install.Size,
+		Version:     install.Version,
+		Image:       install.Image,
+		Annotations: []string{defaultMultiTenantAnnotation},
 	}
 
 	cloudInstallation, err := p.cloudClient.CreateInstallation(req)
