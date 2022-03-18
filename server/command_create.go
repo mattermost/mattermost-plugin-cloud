@@ -45,6 +45,7 @@ func getCreateFlagSet() *flag.FlagSet {
 	createFlagSet.String("database", cloud.InstallationDatabaseMultiTenantRDSPostgres, "Specify the backing database. Can be 'aws-multitenant-rds-postgres' (RDS Postgres Shared), 'aws-multitenant-rds' (RDS MySQL Shared), 'aws-rds-postgres' (RDS Postgres), 'aws-rds' (RDS MySQL), 'mysql-operator' (MySQL Operator inside the cluster)")
 	createFlagSet.Bool("test-data", false, "Set to pre-load the server with test data")
 	createFlagSet.String("image", defaultImage, fmt.Sprintf("Docker image repository. Can be %s", strings.Join(dockerRepoWhitelist, ", ")))
+	createFlagSet.StringSlice("env", []string{}, "Environment variables in form: ENV1=test,ENV2=test")
 	return createFlagSet
 }
 
@@ -152,6 +153,16 @@ func (p *Plugin) parseCreateArgs(args []string, install *Installation) error {
 		return err
 	}
 
+	envVars, err := createFlagSet.GetStringSlice("env")
+	if err != nil {
+		return err
+	}
+	envVarMap, err := parseEnvVarInput(envVars, nil)
+	if err != nil {
+		return err
+	}
+	install.Installation.PriorityEnv = envVarMap
+
 	return nil
 }
 
@@ -221,6 +232,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		DNS:         fmt.Sprintf("%s.%s", install.Name, config.InstallationDNS),
 		Database:    install.Database,
 		Filestore:   install.Filestore,
+		PriorityEnv: install.PriorityEnv,
 		License:     license,
 		Size:        install.Size,
 		Version:     install.Version,
@@ -342,4 +354,34 @@ func (p *Plugin) githubLatestVersion() (string, error) {
 		}
 
 	return latestTag, nil
+}
+
+func parseEnvVarInput(rawInput []string, clearEnvs []string) (cloud.EnvVarMap, error) {
+	if len(rawInput) == 0 && len(clearEnvs) == 0 {
+		return nil, nil
+	}
+
+	envVarMap := make(cloud.EnvVarMap)
+
+	for _, env := range rawInput {
+		// Split the input once by "=" to allow for multiple "="s to be in the
+		// value. Expect there to still be one key and value.
+		kv := strings.SplitN(env, "=", 2)
+		if len(kv) != 2 || len(kv[0]) == 0 {
+			return nil, errors.Errorf("%s is not in a valid env format; expecting KEY_NAME=VALUE", env)
+		}
+
+		if _, ok := envVarMap[kv[0]]; ok {
+			return nil, errors.Errorf("env var %s was defined more than once", kv[0])
+		}
+
+		envVarMap[kv[0]] = cloud.EnvVar{Value: kv[1]}
+	}
+
+	// Clearing envs take precedence over setting them
+	for _, env := range clearEnvs {
+		envVarMap[env] = cloud.EnvVar{}
+	}
+
+	return envVarMap, nil
 }

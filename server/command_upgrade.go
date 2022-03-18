@@ -16,6 +16,9 @@ func getUpgradeFlagSet() *flag.FlagSet {
 	upgradeFlagSet.String("license", "", "The enterprise license to use. Can be 'e10', 'e20', or 'te'")
 	upgradeFlagSet.String("size", "", "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'")
 	upgradeFlagSet.String("image", "", fmt.Sprintf("Docker image repository, can be %s", strings.Join(dockerRepoWhitelist, ", ")))
+	upgradeFlagSet.StringSlice("env", []string{}, "Environment variables in form: ENV1=test,ENV2=test")
+	upgradeFlagSet.StringSlice("clear-env", []string{}, "List of custom environment variables to erase, for example: ENV1,ENV2")
+
 	return upgradeFlagSet
 }
 
@@ -42,8 +45,16 @@ func buildPatchInstallationRequestFromArgs(args []string) (*cloud.PatchInstallat
 	if err != nil {
 		return nil, err
 	}
-	if version == "" && license == "" && size == "" && image == "" {
-		return nil, errors.New("must specify at least one option: version, license, image or size")
+	envVars, err := upgradeFlagSet.GetStringSlice("env")
+	if err != nil {
+		return nil, err
+	}
+	envClear, err := upgradeFlagSet.GetStringSlice("clear-env")
+	if err != nil {
+		return nil, err
+	}
+	if version == "" && license == "" && size == "" && image == "" && len(envVars) == 0 && len(envClear) == 0 {
+		return nil, errors.New("must specify at least one option: version, license, image, size, env, clear-env")
 	}
 	if license != "" && !validLicenseOption(license) {
 		return nil, errors.Errorf("invalid license option %s; must be %s, %s or %s", license, licenseOptionE10, licenseOptionE20, licenseOptionTE)
@@ -52,7 +63,14 @@ func buildPatchInstallationRequestFromArgs(args []string) (*cloud.PatchInstallat
 		return nil, errors.Errorf("invalid image name %s, valid options are %s", image, strings.Join(dockerRepoWhitelist, ", "))
 	}
 
-	request := &cloud.PatchInstallationRequest{}
+	envVarMap, err := parseEnvVarInput(envVars, envClear)
+	if err != nil {
+		return nil, err
+	}
+
+	request := &cloud.PatchInstallationRequest{
+		PriorityEnv: envVarMap,
+	}
 	if version != "" {
 		request.Version = &version
 	}

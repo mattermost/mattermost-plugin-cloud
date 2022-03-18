@@ -7,7 +7,6 @@ import (
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -15,8 +14,9 @@ import (
 
 func TestCreateCommand(t *testing.T) {
 	dockerClient := &MockedDockerClient{tagExists: true}
+	mockCloudClient := &MockClient{}
 	plugin := Plugin{
-		cloudClient:  &MockClient{},
+		cloudClient:  mockCloudClient,
 		dockerClient: dockerClient,
 	}
 
@@ -218,6 +218,25 @@ func TestCreateCommand(t *testing.T) {
 			assert.Contains(t, err.Error(), "invalid image name")
 			assert.True(t, isUserError)
 			assert.Nil(t, resp)
+		})
+	})
+
+	t.Run("env vars", func(t *testing.T) {
+		t.Run("valid env vars", func(t *testing.T) {
+			expectedEnv := cloud.EnvVarMap{"ENV1": cloud.EnvVar{Value: "test"}, "ENV2": cloud.EnvVar{Value: "test2"}}
+
+			resp, isUserError, err := plugin.runCreateCommand([]string{"test", "--version", "5.30.0", "--env", "ENV1=test,ENV2=test2"}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created.")
+			require.NotNil(t, mockCloudClient.creationRequest)
+			assert.Equal(t, expectedEnv, mockCloudClient.creationRequest.PriorityEnv)
+		})
+		t.Run("invalid env vars", func(t *testing.T) {
+			_, isUserError, err := plugin.runCreateCommand([]string{"test", "--version", "5.30.0", "--env", "ENV1:test"}, &model.CommandArgs{})
+			require.Error(t, err)
+			assert.True(t, isUserError)
+			assert.Contains(t, err.Error(), "ENV1:test is not in a valid env format")
 		})
 	})
 
