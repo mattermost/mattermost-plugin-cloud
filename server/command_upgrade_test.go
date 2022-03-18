@@ -3,6 +3,7 @@ package main
 import (
 	"testing"
 
+	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
 
@@ -13,8 +14,9 @@ import (
 
 func TestUpgradeCommand(t *testing.T) {
 	dockerClient := &MockedDockerClient{tagExists: true}
+	mockCloudClient := &MockClient{}
 	plugin := Plugin{
-		cloudClient:  &MockClient{},
+		cloudClient:  mockCloudClient,
 		dockerClient: dockerClient,
 	}
 
@@ -45,7 +47,7 @@ func TestUpgradeCommand(t *testing.T) {
 
 		resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall"}, &model.CommandArgs{UserId: "gabeid"})
 		require.Error(t, err)
-		assert.Contains(t, err.Error(), "must specify at least one option: version, license, image or size")
+		assert.Contains(t, err.Error(), "must specify at least one option: version, license, image, size, env, clear-env")
 		assert.True(t, isUserError)
 		assert.Nil(t, resp)
 	})
@@ -181,6 +183,37 @@ func TestUpgradeCommand(t *testing.T) {
 			require.NoError(t, err)
 			assert.False(t, isUserError)
 			assert.Contains(t, resp.Text, "Upgrade of installation")
+		})
+	})
+
+	t.Run("env vars", func(t *testing.T) {
+
+		t.Run("valid env vars", func(t *testing.T) {
+			expectedEnv := cloud.EnvVarMap{"ENV1": cloud.EnvVar{Value: "test"}, "ENV2": cloud.EnvVar{Value: "test2"}}
+
+			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
+			resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--env", "ENV1=test,ENV2=test2"}, &model.CommandArgs{UserId: "gabeid"})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Upgrade of installation")
+			assert.Equal(t, expectedEnv, mockCloudClient.patchRequest.PriorityEnv)
+		})
+		t.Run("clean env takes precedence", func(t *testing.T) {
+			expectedEnv := cloud.EnvVarMap{"ENV1": cloud.EnvVar{}, "ENV2": cloud.EnvVar{Value: "test2"}}
+
+			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
+			resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--env", "ENV1=test,ENV2=test2", "--clear-env", "ENV1"}, &model.CommandArgs{UserId: "gabeid"})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Upgrade of installation")
+			assert.Equal(t, expectedEnv, mockCloudClient.patchRequest.PriorityEnv)
+		})
+		t.Run("invalid env vars", func(t *testing.T) {
+			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
+			_, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--version", "5.30.0", "--env", "ENV1:test,ENV2=test2"}, &model.CommandArgs{UserId: "gabeid"})
+			require.Error(t, err)
+			assert.True(t, isUserError)
+			assert.Contains(t, err.Error(), "ENV1:test is not in a valid env format")
 		})
 	})
 
