@@ -75,6 +75,10 @@ func (mc *MockClient) HibernateInstallation(installationID string) (*cloud.Insta
 	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid", OwnerID: "joramid"}}, nil
 }
 
+func (mc *MockClient) WakeupInstallation(installationID string, request *cloud.PatchInstallationRequest) (*cloud.InstallationDTO, error) {
+	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid", OwnerID: "joramid"}}, nil
+}
+
 func (mc *MockClient) DeleteInstallation(installationID string) error {
 	return nil
 }

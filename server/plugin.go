@@ -42,6 +42,7 @@ type CloudClient interface {
 	GetInstallations(*cloud.GetInstallationsRequest) ([]*cloud.InstallationDTO, error)
 	UpdateInstallation(installationID string, request *cloud.PatchInstallationRequest) (*cloud.InstallationDTO, error)
 	HibernateInstallation(installationID string) (*cloud.InstallationDTO, error)
+	WakeupInstallation(installationID string, request *cloud.PatchInstallationRequest) (*cloud.InstallationDTO, error)
 	DeleteInstallation(installationID string) error
 
 	GetClusterInstallations(request *cloud.GetClusterInstallationsRequest) ([]*cloud.ClusterInstallation, error)
