@@ -50,7 +50,8 @@ func (p *Plugin) processWebhookEvent(payload *cloud.WebhookPayload) {
 		return
 	}
 
-	if payload.NewState != cloud.InstallationStateStable {
+	if payload.NewState != cloud.InstallationStateStable &&
+		payload.NewState != cloud.InstallationStateHibernating {
 		return
 	}
 
@@ -73,9 +74,15 @@ func (p *Plugin) processWebhookEvent(payload *cloud.WebhookPayload) {
 		return
 	}
 	if installation == nil {
-		p.API.LogError(fmt.Sprintf("could not find installation %s", install.ID))
+		p.API.LogError(fmt.Sprintf("failed to find installation %s", install.ID))
+		return
 	}
 	install.Installation = *installation.Installation
+
+	if payload.NewState == cloud.InstallationStateHibernating {
+		p.PostBotDM(install.OwnerID, fmt.Sprintf("Installation %s has been hibernated", install.Name))
+		return
+	}
 
 	switch payload.OldState {
 	case cloud.InstallationStateUpdateRequested,
@@ -134,7 +141,7 @@ func (p *Plugin) handleClusterWebhook(payload *cloud.WebhookPayload) error {
 	}
 
 	if payload.Type != cloud.TypeCluster {
-		return fmt.Errorf("Unable to process payload type %s in 'handleClusterWebhook'", payload.Type)
+		return fmt.Errorf("unable to process payload type %s in 'handleClusterWebhook'", payload.Type)
 	}
 
 	message := fmt.Sprintf(`
@@ -153,7 +160,7 @@ func (p *Plugin) handleInstallationWebhook(payload *cloud.WebhookPayload) error 
 	}
 
 	if payload.Type != cloud.TypeInstallation {
-		return fmt.Errorf("Unable to process payload type %s in 'handleInstallationWebhook'", payload.Type)
+		return fmt.Errorf("unable to process payload type %s in 'handleInstallationWebhook'", payload.Type)
 	}
 
 	message := fmt.Sprintf(`

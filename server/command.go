@@ -29,6 +29,12 @@ upgrade [name] [flags]
 %s
 	example: /cloud upgrade myinstallation --version 5.13.2
 
+hibernate [name]
+	Hibernates a Mattermost installation.
+
+wake-up [name]
+	Wakes a Mattermost installation up.
+
 mmcli [name] [mattermost-subcommand]
 	Runs Mattermost CLI commands on an installation.
 
@@ -110,6 +116,10 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		handler = p.runListCommand
 	case "upgrade":
 		handler = p.runUpgradeCommand
+	case "hibernate":
+		handler = p.runHibernateCommand
+	case "wake-up":
+		handler = p.runWakeUpCommand
 	case "delete":
 		handler = p.runDeleteCommand
 	case "status":
