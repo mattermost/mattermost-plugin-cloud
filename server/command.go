@@ -24,7 +24,7 @@ import [DNS]
 	Imports installation using DNS value.
 
 upgrade [name] [flags]
-	Upgades a Mattermost installaton.
+	Upgrades a Mattermost installation.
 	Flags:
 %s
 	example: /cloud upgrade myinstallation --version 5.13.2
