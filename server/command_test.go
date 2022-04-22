@@ -19,6 +19,11 @@ type MockClient struct {
 	returnNilDNSInstalation    bool
 	returnDNSErrorOverride     error
 
+	// Stores latest CreateInstallationRequest passed to mock
+	creationRequest *cloud.CreateInstallationRequest
+	// Stores latest PatchInstallationRequest passed to mock
+	patchRequest *cloud.PatchInstallationRequest
+
 	err error
 }
 
@@ -31,6 +36,7 @@ func (mc *MockClient) GetClusters(request *cloud.GetClustersRequest) ([]*cloud.C
 }
 
 func (mc *MockClient) CreateInstallation(request *cloud.CreateInstallationRequest) (*cloud.InstallationDTO, error) {
+	mc.creationRequest = request
 	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid"}}, nil
 }
 
@@ -39,7 +45,7 @@ func (mc *MockClient) GetInstallation(installataionID string, request *cloud.Get
 		return mc.overrideGetInstallationDTO, nil
 	}
 
-	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid", OwnerID: "joramid"}}, nil
+	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid", OwnerID: "joramid", State: cloud.InstallationStateStable}}, nil
 }
 
 func (mc *MockClient) GetInstallationByDNS(DNS string, request *cloud.GetInstallationRequest) (*cloud.InstallationDTO, error) {
@@ -61,6 +67,15 @@ func (mc *MockClient) GetInstallations(request *cloud.GetInstallationsRequest) (
 }
 
 func (mc *MockClient) UpdateInstallation(installationID string, request *cloud.PatchInstallationRequest) (*cloud.InstallationDTO, error) {
+	mc.patchRequest = request
+	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid", OwnerID: "joramid"}}, nil
+}
+
+func (mc *MockClient) HibernateInstallation(installationID string) (*cloud.InstallationDTO, error) {
+	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid", OwnerID: "joramid"}}, nil
+}
+
+func (mc *MockClient) WakeupInstallation(installationID string, request *cloud.PatchInstallationRequest) (*cloud.InstallationDTO, error) {
 	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid", OwnerID: "joramid"}}, nil
 }
 
@@ -74,6 +89,10 @@ func (mc *MockClient) GetClusterInstallations(request *cloud.GetClusterInstallat
 
 func (mc *MockClient) RunMattermostCLICommandOnClusterInstallation(clusterInstallationID string, subcommand []string) ([]byte, error) {
 	return []byte("mocked command output"), nil
+}
+
+func (mc *MockClient) RunMmctlCommandOnClusterInstallation(clusterInstallationID string, subcommand []string) ([]byte, error) {
+	return []byte("mocked mmctl command output"), nil
 }
 
 func (mc *MockClient) GetGroup(groupID string) (*cloud.Group, error) {
