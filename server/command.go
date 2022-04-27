@@ -90,7 +90,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 			return nil, err
 		}
 
-		if !strings.HasSuffix(user.Email, config.AllowedEmailDomain) {
+		if !strings.HasSuffix(user.Email, "@" + config.AllowedEmailDomain) {
 			return getCommandResponse(model.CommandResponseTypeEphemeral, "Permission denied. Please talk to your system administrator to get access."), nil
 		}
 	}
