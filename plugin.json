@@ -2,7 +2,7 @@
     "id": "com.mattermost.cloud",
     "name": "Mattermost Private Cloud",
     "description": "This plugin allows spinning up and down Mattermost installations using Mattermost Private Cloud.",
-    "version": "0.1.22",
+    "version": "0.1.23",
     "min_server_version": "5.12.0",
     "server": {
         "executables": {
