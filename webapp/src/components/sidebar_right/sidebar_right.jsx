@@ -55,7 +55,12 @@ export default class SidebarRight extends React.PureComponent {
     }
 
     render() {
-        const installs = this.props.installs;
+        let installs = this.props.installs;
+        console.log('<><> sidebar_right installs:', installs); // eslint-disable-line no-console
+        if (!installs) {
+            installs = [];
+        }
+
         var noInstalls = false;
 
         if (installs.length === 0) {
