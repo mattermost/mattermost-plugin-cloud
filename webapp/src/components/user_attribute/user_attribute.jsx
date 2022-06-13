@@ -15,7 +15,11 @@ export default class UserAttribute extends React.PureComponent {
     }
 
     render() {
-        const installs = this.props.installs;
+        let installs = this.props.installs;
+        console.log('<><> user_attribute installs:', installs);
+        if (!installs) {
+            installs = [];
+        }
 
         if (installs.length === 0) {
             return null;
