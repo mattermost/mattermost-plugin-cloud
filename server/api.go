@@ -56,12 +56,14 @@ func (p *Plugin) handleUserInstalls(w http.ResponseWriter, r *http.Request) {
 
 	installsForUser, err := p.getUpdatedInstallsForUser(req.UserID)
 	if err != nil {
+		p.API.LogError(errors.Wrap(err, "Unable to getUpdatedInstallsForUser").Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
 
 	data, err := json.Marshal(installsForUser)
 	if err != nil {
+		p.API.LogError(errors.Wrap(err, "Unable to marshal installsForUser").Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
