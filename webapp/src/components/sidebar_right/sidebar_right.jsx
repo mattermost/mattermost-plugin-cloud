@@ -29,9 +29,9 @@ export function renderThumbVertical(props) {
 
 export default class SidebarRight extends React.PureComponent {
     static propTypes = {
-        rhsState: PropTypes.string,
         id: PropTypes.string.isRequired,
         installs: PropTypes.array.isRequired,
+        serverError: PropTypes.string.isRequired,
         actions: PropTypes.shape({
             setVisible: PropTypes.func.isRequired,
             telemetry: PropTypes.func.isRequired,
@@ -55,16 +55,30 @@ export default class SidebarRight extends React.PureComponent {
     }
 
     render() {
-        let installs = this.props.installs;
-        console.log('<><> sidebar_right installs:', installs); // eslint-disable-line no-console
-        if (!installs) {
-            installs = [];
+        if (this.props.serverError) {
+            return (
+                <div style={style.message}>
+                    <p>{'Received a server error'}</p>
+                    <p>{this.props.serverError}</p>
+                    <div style={style.serverIcon}>
+                        <i className='fa fa-server fa-4x'/>
+                    </div>
+
+                </div>
+            );
         }
 
-        var noInstalls = false;
-
+        const installs = this.props.installs;
         if (installs.length === 0) {
-            noInstalls = true;
+            return (
+                <div style={style.message}>
+                    <p>{'There are no installations, use the /cloud create command to add an installation.'}</p>
+                    <div style={style.serverIcon}>
+                        <i className='fa fa-server fa-4x'/>
+                    </div>
+
+                </div>
+            );
         }
 
         const entries = installs.map((install) => (
@@ -148,21 +162,11 @@ export default class SidebarRight extends React.PureComponent {
                     renderView={renderView}
                     className='SidebarRight'
                 >
-                    {noInstalls ?
-                        <div style={style.noInstalls}>
-
-                            <p>There are no installations, use the /cloud create command to add an installation.</p>
-
-                            <div style={style.serverIcon}>
-                                <i className='fa fa-server fa-4x'/>
-                            </div>
-
-                        </div> :
-                        <div style={style.container}>
-                            <ul style={style.ul}>
-                                {entries}
-                            </ul>
-                        </div>}
+                    <div style={style.container}>
+                        <ul style={style.ul}>
+                            {entries}
+                        </ul>
+                    </div>
                 </Scrollbars>
             </React.Fragment>
         );
@@ -204,7 +208,7 @@ const style = {
         display: 'inline',
         backgroundColor: '#FF8C00',
     },
-    noInstalls: {
+    message: {
         margin: 'auto',
         width: '50%',
         marginTop: '50px',

@@ -6,3 +6,4 @@ export const installsForUser = (state, id) => getPluginState(state).cloudUserIns
 export const getShowRHSAction = (state) => getPluginState(state).rhsPluginAction;
 
 export const isRhsVisible = (state) => getPluginState(state).isRhsVisible;
+export const serverError = (state) => getPluginState(state).serverError;
