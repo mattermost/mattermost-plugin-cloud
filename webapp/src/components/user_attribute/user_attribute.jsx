@@ -16,7 +16,7 @@ export default class UserAttribute extends React.PureComponent {
 
     render() {
         let installs = this.props.installs;
-        console.log('<><> user_attribute installs:', installs);
+        console.log('<><> user_attribute installs:', installs); // eslint-disable-line no-console
         if (!installs) {
             installs = [];
         }

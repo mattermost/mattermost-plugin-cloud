@@ -31,9 +31,9 @@ export function getCloudUserData(userID) {
         let data;
         try {
             data = await Client.getUserInstalls(userID);
-            console.log('<><> received data from /userinstalls:', data);
+            console.log('<><> received data from /userinstalls:', data); // eslint-disable-line no-console
         } catch (error) {
-            console.log('<><> received error from /userinstalls:', error);
+            console.log('<><> received error from /userinstalls:', error); // eslint-disable-line no-console
             if (error.status === 404) {
                 dispatch({
                     type: RECEIVED_USER_INSTALLS,
