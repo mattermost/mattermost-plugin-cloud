@@ -6,16 +6,23 @@ import Client from '../client';
 
 import {id as pluginId} from '../manifest';
 
-import {installsForUser} from 'selectors';
+import {installsForUser, serverError} from 'selectors';
 
 import {
     RECEIVED_USER_INSTALLS,
     RECEIVED_SHOW_RHS_ACTION,
-    UPDATE_RHS_STATE,
     SET_RHS_VISIBLE,
+    SET_SERVER_ERROR,
 } from '../action_types';
 
 const CLOUD_USER_GET_TIMEOUT_MILLISECONDS = 1000 * 60; // 1 minute
+
+export function setServerError(errorString) {
+    return {
+        type: SET_SERVER_ERROR,
+        error: errorString,
+    };
+}
 
 export function getCloudUserData(userID) {
     return async (dispatch, getState) => {
@@ -28,20 +35,23 @@ export function getCloudUserData(userID) {
             return {};
         }
 
-        let data;
-        try {
-            data = await Client.getUserInstalls(userID);
-            console.log('<><> received data from /userinstalls:', data); // eslint-disable-line no-console
-        } catch (error) {
-            console.log('<><> received error from /userinstalls:', error); // eslint-disable-line no-console
-            if (error.status === 404) {
+        const data = await Client.getUserInstalls(userID);
+
+        if (data.error) {
+            if (data.error.status === 404) {
                 dispatch({
                     type: RECEIVED_USER_INSTALLS,
                     userID,
                     data: {last_try: Date.now()},
                 });
             }
-            return {error};
+            dispatch(setServerError(`Status: ${data.error.status}, Message: ${data.error.message}`));
+            return data;
+        }
+
+        // Clear server error
+        if (serverError(getState())) {
+            dispatch(setServerError(''));
         }
 
         dispatch({
@@ -53,6 +63,7 @@ export function getCloudUserData(userID) {
         return {data};
     };
 }
+
 export function setShowRHSAction(showRHSPluginAction) {
     return {
         type: RECEIVED_SHOW_RHS_ACTION,
@@ -67,12 +78,6 @@ export function setRhsVisible(payload) {
     };
 }
 
-export function updateRhsState(rhsState) {
-    return {
-        type: UPDATE_RHS_STATE,
-        state: rhsState,
-    };
-}
 export const getPluginServerRoute = (state) => {
     const config = getConfig(state);
 

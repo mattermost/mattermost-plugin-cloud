@@ -5,6 +5,7 @@ export default class UserAttribute extends React.PureComponent {
     static propTypes = {
         id: PropTypes.string.isRequired,
         installs: PropTypes.array.isRequired,
+        serverError: PropTypes.string.isRequired,
         actions: PropTypes.shape({
             getCloudUserData: PropTypes.func.isRequired,
         }).isRequired,
@@ -15,13 +16,9 @@ export default class UserAttribute extends React.PureComponent {
     }
 
     render() {
-        let installs = this.props.installs;
-        console.log('<><> user_attribute installs:', installs); // eslint-disable-line no-console
-        if (!installs) {
-            installs = [];
-        }
+        const installs = this.props.installs;
 
-        if (installs.length === 0) {
+        if (installs.length === 0 || this.props.serverError) {
             return null;
         }
 

@@ -7,16 +7,16 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 
 import {telemetry, setRhsVisible, getCloudUserData} from '../../actions';
 
-import {installsForUser} from '../../selectors';
+import {installsForUser, serverError} from '../../selectors';
 
 import SidebarRight from './sidebar_right.jsx';
 
 function mapStateToProps(state) {
     const id = getCurrentUserId(state);
-    const installs = installsForUser(state, id);
     return {
         id,
-        installs,
+        installs: installsForUser(state, id),
+        serverError: serverError(state),
     };
 }
 
