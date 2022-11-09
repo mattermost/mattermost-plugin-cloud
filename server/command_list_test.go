@@ -77,11 +77,11 @@ func TestGetUpdatedInstallsForUser(t *testing.T) {
 
 func getFakePluginInstallations() ([]*Installation, []byte, error) {
 	installations := []*Installation{
-		{Name: "installation-one", Installation: cloud.Installation{ID: "id1", OwnerID: "owner 1"}},
-		{Name: "installation-two", Installation: cloud.Installation{ID: "id2", OwnerID: "owner 1"}},
-		{Name: "installation-three", Installation: cloud.Installation{ID: "id3", OwnerID: "owner 1"}},
-		{Name: "installation-four", Installation: cloud.Installation{ID: "id4", OwnerID: "owner 1"}},
-		{Name: "installation-five", Installation: cloud.Installation{ID: "id5", OwnerID: "owner 1"}},
+		{Name: "installation-one", InstallationDTO: cloud.InstallationDTO{Installation: &cloud.Installation{ID: "id1", OwnerID: "owner 1"}}},
+		{Name: "installation-two", InstallationDTO: cloud.InstallationDTO{Installation: &cloud.Installation{ID: "id2", OwnerID: "owner 1"}}},
+		{Name: "installation-three", InstallationDTO: cloud.InstallationDTO{Installation: &cloud.Installation{ID: "id3", OwnerID: "owner 1"}}},
+		{Name: "installation-four", InstallationDTO: cloud.InstallationDTO{Installation: &cloud.Installation{ID: "id4", OwnerID: "owner 1"}}},
+		{Name: "installation-five", InstallationDTO: cloud.InstallationDTO{Installation: &cloud.Installation{ID: "id5", OwnerID: "owner 1"}}},
 	}
 	b, err := json.Marshal(installations)
 

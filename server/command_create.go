@@ -173,6 +173,9 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 
 	install := &Installation{
 		Name: standardizeName(args[0]),
+		InstallationDTO: cloud.InstallationDTO{
+			Installation: &cloud.Installation{},
+		},
 	}
 
 	if install.Name == "" || strings.HasPrefix(install.Name, "--") {
@@ -245,7 +248,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, false, errors.Wrap(err, "failed to create installation")
 	}
 
-	install.Installation = *cloudInstallation.Installation
+	install.Installation = cloudInstallation.Installation
 
 	err = p.storeInstallation(install)
 	if err != nil {

@@ -66,7 +66,7 @@ func (p *Plugin) runImportCommand(args []string, extra *model.CommandArgs) (*mod
 	pluginInstall := &Installation{
 		Name: name,
 	}
-	pluginInstall.Installation = *cloudInstall.Installation
+	pluginInstall.Installation = cloudInstall.Installation
 
 	err = p.storeInstallation(pluginInstall)
 	if err != nil {

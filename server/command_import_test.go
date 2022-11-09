@@ -127,7 +127,8 @@ func TestImport(t *testing.T) {
 
 func TestInstallExist(t *testing.T) {
 	plugin := Plugin{}
-	plugin.cloudClient = &MockClient{overrideGetInstallationDTO: &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "id1", DNS: "installation-one.dev.cloud.mattermost.com"}}}
+	plugin.cloudClient = &MockClient{
+		overrideGetInstallationDTO: &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "id1"}, DNS: "installation-one.dev.cloud.mattermost.com"}}
 	api := &plugintest.API{}
 	plugin.SetAPI(api)
 
@@ -149,11 +150,11 @@ func TestInstallExist(t *testing.T) {
 
 func getFakePluginInstallationsWithDNS() ([]*Installation, []byte, error) {
 	installations := []*Installation{
-		{Name: "installation-one", Installation: cloud.Installation{ID: "id1", OwnerID: "owner 1", DNS: "installation-one.dev.cloud.mattermost.com"}},
-		{Name: "installation-two", Installation: cloud.Installation{ID: "id2", OwnerID: "owner 1", DNS: "installation-two.dev.cloud.mattermost.com"}},
-		{Name: "installation-three", Installation: cloud.Installation{ID: "id3", OwnerID: "owner 1", DNS: "installation-three.dev.cloud.mattermost.com"}},
-		{Name: "installation-four", Installation: cloud.Installation{ID: "id4", OwnerID: "owner 1", DNS: "installation-four.dev.cloud.mattermost.com"}},
-		{Name: "installation-five", Installation: cloud.Installation{ID: "id5", OwnerID: "owner 1", DNS: "installation-five.dev.cloud.mattermost.com"}},
+		{Name: "installation-one", InstallationDTO: cloud.InstallationDTO{Installation: &cloud.Installation{ID: "id1", OwnerID: "owner 1"}, DNS: "installation-one.dev.cloud.mattermost.com"}},
+		{Name: "installation-two", InstallationDTO: cloud.InstallationDTO{Installation: &cloud.Installation{ID: "id2", OwnerID: "owner 1"}, DNS: "installation-two.dev.cloud.mattermost.com"}},
+		{Name: "installation-three", InstallationDTO: cloud.InstallationDTO{Installation: &cloud.Installation{ID: "id3", OwnerID: "owner 1"}, DNS: "installation-three.dev.cloud.mattermost.com"}},
+		{Name: "installation-four", InstallationDTO: cloud.InstallationDTO{Installation: &cloud.Installation{ID: "id4", OwnerID: "owner 1"}, DNS: "installation-four.dev.cloud.mattermost.com"}},
+		{Name: "installation-five", InstallationDTO: cloud.InstallationDTO{Installation: &cloud.Installation{ID: "id5", OwnerID: "owner 1"}, DNS: "installation-five.dev.cloud.mattermost.com"}},
 	}
 	b, err := json.Marshal(installations)
 

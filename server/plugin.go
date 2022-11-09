@@ -49,7 +49,7 @@ type CloudClient interface {
 	RunMattermostCLICommandOnClusterInstallation(clusterInstallationID string, subcommand []string) ([]byte, error)
 	ExecClusterInstallationCLI(clusterInstallationID, command string, subcommand []string) ([]byte, error)
 
-	GetGroup(groupID string) (*cloud.Group, error)
+	GetGroup(groupID string) (*cloud.GroupDTO, error)
 }
 
 // DockerClientInterface is the interface for interacting with docker.

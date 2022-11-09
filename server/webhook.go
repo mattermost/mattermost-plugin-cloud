@@ -77,7 +77,7 @@ func (p *Plugin) processWebhookEvent(payload *cloud.WebhookPayload) {
 		p.API.LogError(fmt.Sprintf("failed to find installation %s", install.ID))
 		return
 	}
-	install.Installation = *installation.Installation
+	install.Installation = installation.Installation
 
 	if payload.NewState == cloud.InstallationStateHibernating {
 		p.PostBotDM(install.OwnerID, fmt.Sprintf("Installation %s has been hibernated", install.Name))
