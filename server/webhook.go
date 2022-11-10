@@ -129,7 +129,7 @@ Login with:
 
 Installation details:
 %s
-`, install.Name, install.DNS, defaultAdminUsername, defaultAdminPassword, jsonCodeBlock(install.ToPrettyJSON()))
+`, install.Name, install.DNSRecords[0].DomainName, defaultAdminUsername, defaultAdminPassword, jsonCodeBlock(install.ToPrettyJSON()))
 
 		p.PostBotDM(install.OwnerID, message)
 	}

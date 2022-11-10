@@ -25,7 +25,7 @@ export default class UserAttribute extends React.PureComponent {
         const entries = installs.map((install) => (
             <li key={install.ID}>
                 <a
-                    href={'https://' + install.DNS}
+                    href={'https://' + install.DNSRecords[0].DomainName}
                     target='_blank'
                     rel='noopener noreferrer'
                 >

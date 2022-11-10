@@ -46,7 +46,7 @@ func TestStatusCommand(t *testing.T) {
 			Version: "v7.1.44",
 			State:   cloud.InstallationStateCreationDNS,
 		}
-		installationDTO := []*cloud.InstallationDTO{{Installation: installation1, DNS: "https://greatawesome.com"}}
+		installationDTO := []*cloud.InstallationDTO{{Installation: installation1, DNSRecords: []*cloud.InstallationDNS{{DomainName: "https://greatawesome.com"}}}}
 		mockedCloudClient.mockedCloudInstallationsDTO = installationDTO
 
 		t.Run("show clusters", func(t *testing.T) {
@@ -58,7 +58,7 @@ func TestStatusCommand(t *testing.T) {
 			assert.Contains(t, resp.Text, cluster1.ID)
 			assert.Contains(t, resp.Text, cluster1.State)
 			assert.Contains(t, resp.Text, installation1.ID)
-			assert.Contains(t, resp.Text, installationDTO[0].DNS)
+			assert.Contains(t, resp.Text, installationDTO[0].DNSRecords[0].DomainName)
 			assert.Contains(t, resp.Text, installation1.Size)
 			assert.Contains(t, resp.Text, installation1.Version)
 			assert.Contains(t, resp.Text, installation1.State)
@@ -73,7 +73,7 @@ func TestStatusCommand(t *testing.T) {
 			assert.NotContains(t, resp.Text, cluster1.ID)
 			assert.NotContains(t, resp.Text, cluster1.State)
 			assert.Contains(t, resp.Text, installation1.ID)
-			assert.Contains(t, resp.Text, installationDTO[0].DNS)
+			assert.Contains(t, resp.Text, installationDTO[0].DNSRecords[0].DomainName)
 			assert.Contains(t, resp.Text, installation1.Size)
 			assert.Contains(t, resp.Text, installation1.Version)
 			assert.Contains(t, resp.Text, installation1.State)

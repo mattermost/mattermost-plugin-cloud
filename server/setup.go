@@ -19,7 +19,11 @@ const (
 )
 
 func (p *Plugin) setupInstallation(install *Installation) error {
-	client := model.NewAPIv4Client(fmt.Sprintf("https://%s", install.DNS))
+	if len(install.DNSRecords) == 0 {
+		return fmt.Errorf("Installation %s doesn't have any DNSRecords", install.ID)
+	}
+
+	client := model.NewAPIv4Client(fmt.Sprintf("https://%s", install.DNSRecords[0].DomainName))
 	if client == nil {
 		return errors.New("got nil APIv4 Mattermost client for some reason")
 	}
