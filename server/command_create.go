@@ -229,10 +229,11 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 	install.Version = digest
 
 	req := &cloud.CreateInstallationRequest{
+		Name:        install.Name,
 		OwnerID:     extra.UserId,
 		GroupID:     config.GroupID,
 		Affinity:    install.Affinity,
-		DNS:         fmt.Sprintf("%s.%s", install.Name, config.InstallationDNS),
+		DNSNames:    []string{fmt.Sprintf("%s.%s", install.Name, config.InstallationDNS)},
 		Database:    install.Database,
 		Filestore:   install.Filestore,
 		PriorityEnv: install.PriorityEnv,
