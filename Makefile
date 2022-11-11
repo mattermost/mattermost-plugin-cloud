@@ -81,7 +81,7 @@ endif
 .PHONY: golint
 golint:
 	@echo Running lint
-	env GO111MODULE=off $(GO) get golang.org/x/lint/golint
+	env GO111MODULE=off $(GO) install golang.org/x/lint/golint
 	golint -set_exit_status ./...
 	@echo lint success
 
