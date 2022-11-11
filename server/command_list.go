@@ -16,7 +16,7 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 	}
 
 	if len(installsForUser) == 0 {
-		return getCommandResponse(model.CommandResponseTypeEphemeral, "No installations found."), false, nil
+		return getCommandResponse(model.CommandResponseTypeEphemeral, "No installations found.", extra), false, nil
 	}
 
 	data, err := json.Marshal(installsForUser)
@@ -24,7 +24,7 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 		return nil, false, err
 	}
 
-	return getCommandResponse(model.CommandResponseTypeEphemeral, jsonCodeBlock(prettyPrintJSON(string(data)))), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, jsonCodeBlock(prettyPrintJSON(string(data))), extra), false, nil
 }
 
 func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, error) {

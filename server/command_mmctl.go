@@ -58,7 +58,7 @@ func (p *Plugin) runMmctlCommand(args []string, extra *model.CommandArgs) (*mode
 		codeBlock(string(output)),
 	)
 
-	return getCommandResponse(model.CommandResponseTypeEphemeral, resp), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, resp, extra), false, nil
 }
 
 func (p *Plugin) execMmctl(installationID string, subcommand []string) ([]byte, error) {

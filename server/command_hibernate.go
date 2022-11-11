@@ -41,5 +41,5 @@ func (p *Plugin) runHibernateCommand(args []string, extra *model.CommandArgs) (*
 		return nil, false, err
 	}
 
-	return getCommandResponse(model.CommandResponseTypeEphemeral, fmt.Sprintf("Hibernation of installation %s has begun. You will receive a notification when it is hibernated. Use /cloud list to check on the status of your installations.", name)), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, fmt.Sprintf("Hibernation of installation %s has begun. You will receive a notification when it is hibernated. Use /cloud list to check on the status of your installations.", name), extra), false, nil
 }

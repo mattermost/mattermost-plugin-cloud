@@ -69,7 +69,7 @@ func (p *Plugin) runStatusCommand(args []string, extra *model.CommandArgs) (*mod
 	}
 
 	if !includeClusters {
-		return getCommandResponse(model.CommandResponseTypeEphemeral, status), false, nil
+		return getCommandResponse(model.CommandResponseTypeEphemeral, status, extra), false, nil
 	}
 
 	clusters, err := p.cloudClient.GetClusters(&cloud.GetClustersRequest{
@@ -89,7 +89,7 @@ func (p *Plugin) runStatusCommand(args []string, extra *model.CommandArgs) (*mod
 		)
 	}
 
-	return getCommandResponse(model.CommandResponseTypeEphemeral, status), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, status, extra), false, nil
 }
 
 func getTimeFromMillis(millis int64) time.Time {
