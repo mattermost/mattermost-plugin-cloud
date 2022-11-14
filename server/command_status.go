@@ -57,7 +57,7 @@ func (p *Plugin) runStatusCommand(args []string, extra *model.CommandArgs) (*mod
 	for _, installation := range installations {
 		var markdownURL string
 		if len(installation.DNSRecords) > 0 {
-			markdownURL = fmt.Sprintf("[%s](%s)", installation.DNSRecords[0].DomainName, installation.DNSRecords[0].DomainName)
+			markdownURL = fmt.Sprintf("[%s](https://%s)", installation.DNSRecords[0].DomainName, installation.DNSRecords[0].DomainName)
 		}
 		status += fmt.Sprintf("| `%s` | %s | %s | %s | %s | %s | %s | %s |\n",
 			installation.ID,
