@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Scrollbars} from 'react-custom-scrollbars-2';
-import {Badge} from 'react-bootstrap';
+import { Scrollbars } from 'react-custom-scrollbars-2';
+import { Badge } from 'react-bootstrap';
 
 export function renderView(props) {
     return (
@@ -61,7 +61,7 @@ export default class SidebarRight extends React.PureComponent {
                     <p>{'Received a server error'}</p>
                     <p>{this.props.serverError}</p>
                     <div style={style.serverIcon}>
-                        <i className='fa fa-server fa-4x'/>
+                        <i className='fa fa-server fa-4x' />
                     </div>
 
                 </div>
@@ -74,7 +74,7 @@ export default class SidebarRight extends React.PureComponent {
                 <div style={style.message}>
                     <p>{'There are no installations, use the /cloud create command to add an installation.'}</p>
                     <div style={style.serverIcon}>
-                        <i className='fa fa-server fa-4x'/>
+                        <i className='fa fa-server fa-4x' />
                     </div>
 
                 </div>
@@ -102,8 +102,12 @@ export default class SidebarRight extends React.PureComponent {
                     }
                     <div>
                         <span style={style.col1}>DNS:</span>
-                        <span>{install.DNSRecords[0].DomainName}</span>
+                        {install.DNSRecords.length > 0 ?
+                            <span>{install.DNSRecords[0].DomainName}</span> :
+                            <span>No URL!</span>
+                        }
                     </div>
+
                     <div>
                         <span style={style.col1}>Image:</span>
                         <span>{install.Image}</span>

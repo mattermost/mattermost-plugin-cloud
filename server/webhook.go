@@ -84,6 +84,11 @@ func (p *Plugin) processWebhookEvent(payload *cloud.WebhookPayload) {
 		return
 	}
 
+	var dnsRecord string
+	if len(install.DNSRecords) > 0 {
+		dnsRecord = install.DNSRecords[0].DomainName
+	}
+
 	switch payload.OldState {
 	case cloud.InstallationStateUpdateRequested,
 		cloud.InstallationStateUpdateInProgress,
@@ -129,7 +134,7 @@ Login with:
 
 Installation details:
 %s
-`, install.Name, install.DNSRecords[0].DomainName, defaultAdminUsername, defaultAdminPassword, jsonCodeBlock(install.ToPrettyJSON()))
+`, install.Name, dnsRecord, defaultAdminUsername, defaultAdminPassword, jsonCodeBlock(install.ToPrettyJSON()))
 
 		p.PostBotDM(install.OwnerID, message)
 	}
