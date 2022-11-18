@@ -59,7 +59,7 @@ func (mc *MockClient) GetInstallationByDNS(DNS string, request *cloud.GetInstall
 		return mc.overrideGetInstallationDTO, nil
 	}
 
-	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid", DNS: DNS}}, nil
+	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid"}, DNS: DNS}, nil
 }
 
 func (mc *MockClient) GetInstallations(request *cloud.GetInstallationsRequest) ([]*cloud.InstallationDTO, error) {
@@ -95,8 +95,8 @@ func (mc *MockClient) RunMmctlCommandOnClusterInstallation(clusterInstallationID
 	return []byte("mocked mmctl command output"), nil
 }
 
-func (mc *MockClient) GetGroup(groupID string) (*cloud.Group, error) {
-	return &cloud.Group{ID: groupID, Name: "test-group"}, nil
+func (mc *MockClient) GetGroup(groupID string) (*cloud.GroupDTO, error) {
+	return &cloud.GroupDTO{Group: &cloud.Group{ID: groupID, Name: "test-group"}}, nil
 }
 
 func TestInfoCommand(t *testing.T) {

@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"regexp"
 	"strings"
@@ -173,6 +173,9 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 
 	install := &Installation{
 		Name: standardizeName(args[0]),
+		InstallationDTO: cloud.InstallationDTO{
+			Installation: &cloud.Installation{},
+		},
 	}
 
 	if install.Name == "" || strings.HasPrefix(install.Name, "--") {
@@ -226,10 +229,11 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 	install.Version = digest
 
 	req := &cloud.CreateInstallationRequest{
+		Name:        install.Name,
 		OwnerID:     extra.UserId,
 		GroupID:     config.GroupID,
 		Affinity:    install.Affinity,
-		DNS:         fmt.Sprintf("%s.%s", install.Name, config.InstallationDNS),
+		DNSNames:    []string{fmt.Sprintf("%s.%s", install.Name, config.InstallationDNS)},
 		Database:    install.Database,
 		Filestore:   install.Filestore,
 		PriorityEnv: install.PriorityEnv,
@@ -245,7 +249,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, false, errors.Wrap(err, "failed to create installation")
 	}
 
-	install.Installation = *cloudInstallation.Installation
+	install.Installation = cloudInstallation.Installation
 
 	err = p.storeInstallation(install)
 	if err != nil {
@@ -254,7 +258,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 
 	install.HideSensitiveFields()
 
-	return getCommandResponse(model.CommandResponseTypeEphemeral, "Installation being created. You will receive a notification when it is ready. Use `/cloud list` to check on the status of your installations.\n\n"+jsonCodeBlock(install.ToPrettyJSON())), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, "Installation being created. You will receive a notification when it is ready. Use `/cloud list` to check on the status of your installations.\n\n"+jsonCodeBlock(install.ToPrettyJSON()), extra), false, nil
 }
 
 // installationWithNameExists returns true when there already exists an installation with name "name"
@@ -309,7 +313,7 @@ func (p *Plugin) githubLatestVersion() (string, error) {
 		return "", errors.Errorf("got unexpected status code %d while determining latest release from GitHub", resp.StatusCode)
 	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return "", errors.Wrap(err, "failed to read response body")
 	}

@@ -102,8 +102,12 @@ export default class SidebarRight extends React.PureComponent {
                     }
                     <div>
                         <span style={style.col1}>DNS:</span>
-                        <span>{install.DNS}</span>
+                        {install.DNSRecords.length > 0 ?
+                            <span>{install.DNSRecords[0].DomainName}</span> :
+                            <span>No URL!</span>
+                        }
                     </div>
+
                     <div>
                         <span style={style.col1}>Image:</span>
                         <span>{install.Image}</span>
@@ -135,7 +139,7 @@ export default class SidebarRight extends React.PureComponent {
                 </div>
 
                 <a
-                    href={'https://' + install.DNS}
+                    href={'https://' + install.DNSRecords[0].DomainName}
                     target='_blank'
                     rel='noopener noreferrer'
                 >

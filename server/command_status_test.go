@@ -42,12 +42,12 @@ func TestStatusCommand(t *testing.T) {
 
 		installation1 := &cloud.Installation{
 			ID:      cloud.NewID(),
-			DNS:     "https://greatawesome.com",
 			Size:    "superextralarge",
 			Version: "v7.1.44",
 			State:   cloud.InstallationStateCreationDNS,
 		}
-		mockedCloudClient.mockedCloudInstallationsDTO = []*cloud.InstallationDTO{{Installation: installation1}}
+		installationDTO := []*cloud.InstallationDTO{{Installation: installation1, DNSRecords: []*cloud.InstallationDNS{{DomainName: "https://greatawesome.com"}}}}
+		mockedCloudClient.mockedCloudInstallationsDTO = installationDTO
 
 		t.Run("show clusters", func(t *testing.T) {
 			resp, isUserError, err := plugin.runStatusCommand([]string{"--include-clusters=true"}, &model.CommandArgs{UserId: "gabeid"})
@@ -58,7 +58,7 @@ func TestStatusCommand(t *testing.T) {
 			assert.Contains(t, resp.Text, cluster1.ID)
 			assert.Contains(t, resp.Text, cluster1.State)
 			assert.Contains(t, resp.Text, installation1.ID)
-			assert.Contains(t, resp.Text, installation1.DNS)
+			assert.Contains(t, resp.Text, installationDTO[0].DNSRecords[0].DomainName)
 			assert.Contains(t, resp.Text, installation1.Size)
 			assert.Contains(t, resp.Text, installation1.Version)
 			assert.Contains(t, resp.Text, installation1.State)
@@ -73,7 +73,7 @@ func TestStatusCommand(t *testing.T) {
 			assert.NotContains(t, resp.Text, cluster1.ID)
 			assert.NotContains(t, resp.Text, cluster1.State)
 			assert.Contains(t, resp.Text, installation1.ID)
-			assert.Contains(t, resp.Text, installation1.DNS)
+			assert.Contains(t, resp.Text, installationDTO[0].DNSRecords[0].DomainName)
 			assert.Contains(t, resp.Text, installation1.Size)
 			assert.Contains(t, resp.Text, installation1.Version)
 			assert.Contains(t, resp.Text, installation1.State)

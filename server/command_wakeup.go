@@ -41,5 +41,5 @@ func (p *Plugin) runWakeUpCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, false, err
 	}
 
-	return getCommandResponse(model.CommandResponseTypeEphemeral, fmt.Sprintf("Installation %s is waking up. You will receive a notification when it is updated. Use /cloud list to check on the status of your installations.", name)), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, fmt.Sprintf("Installation %s is waking up. You will receive a notification when it is updated. Use /cloud list to check on the status of your installations.", name), extra), false, nil
 }

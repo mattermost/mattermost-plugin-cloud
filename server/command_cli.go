@@ -58,7 +58,7 @@ func (p *Plugin) runMattermostCLICommand(args []string, extra *model.CommandArgs
 		codeBlock(string(output)),
 	)
 
-	return getCommandResponse(model.CommandResponseTypeEphemeral, resp), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, resp, extra), false, nil
 }
 
 func (p *Plugin) execMattermostCLI(installationID string, subcommand []string) ([]byte, error) {

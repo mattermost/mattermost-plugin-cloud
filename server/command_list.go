@@ -16,7 +16,7 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 	}
 
 	if len(installsForUser) == 0 {
-		return getCommandResponse(model.CommandResponseTypeEphemeral, "No installations found."), false, nil
+		return getCommandResponse(model.CommandResponseTypeEphemeral, "No installations found.", extra), false, nil
 	}
 
 	data, err := json.Marshal(installsForUser)
@@ -24,7 +24,7 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 		return nil, false, err
 	}
 
-	return getCommandResponse(model.CommandResponseTypeEphemeral, jsonCodeBlock(prettyPrintJSON(string(data)))), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, jsonCodeBlock(prettyPrintJSON(string(data))), extra), false, nil
 }
 
 func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, error) {
@@ -67,7 +67,7 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, erro
 func (p *Plugin) processInstallationUpdate(pluginInstall *Installation, cloudInstalls []*cloud.InstallationDTO) (bool, error) {
 	for _, cloudInstall := range cloudInstalls {
 		if pluginInstall.ID == cloudInstall.ID {
-			pluginInstall.Installation = *cloudInstall.Installation
+			pluginInstall.InstallationDTO = *cloudInstall
 			pluginInstall.HideSensitiveFields()
 			return false, nil
 		}
@@ -86,7 +86,7 @@ func (p *Plugin) processInstallationUpdate(pluginInstall *Installation, cloudIns
 		return false, fmt.Errorf("could not find installation %s", pluginInstall.ID)
 	}
 
-	pluginInstall.Installation = *updatedInstall.Installation
+	pluginInstall.Installation = updatedInstall.Installation
 	pluginInstall.HideSensitiveFields()
 
 	if updatedInstall.State != cloud.InstallationStateDeleted {

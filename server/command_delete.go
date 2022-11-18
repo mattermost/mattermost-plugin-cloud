@@ -42,5 +42,5 @@ func (p *Plugin) runDeleteCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, false, err
 	}
 
-	return getCommandResponse(model.CommandResponseTypeEphemeral, fmt.Sprintf("Installation %s deleted.", name)), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, fmt.Sprintf("Installation %s deleted.", name), extra), false, nil
 }

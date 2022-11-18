@@ -71,10 +71,10 @@ func getCommand() *model.Command {
 	}
 }
 
-func getCommandResponse(responseType, text string) *model.CommandResponse {
+func getCommandResponse(responseType, text string, args *model.CommandArgs) *model.CommandResponse {
 	return &model.CommandResponse{
 		ResponseType: responseType,
-		Text:         text,
+		Text:         "Command invoked: `" + args.Command + "`\n\n" + text,
 		Username:     "cloud",
 		IconURL:      fmt.Sprintf("/plugins/%s/profile.png", manifest.ID),
 	}
@@ -91,14 +91,14 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		}
 
 		if !strings.HasSuffix(user.Email, "@"+config.AllowedEmailDomain) {
-			return getCommandResponse(model.CommandResponseTypeEphemeral, "Permission denied. Please talk to your system administrator to get access."), nil
+			return getCommandResponse(model.CommandResponseTypeEphemeral, "Permission denied. Please talk to your system administrator to get access.", args), nil
 		}
 	}
 
 	stringArgs := strings.Split(args.Command, " ")
 
 	if len(stringArgs) < 2 {
-		return getCommandResponse(model.CommandResponseTypeEphemeral, getHelp()), nil
+		return getCommandResponse(model.CommandResponseTypeEphemeral, getHelp(), args), nil
 	}
 
 	command := stringArgs[1]
@@ -131,17 +131,17 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	}
 
 	if handler == nil {
-		return getCommandResponse(model.CommandResponseTypeEphemeral, getHelp()), nil
+		return getCommandResponse(model.CommandResponseTypeEphemeral, getHelp(), args), nil
 	}
 
 	resp, isUserError, err := handler(stringArgs[2:], args)
 
 	if err != nil {
 		if isUserError {
-			return getCommandResponse(model.CommandResponseTypeEphemeral, fmt.Sprintf("__Error: %s__\n\nRun `/cloud help` for usage instructions.", err.Error())), nil
+			return getCommandResponse(model.CommandResponseTypeEphemeral, fmt.Sprintf("__Error: %s__\n\nRun `/cloud help` for usage instructions.", err.Error()), args), nil
 		}
 		p.API.LogError(err.Error())
-		return getCommandResponse(model.CommandResponseTypeEphemeral, "An unknown error occurred. Please talk to your resident cloud team for help."), nil
+		return getCommandResponse(model.CommandResponseTypeEphemeral, "An unknown error occurred. Please talk to your resident cloud team for help.", args), nil
 	}
 
 	return resp, nil
@@ -152,5 +152,5 @@ func (p *Plugin) runInfoCommand(args []string, extra *model.CommandArgs) (*model
 		"[%s](https://github.com/mattermost/mattermost-plugin-cloud/commit/%s), built %s\n",
 		manifest.Version, BuildHashShort, BuildHash, BuildDate)
 
-	return getCommandResponse(model.CommandResponseTypeEphemeral, resp), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, resp, extra), false, nil
 }

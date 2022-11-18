@@ -77,11 +77,16 @@ func (p *Plugin) processWebhookEvent(payload *cloud.WebhookPayload) {
 		p.API.LogError(fmt.Sprintf("failed to find installation %s", install.ID))
 		return
 	}
-	install.Installation = *installation.Installation
+	install.Installation = installation.Installation
 
 	if payload.NewState == cloud.InstallationStateHibernating {
 		p.PostBotDM(install.OwnerID, fmt.Sprintf("Installation %s has been hibernated", install.Name))
 		return
+	}
+
+	var dnsRecord string
+	if len(install.DNSRecords) > 0 {
+		dnsRecord = install.DNSRecords[0].DomainName
 	}
 
 	switch payload.OldState {
@@ -129,7 +134,7 @@ Login with:
 
 Installation details:
 %s
-`, install.Name, install.DNS, defaultAdminUsername, defaultAdminPassword, jsonCodeBlock(install.ToPrettyJSON()))
+`, install.Name, dnsRecord, defaultAdminUsername, defaultAdminPassword, jsonCodeBlock(install.ToPrettyJSON()))
 
 		p.PostBotDM(install.OwnerID, message)
 	}

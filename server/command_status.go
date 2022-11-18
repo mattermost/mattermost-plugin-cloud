@@ -55,9 +55,13 @@ func (p *Plugin) runStatusCommand(args []string, extra *model.CommandArgs) (*mod
 
 	status := installationTableHeader
 	for _, installation := range installations {
-		status += fmt.Sprintf("| `%s` | [%s](https://%s) | %s | %s | %s | %s | %s | %s |\n",
+		var markdownURL string
+		if len(installation.DNSRecords) > 0 {
+			markdownURL = fmt.Sprintf("[%s](https://%s)", installation.DNSRecords[0].DomainName, installation.DNSRecords[0].DomainName)
+		}
+		status += fmt.Sprintf("| `%s` | %s | %s | %s | %s | %s | %s | %s |\n",
 			installation.ID,
-			installation.DNS, installation.DNS,
+			markdownURL,
 			installation.Size,
 			installation.Version,
 			installation.Database,
@@ -68,7 +72,7 @@ func (p *Plugin) runStatusCommand(args []string, extra *model.CommandArgs) (*mod
 	}
 
 	if !includeClusters {
-		return getCommandResponse(model.CommandResponseTypeEphemeral, status), false, nil
+		return getCommandResponse(model.CommandResponseTypeEphemeral, status, extra), false, nil
 	}
 
 	clusters, err := p.cloudClient.GetClusters(&cloud.GetClustersRequest{
@@ -88,7 +92,7 @@ func (p *Plugin) runStatusCommand(args []string, extra *model.CommandArgs) (*mod
 		)
 	}
 
-	return getCommandResponse(model.CommandResponseTypeEphemeral, status), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, status, extra), false, nil
 }
 
 func getTimeFromMillis(millis int64) time.Time {

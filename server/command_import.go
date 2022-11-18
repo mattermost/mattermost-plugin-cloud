@@ -66,7 +66,7 @@ func (p *Plugin) runImportCommand(args []string, extra *model.CommandArgs) (*mod
 	pluginInstall := &Installation{
 		Name: name,
 	}
-	pluginInstall.Installation = *cloudInstall.Installation
+	pluginInstall.Installation = cloudInstall.Installation
 
 	err = p.storeInstallation(pluginInstall)
 	if err != nil {
@@ -79,6 +79,6 @@ func (p *Plugin) runImportCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, false, errors.Wrap(err, "failed to Marshal installation")
 	}
 
-	return getCommandResponse(model.CommandResponseTypeEphemeral, "Installation imported:\n\n"+jsonCodeBlock(prettyPrintJSON(string(dataInstall)))), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, "Installation imported:\n\n"+jsonCodeBlock(prettyPrintJSON(string(dataInstall))), extra), false, nil
 
 }
