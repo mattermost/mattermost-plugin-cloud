@@ -18,7 +18,7 @@ const (
 	defaultAdminEmail    = "success+sysadmin@simulator.amazonses.com"
 
 	defaultUserUsername = "user"
-	defaultUserPassword = defaultAdminPassword
+	defaultUserPassword = "User@123"
 	defaultUserEmail    = "success+user@simulator.amazonses.com"
 )
 
