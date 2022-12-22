@@ -128,13 +128,14 @@ Access at: https://%s
 
 Login with:
 
-| Username | Password |
-| -- | -- |
-| %s | %s |
+| Username | Password | Note |
+| -- | -- | -- |
+| %s | %s | Admin user |
+| %s | %s | Regular user |
 
 Installation details:
 %s
-`, install.Name, dnsRecord, defaultAdminUsername, defaultAdminPassword, jsonCodeBlock(install.ToPrettyJSON()))
+`, install.Name, dnsRecord, defaultAdminUsername, defaultAdminPassword, defaultUserUsername, defaultUserPassword, jsonCodeBlock(install.ToPrettyJSON()))
 
 		p.PostBotDM(install.OwnerID, message)
 	}

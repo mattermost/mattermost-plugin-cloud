@@ -197,6 +197,16 @@ func (p *Plugin) getInstallation(installationID string) (*Installation, error) {
 
 	for _, install := range installs {
 		if install.ID == installationID {
+			// Retrieve the information we need from the installation directly from the provisioner
+			if len(install.DNSRecords) == 0 {
+				cloudInstall, err := p.cloudClient.GetInstallation(install.ID, &cloud.GetInstallationRequest{})
+				if err != nil {
+					return nil, err
+				}
+
+				install.DNSRecords = cloudInstall.DNSRecords
+			}
+
 			return install, nil
 		}
 	}

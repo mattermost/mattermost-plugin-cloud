@@ -16,6 +16,10 @@ const (
 	defaultAdminUsername = "sysadmin"
 	defaultAdminPassword = "Sys@dmin123"
 	defaultAdminEmail    = "success+sysadmin@simulator.amazonses.com"
+
+	defaultUserUsername = "user"
+	defaultUserPassword = "User@123"
+	defaultUserEmail    = "success+user@simulator.amazonses.com"
 )
 
 func (p *Plugin) setupInstallation(install *Installation) error {
@@ -43,6 +47,12 @@ func (p *Plugin) setupInstallation(install *Installation) error {
 		return errors.Wrap(err, "encountered an error configuring the installation")
 	}
 
+	// Create normal user
+	err = p.createUser(client, defaultUserUsername, defaultUserPassword, defaultUserEmail)
+	if err != nil {
+		return errors.Wrap(err, "encountered an error creating installation user account")
+	}
+
 	return nil
 }
 
@@ -61,14 +71,19 @@ func (p *Plugin) waitForDNS(client *model.Client4) error {
 	return errors.New("timed out waiting for installation DNS")
 }
 
-func (p *Plugin) createAndLoginAdminUser(client *model.Client4) error {
+func (p *Plugin) createUser(client *model.Client4, username, password, email string) error {
 	_, _, err := client.CreateUser(
 		&model.User{
-			Username: defaultAdminUsername,
-			Password: defaultAdminPassword,
-			Email:    defaultAdminEmail,
+			Username: username,
+			Password: password,
+			Email:    email,
 		},
 	)
+	return err
+}
+
+func (p *Plugin) createAndLoginAdminUser(client *model.Client4) error {
+	err := p.createUser(client, defaultAdminUsername, defaultAdminPassword, defaultAdminEmail)
 	if err != nil {
 		return err
 	}
