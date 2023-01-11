@@ -164,6 +164,20 @@ func TestCreateCommand(t *testing.T) {
 			assert.False(t, isUserError)
 			assert.Contains(t, resp.Text, "Installation being created.")
 		})
+
+		t.Run(cloud.InstallationDatabaseMultiTenantRDSPostgresPGBouncer, func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", cloud.InstallationDatabaseMultiTenantRDSPostgresPGBouncer}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created.")
+		})
+
+		t.Run(cloud.InstallationDatabasePerseus, func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", cloud.InstallationDatabasePerseus}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created.")
+		})
 	})
 
 	t.Run("filestore", func(t *testing.T) {
