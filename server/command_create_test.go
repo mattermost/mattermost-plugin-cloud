@@ -137,34 +137,6 @@ func TestCreateCommand(t *testing.T) {
 			assert.Contains(t, resp.Text, "Installation being created.")
 		})
 
-		t.Run(cloud.InstallationDatabaseSingleTenantRDSMySQL, func(t *testing.T) {
-			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", cloud.InstallationDatabaseSingleTenantRDSMySQL}, &model.CommandArgs{})
-			require.NoError(t, err)
-			assert.False(t, isUserError)
-			assert.Contains(t, resp.Text, "Installation being created.")
-		})
-
-		t.Run(cloud.InstallationDatabaseMultiTenantRDSMySQL, func(t *testing.T) {
-			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", cloud.InstallationDatabaseMultiTenantRDSMySQL}, &model.CommandArgs{})
-			require.NoError(t, err)
-			assert.False(t, isUserError)
-			assert.Contains(t, resp.Text, "Installation being created.")
-		})
-
-		t.Run(cloud.InstallationDatabaseSingleTenantRDSPostgres, func(t *testing.T) {
-			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", cloud.InstallationDatabaseSingleTenantRDSPostgres}, &model.CommandArgs{})
-			require.NoError(t, err)
-			assert.False(t, isUserError)
-			assert.Contains(t, resp.Text, "Installation being created.")
-		})
-
-		t.Run(cloud.InstallationDatabaseMultiTenantRDSPostgres, func(t *testing.T) {
-			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", cloud.InstallationDatabaseMultiTenantRDSPostgres}, &model.CommandArgs{})
-			require.NoError(t, err)
-			assert.False(t, isUserError)
-			assert.Contains(t, resp.Text, "Installation being created.")
-		})
-
 		t.Run(cloud.InstallationDatabaseMultiTenantRDSPostgresPGBouncer, func(t *testing.T) {
 			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", cloud.InstallationDatabaseMultiTenantRDSPostgresPGBouncer}, &model.CommandArgs{})
 			require.NoError(t, err)
