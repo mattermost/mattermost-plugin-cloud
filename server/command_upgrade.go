@@ -41,6 +41,10 @@ func buildPatchInstallationRequestFromArgs(args []string) (*cloud.PatchInstallat
 	if err != nil {
 		return nil, err
 	}
+	if size != "" && !Contains(validInstallationSizes, size) {
+		return nil, fmt.Errorf("Invalid size: %s", size)
+	}
+
 	image, err := upgradeFlagSet.GetString("image")
 	if err != nil {
 		return nil, err

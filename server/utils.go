@@ -61,6 +61,16 @@ func validInstallationName(name string) bool {
 	return installationNameMatcher.MatchString(name)
 }
 
+// Contains finds if needle is inside haystack
+func Contains[T comparable](haystack []T, needle T) bool {
+	for i := range haystack {
+		if haystack[i] == needle {
+			return true
+		}
+	}
+	return false
+}
+
 // NewBool returns a pointer to a given bool.
 func NewBool(b bool) *bool { return &b }
 

@@ -52,6 +52,25 @@ func TestUpgradeCommand(t *testing.T) {
 		assert.Nil(t, resp)
 	})
 
+	t.Run("size", func(t *testing.T) {
+		t.Run("incorrect size", func(t *testing.T) {
+			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte(`[{"ID": "someid", "OwnerID": "gabeid", "Name": "gabesinstall", "Size": "1000users"}]`), nil)
+
+			resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--size", "1000users"}, &model.CommandArgs{UserId: "gabeid"})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "Invalid size:")
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+		})
+
+		t.Run("valid size", func(t *testing.T) {
+			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte(`[{"ID": "someid", "OwnerID": "gabeid", "Name": "gabesinstall", "Size": "miniSingleton"}]`), nil)
+
+			_, _, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--size", "miniSingleton"}, &model.CommandArgs{UserId: "gabeid"})
+			require.NoError(t, err)
+		})
+	})
+
 	t.Run("version only", func(t *testing.T) {
 		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
 
