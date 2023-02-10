@@ -7,14 +7,13 @@ export default class Client {
     }
 
     getUserInstalls = async (userID) => {
-        Client4.getInstalls
         return this.doPost(`${this.url}/userinstalls`, JSON.stringify({user_id: userID}));
     }
 
     fetchJSON = async (url, options) => {
         const {data} = await this.doFetchWithResponse(url, {
             headers: {
-                'Accept': 'application/json',
+                Accept: 'application/json',
                 'Content-Type': 'application/json',
                 ...options.headers,
             },
@@ -47,45 +46,45 @@ export default class Client {
 
     doGet = async (url, body, headers = {}) => {
         return this.fetchJSON(url, {
-            method: "get",
+            method: 'get',
             headers: {
                 'X-Timezone-Offset': new Date().getTimezoneOffset(),
                 ...headers,
             },
-            body: body,
-        })
+            body,
+        });
     }
 
     doPost = async (url, body, headers = {}) => {
         return this.fetchJSON(url, {
-            method: "post",
+            method: 'post',
             headers: {
                 'X-Timezone-Offset': new Date().getTimezoneOffset(),
                 ...headers,
             },
-            body: body,
-        })
+            body,
+        });
     }
 
     doDelete = async (url, body, headers = {}) => {
         return this.fetchJSON(url, {
-            method: "delete",
+            method: 'delete',
             headers: {
                 'X-Timezone-Offset': new Date().getTimezoneOffset(),
                 ...headers,
             },
-            body: body,
-        })
+            body,
+        });
     }
 
     doPut = async (url, body, headers = {}) => {
         return this.fetchJSON(url, {
-            method: "put",
+            method: 'put',
             headers: {
                 'X-Timezone-Offset': new Date().getTimezoneOffset(),
                 ...headers,
             },
-            body: body,
-        })
+            body,
+        });
     }
 }
