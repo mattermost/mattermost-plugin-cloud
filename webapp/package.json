@@ -16,7 +16,7 @@
     "@babel/plugin-syntax-dynamic-import": "^7.8.3",
     "core-js": "^3.19.1",
     "jshint": "^2.12.0",
-    "mattermost-redux": "5.23.0",
+    "mattermost-redux": "^5.23.0",
     "prop-types": "15.7.2",
     "react": "^17.0.2",
     "react-bootstrap": "1.0.1",
@@ -24,7 +24,6 @@
     "react-redux": "^7.2.5",
     "redux": "4.0.5",
     "regenerator-runtime": "^0.13.9",
-    "superagent": "5.0.5",
     "typescript": "3.9.6"
   },
   "devDependencies": {
