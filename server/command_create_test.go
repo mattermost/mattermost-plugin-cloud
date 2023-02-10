@@ -121,6 +121,21 @@ func TestCreateCommand(t *testing.T) {
 		})
 	})
 
+	t.Run("size", func(t *testing.T) {
+		t.Run("invalid", func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--size", "10000users"}, &model.CommandArgs{})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "Invalid size:")
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+		})
+
+		t.Run("valid", func(t *testing.T) {
+			_, _, err := plugin.runCreateCommand([]string{"gabetest", "--size", "miniSingleton"}, &model.CommandArgs{})
+			require.NoError(t, err)
+		})
+	})
+
 	t.Run("database", func(t *testing.T) {
 		t.Run("invalid", func(t *testing.T) {
 			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", "sqlite"}, &model.CommandArgs{})

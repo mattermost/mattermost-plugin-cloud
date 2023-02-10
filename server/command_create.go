@@ -30,6 +30,8 @@ var dockerRepoWhitelist = []string{
 }
 var installationNameMatcher = regexp.MustCompile(`^[a-zA-Z0-9-]*$`)
 
+var validInstallationSizes = []string{"miniSingleton", "miniHA"}
+
 type latestMattermostVersionCache struct {
 	version   string
 	timestamp time.Time
@@ -60,6 +62,9 @@ func (p *Plugin) parseCreateArgs(args []string, install *Installation) error {
 	install.Size, err = createFlagSet.GetString("size")
 	if err != nil {
 		return err
+	}
+	if install.Size != "" && !Contains(validInstallationSizes, install.Size) {
+		return fmt.Errorf("Invalid size: %s", install.Size)
 	}
 
 	install.Version, err = createFlagSet.GetString("version")
