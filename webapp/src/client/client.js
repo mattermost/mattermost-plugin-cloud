@@ -1,4 +1,5 @@
-import request from 'superagent';
+import {Client4} from 'mattermost-redux/client';
+import {ClientError} from 'mattermost-redux/client/client4';
 
 export default class Client {
     constructor() {
@@ -6,76 +7,84 @@ export default class Client {
     }
 
     getUserInstalls = async (userID) => {
-        return this.doPost(`${this.url}/userinstalls`, {user_id: userID});
+        return this.doPost(`${this.url}/userinstalls`, JSON.stringify({user_id: userID}));
     }
 
-    doGet = async (url, body, headers = {}) => {
-        headers['X-Requested-With'] = 'XMLHttpRequest';
-        headers['X-Timezone-Offset'] = new Date().getTimezoneOffset();
-        let response;
-        try {
-            response = await request.
-                get(url).
-                set(headers).
-                accept('application/json');
-        } catch (error) {
-            return {error};
+    fetchJSON = async (url, options) => {
+        const {data} = await this.doFetchWithResponse(url, {
+            headers: {
+                Accept: 'application/json',
+                'Content-Type': 'application/json',
+                ...options.headers,
+            },
+            ...options,
+        });
+        return data;
+    };
+
+    doFetchWithResponse = async (url, options = {}) => {
+        const response = await fetch(url, Client4.getOptions(options));
+
+        let data;
+        if (response.ok) {
+            data = await response.json();
+
+            return {
+                response,
+                data,
+            };
         }
 
-        return response.body;
+        data = await response.text();
+
+        throw new ClientError(Client4.url, {
+            message: data || '',
+            status_code: response.status,
+            url,
+        });
+    };
+
+    doGet = async (url, body, headers = {}) => {
+        return this.fetchJSON(url, {
+            method: 'get',
+            headers: {
+                'X-Timezone-Offset': new Date().getTimezoneOffset(),
+                ...headers,
+            },
+            body,
+        });
     }
 
     doPost = async (url, body, headers = {}) => {
-        headers['X-Requested-With'] = 'XMLHttpRequest';
-        headers['X-Timezone-Offset'] = new Date().getTimezoneOffset();
-        let response;
-        try {
-            response = await request.
-                post(url).
-                send(body).
-                set(headers).
-                type('application/json').
-                accept('application/json');
-        } catch (error) {
-            return {error};
-        }
-
-        return response.body;
+        return this.fetchJSON(url, {
+            method: 'post',
+            headers: {
+                'X-Timezone-Offset': new Date().getTimezoneOffset(),
+                ...headers,
+            },
+            body,
+        });
     }
 
     doDelete = async (url, body, headers = {}) => {
-        headers['X-Requested-With'] = 'XMLHttpRequest';
-        headers['X-Timezone-Offset'] = new Date().getTimezoneOffset();
-        let response;
-        try {
-            response = await request.
-                delete(url).
-                send(body).
-                set(headers).
-                type('application/json').
-                accept('application/json');
-        } catch (error) {
-            return {error};
-        }
-
-        return response.body;
+        return this.fetchJSON(url, {
+            method: 'delete',
+            headers: {
+                'X-Timezone-Offset': new Date().getTimezoneOffset(),
+                ...headers,
+            },
+            body,
+        });
     }
 
     doPut = async (url, body, headers = {}) => {
-        headers['X-Requested-With'] = 'XMLHttpRequest';
-        headers['X-Timezone-Offset'] = new Date().getTimezoneOffset();
-        let response;
-        try {
-            response = await request.
-                put(url).
-                send(body).
-                set(headers).
-                type('application/json').
-                accept('application/json');
-        } catch (error) {
-            return {error};
-        }
-
-        return response.body;
+        return this.fetchJSON(url, {
+            method: 'put',
+            headers: {
+                'X-Timezone-Offset': new Date().getTimezoneOffset(),
+                ...headers,
+            },
+            body,
+        });
     }
 }
