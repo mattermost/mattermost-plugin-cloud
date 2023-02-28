@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/blang/semver/v4"
@@ -121,15 +122,29 @@ func TestCreateCommand(t *testing.T) {
 		})
 	})
 
-	t.Run("database", func(t *testing.T) {
+	t.Run("size", func(t *testing.T) {
 		t.Run("invalid", func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--size", "10000users"}, &model.CommandArgs{})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "Invalid size:")
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+		})
+
+		t.Run("valid", func(t *testing.T) {
+			_, _, err := plugin.runCreateCommand([]string{"gabetest", "--size", "miniSingleton"}, &model.CommandArgs{})
+			require.NoError(t, err)
+		})
+	})
+
+	t.Run("database", func(t *testing.T) {
+		t.Run("sqlite", func(t *testing.T) {
 			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", "sqlite"}, &model.CommandArgs{})
 			require.Error(t, err)
 			assert.Contains(t, err.Error(), "invalid database option sqlite")
 			assert.True(t, isUserError)
 			assert.Nil(t, resp)
 		})
-
 		t.Run(cloud.InstallationDatabaseMysqlOperator, func(t *testing.T) {
 			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", cloud.InstallationDatabaseMysqlOperator}, &model.CommandArgs{})
 			require.NoError(t, err)
@@ -139,30 +154,34 @@ func TestCreateCommand(t *testing.T) {
 
 		t.Run(cloud.InstallationDatabaseSingleTenantRDSMySQL, func(t *testing.T) {
 			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", cloud.InstallationDatabaseSingleTenantRDSMySQL}, &model.CommandArgs{})
-			require.NoError(t, err)
-			assert.False(t, isUserError)
-			assert.Contains(t, resp.Text, "Installation being created.")
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), fmt.Sprintf("invalid database option %s", cloud.InstallationDatabaseSingleTenantRDSMySQL))
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
 		})
 
 		t.Run(cloud.InstallationDatabaseMultiTenantRDSMySQL, func(t *testing.T) {
 			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", cloud.InstallationDatabaseMultiTenantRDSMySQL}, &model.CommandArgs{})
-			require.NoError(t, err)
-			assert.False(t, isUserError)
-			assert.Contains(t, resp.Text, "Installation being created.")
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), fmt.Sprintf("invalid database option %s", cloud.InstallationDatabaseMultiTenantRDSMySQL))
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
 		})
 
 		t.Run(cloud.InstallationDatabaseSingleTenantRDSPostgres, func(t *testing.T) {
 			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", cloud.InstallationDatabaseSingleTenantRDSPostgres}, &model.CommandArgs{})
-			require.NoError(t, err)
-			assert.False(t, isUserError)
-			assert.Contains(t, resp.Text, "Installation being created.")
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), fmt.Sprintf("invalid database option %s", cloud.InstallationDatabaseSingleTenantRDSPostgres))
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
 		})
 
 		t.Run(cloud.InstallationDatabaseMultiTenantRDSPostgres, func(t *testing.T) {
 			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--database", cloud.InstallationDatabaseMultiTenantRDSPostgres}, &model.CommandArgs{})
-			require.NoError(t, err)
-			assert.False(t, isUserError)
-			assert.Contains(t, resp.Text, "Installation being created.")
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), fmt.Sprintf("invalid database option %s", cloud.InstallationDatabaseMultiTenantRDSPostgres))
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
 		})
 
 		t.Run(cloud.InstallationDatabaseMultiTenantRDSPostgresPGBouncer, func(t *testing.T) {

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/blang/semver/v4"
+	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/pkg/errors"
 )
 
@@ -61,6 +62,16 @@ func validInstallationName(name string) bool {
 	return installationNameMatcher.MatchString(name)
 }
 
+// Contains finds if needle is inside haystack
+func Contains[T comparable](haystack []T, needle T) bool {
+	for i := range haystack {
+		if haystack[i] == needle {
+			return true
+		}
+	}
+	return false
+}
+
 // NewBool returns a pointer to a given bool.
 func NewBool(b bool) *bool { return &b }
 
@@ -75,3 +86,16 @@ func NewInt64(n int64) *int64 { return &n }
 
 // NewString returns a pointer to a given string.
 func NewString(s string) *string { return &s }
+
+// isSupportedDatabase returns true if the given database string is supported.
+func isSupportedDatabase(database string) bool {
+	switch database {
+	case cloud.InstallationDatabasePerseus:
+	case cloud.InstallationDatabaseMultiTenantRDSPostgresPGBouncer:
+	case cloud.InstallationDatabaseMysqlOperator:
+	default:
+		return false
+	}
+
+	return true
+}

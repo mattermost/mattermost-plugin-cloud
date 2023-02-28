@@ -30,6 +30,8 @@ var dockerRepoWhitelist = []string{
 }
 var installationNameMatcher = regexp.MustCompile(`^[a-zA-Z0-9-]*$`)
 
+var validInstallationSizes = []string{"miniSingleton", "miniHA"}
+
 type latestMattermostVersionCache struct {
 	version   string
 	timestamp time.Time
@@ -42,7 +44,7 @@ func getCreateFlagSet() *flag.FlagSet {
 	createFlagSet.String("affinity", cloud.InstallationAffinityMultiTenant, "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
 	createFlagSet.String("license", licenseOptionE20, "The enterprise license to use. Can be 'e10', 'e20', or 'te'")
 	createFlagSet.String("filestore", cloud.InstallationFilestoreBifrost, "Specify the backing file store. Can be 'aws-multitenant-s3' (S3 Shared Bucket), 'aws-s3' (S3 Bucket), 'operator' (Minio Operator inside the cluster. Default 'aws-multi-tenant-s3' for E20, and 'aws-s3' for E10 and E0/TE.")
-	createFlagSet.String("database", cloud.InstallationDatabaseMultiTenantRDSPostgresPGBouncer, "Specify the backing database. Can be 'perseus' (RDS Postgres with perseus proxy connections), 'aws-multitenant-rds-postgres-pgbouncer' (RDS Postgres with pgbouncer proxy connections), 'aws-multitenant-rds-postgres' (RDS Postgres Shared), 'aws-multitenant-rds' (RDS MySQL Shared), 'aws-rds-postgres' (RDS Postgres), 'aws-rds' (RDS MySQL), 'mysql-operator' (MySQL Operator inside the cluster)")
+	createFlagSet.String("database", cloud.InstallationDatabasePerseus, "Specify the backing database. Can be 'perseus' (RDS Postgres with perseus proxy connections), 'aws-multitenant-rds-postgres-pgbouncer' (RDS Postgres with pgbouncer proxy connections), 'mysql-operator' (MySQL Operator inside the cluster)")
 	createFlagSet.Bool("test-data", false, "Set to pre-load the server with test data")
 	createFlagSet.String("image", defaultImage, fmt.Sprintf("Docker image repository. Can be %s", strings.Join(dockerRepoWhitelist, ", ")))
 	createFlagSet.StringSlice("env", []string{}, "Environment variables in form: ENV1=test,ENV2=test")
@@ -60,6 +62,9 @@ func (p *Plugin) parseCreateArgs(args []string, install *Installation) error {
 	install.Size, err = createFlagSet.GetString("size")
 	if err != nil {
 		return err
+	}
+	if install.Size != "" && !Contains(validInstallationSizes, install.Size) {
+		return fmt.Errorf("Invalid size: %s", install.Size)
 	}
 
 	install.Version, err = createFlagSet.GetString("version")
@@ -110,16 +115,12 @@ func (p *Plugin) parseCreateArgs(args []string, install *Installation) error {
 		return err
 	}
 
-	if !cloud.IsSupportedDatabase(install.Database) {
-		return errors.Errorf("invalid database option %s; valid options are: %s, %s, %s, %s, %s, %s, %s",
+	if !isSupportedDatabase(install.Database) {
+		return errors.Errorf("invalid database option %s; valid options are: %s, %s, %s",
 			install.Database,
 			cloud.InstallationDatabasePerseus,
 			cloud.InstallationDatabaseMultiTenantRDSPostgresPGBouncer,
 			cloud.InstallationDatabaseMysqlOperator,
-			cloud.InstallationDatabaseSingleTenantRDSMySQL,
-			cloud.InstallationDatabaseSingleTenantRDSPostgres,
-			cloud.InstallationDatabaseMultiTenantRDSMySQL,
-			cloud.InstallationDatabaseMultiTenantRDSPostgres,
 		)
 	}
 
