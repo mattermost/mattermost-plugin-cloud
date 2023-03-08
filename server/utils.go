@@ -37,7 +37,11 @@ func standardizeName(name string) string {
 }
 
 func validLicenseOption(license string) bool {
-	return license == licenseOptionE10 || license == licenseOptionE20 || license == licenseOptionTE
+	return license == licenseOptionEnterprise ||
+		license == licenseOptionProfessional ||
+		license == licenseOptionE20 ||
+		license == licenseOptionE10 ||
+		license == licenseOptionTE
 }
 
 func validVersionOption(version string) error {

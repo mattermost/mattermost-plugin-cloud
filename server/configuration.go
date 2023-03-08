@@ -9,11 +9,22 @@ import (
 )
 
 const (
-	licenseOptionE10 = "e10"
-	licenseOptionE20 = "e20"
-	licenseOptionTE  = "te"
-	defaultImage     = "mattermost/mattermost-enterprise-edition"
+	licenseOptionEnterprise   = "enterprise"
+	licenseOptionProfessional = "professional"
+	licenseOptionE20          = "e20"
+	licenseOptionE10          = "e10"
+	licenseOptionTE           = "te"
+
+	defaultImage = "mattermost/mattermost-enterprise-edition"
 )
+
+var validLicenseOptions = []string{
+	licenseOptionEnterprise,
+	licenseOptionProfessional,
+	licenseOptionE20,
+	licenseOptionE10,
+	licenseOptionTE,
+}
 
 // configuration captures the plugin's external configuration as exposed in the Mattermost server
 // configuration, as well as values computed from the configuration. Any public fields will be
@@ -33,8 +44,10 @@ type configuration struct {
 	AllowedEmailDomain          string
 
 	// License
-	E10License string
-	E20License string
+	E10License          string
+	E20License          string
+	EnterpriseLicense   string
+	ProfessionalLicense string
 
 	// Groups
 	GroupID string
@@ -159,4 +172,21 @@ func (p *Plugin) setCloudClient() {
 
 	authHeaders := map[string]string{"x-api-key": configuration.ProvisioningServerAuthToken}
 	p.cloudClient = cloud.NewClientWithHeaders(configuration.ProvisioningServerURL, authHeaders)
+}
+
+func (p *Plugin) getLicenseValue(option string) string {
+	config := p.getConfiguration()
+
+	switch option {
+	case licenseOptionEnterprise:
+		return config.EnterpriseLicense
+	case licenseOptionProfessional:
+		return config.ProfessionalLicense
+	case licenseOptionE20:
+		return config.E20License
+	case licenseOptionE10:
+		return config.E10License
+	}
+
+	return ""
 }
