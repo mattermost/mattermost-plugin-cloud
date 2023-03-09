@@ -27,7 +27,7 @@ upgrade [name] [flags]
 	Upgrades a Mattermost installation.
 	Flags:
 %s
-	example: /cloud upgrade myinstallation --version 5.13.2
+	example: /cloud upgrade myinstallation --version 7.8.1
 
 hibernate [name]
 	Hibernates a Mattermost installation.

@@ -6,12 +6,12 @@ require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/docker/distribution v2.8.1+incompatible
 	github.com/heroku/docker-registry-client v0.0.0-20211012143308-9463674c8930
-	github.com/mattermost/mattermost-cloud v0.69.1-0.20230110172417-1b7b8978b25f
+	github.com/mattermost/mattermost-cloud v0.70.1
 	github.com/mattermost/mattermost-server/v6 v6.7.2
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.2
 )
 
 require (
@@ -28,7 +28,7 @@ require (
 	github.com/emicklei/go-restful v2.11.2+incompatible // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/francoispqt/gojay v1.2.13 // indirect
-	github.com/go-logr/logr v1.2.2 // indirect
+	github.com/go-logr/logr v1.2.3 // indirect
 	github.com/go-openapi/jsonpointer v0.19.5 // indirect
 	github.com/go-openapi/jsonreference v0.19.5 // indirect
 	github.com/go-openapi/swag v0.19.15 // indirect
@@ -57,7 +57,7 @@ require (
 	github.com/mattermost/go-i18n v1.11.1-0.20211013152124-5c415071e404 // indirect
 	github.com/mattermost/ldap v3.0.4+incompatible // indirect
 	github.com/mattermost/logr/v2 v2.0.15 // indirect
-	github.com/mattermost/mattermost-operator v1.19.0-rc.2 // indirect
+	github.com/mattermost/mattermost-operator v1.20.0-rc.2 // indirect
 	github.com/mattermost/rotator v0.2.0 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect

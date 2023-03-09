@@ -61,7 +61,7 @@ func buildPatchInstallationRequestFromArgs(args []string) (*cloud.PatchInstallat
 		return nil, errors.New("must specify at least one option: version, license, image, size, env, clear-env")
 	}
 	if license != "" && !validLicenseOption(license) {
-		return nil, errors.Errorf("invalid license option %s; must be %s, %s or %s", license, licenseOptionE10, licenseOptionE20, licenseOptionTE)
+		return nil, errors.Errorf("invalid license option %s, valid options are %s", license, strings.Join(validLicenseOptions, ", "))
 	}
 	if image != "" && !validImageName(image) {
 		return nil, errors.Errorf("invalid image name %s, valid options are %s", image, strings.Join(dockerRepoWhitelist, ", "))
@@ -153,29 +153,18 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 
 	if request.License != nil {
 		// Translate the license option.
-		config := p.getConfiguration()
-		switch *request.License {
-		case licenseOptionE20:
-			request.License = &config.E20License
-		case licenseOptionE10:
-			request.License = &config.E10License
-		case licenseOptionTE:
-			var noLicense string
-			request.License = &noLicense
-		default:
-			// This should be checked already, but just in case...
-			return nil, true, errors.Errorf("invalid license option %s; must be %s, %s or %s", *request.License, licenseOptionE10, licenseOptionE20, licenseOptionTE)
-		}
+		licenseValue := p.getLicenseValue(*request.License)
+		request.License = &licenseValue
 	}
 
 	_, err = p.cloudClient.UpdateInstallation(installToUpgrade.ID, request)
 	if err != nil {
-		return nil, false, err
+		return nil, false, errors.Wrap(err, "failed to update installation")
 	}
 
 	err = p.updateInstallation(installToUpgrade)
 	if err != nil {
-		return nil, false, errors.Wrap(err, "failed to store new tag in plugin Installation object")
+		return nil, false, errors.Wrap(err, "failed to store updated installation metadata")
 	}
 
 	return getCommandResponse(model.CommandResponseTypeEphemeral, fmt.Sprintf("Upgrade of installation %s has begun. You will receive a notification when it is ready. Use /cloud list to check on the status of your installations.", name), extra), false, nil

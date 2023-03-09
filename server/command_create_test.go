@@ -90,12 +90,42 @@ func TestCreateCommand(t *testing.T) {
 		})
 	})
 
-	t.Run("invalid license", func(t *testing.T) {
-		resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--license", "e30"}, &model.CommandArgs{})
-		require.Error(t, err)
-		assert.Contains(t, err.Error(), "invalid license option")
-		assert.True(t, isUserError)
-		assert.Nil(t, resp)
+	t.Run("licenses", func(t *testing.T) {
+		t.Run("invalid", func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--license", "e30"}, &model.CommandArgs{})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "invalid license option")
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+		})
+
+		t.Run("enterprise", func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--license", "enterprise"}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created")
+		})
+
+		t.Run("professional", func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--license", "professional"}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created")
+		})
+
+		t.Run("e20", func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--license", "e20"}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created")
+		})
+
+		t.Run("e10", func(t *testing.T) {
+			resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--license", "e10"}, &model.CommandArgs{})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Installation being created")
+		})
 	})
 
 	t.Run("affinity", func(t *testing.T) {
@@ -211,7 +241,7 @@ func TestCreateCommand(t *testing.T) {
 		t.Run("invalid license option", func(t *testing.T) {
 			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--filestore", cloud.InstallationFilestoreMultiTenantAwsS3, "--license", licenseOptionTE}, &model.CommandArgs{})
 			require.Error(t, err)
-			assert.Contains(t, err.Error(), "filestore option aws-multitenant-s3 requires license option e20")
+			assert.Contains(t, err.Error(), "filestore option aws-multitenant-s3 requires license option enterprise or e20")
 			assert.True(t, isUserError)
 			assert.Nil(t, resp)
 		})

@@ -40,10 +40,10 @@ type latestMattermostVersionCache struct {
 func getCreateFlagSet() *flag.FlagSet {
 	createFlagSet := flag.NewFlagSet("create", flag.ContinueOnError)
 	createFlagSet.String("size", "miniSingleton", "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'")
-	createFlagSet.String("version", "latest", "Mattermost version to run, e.g. '5.12.4'")
+	createFlagSet.String("version", "latest", "Mattermost version to run, e.g. '7.8.1'")
 	createFlagSet.String("affinity", cloud.InstallationAffinityMultiTenant, "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
-	createFlagSet.String("license", licenseOptionE20, "The enterprise license to use. Can be 'e10', 'e20', or 'te'")
-	createFlagSet.String("filestore", cloud.InstallationFilestoreBifrost, "Specify the backing file store. Can be 'aws-multitenant-s3' (S3 Shared Bucket), 'aws-s3' (S3 Bucket), 'operator' (Minio Operator inside the cluster. Default 'aws-multi-tenant-s3' for E20, and 'aws-s3' for E10 and E0/TE.")
+	createFlagSet.String("license", licenseOptionEnterprise, "The Mattermost license to use. Can be 'enterprise', 'professional', 'e20', 'e10', or 'te'")
+	createFlagSet.String("filestore", cloud.InstallationFilestoreBifrost, "Specify the backing file store. Can be 'bifrost' (S3 Shared Bucket), 'aws-multitenant-s3' (S3 Shared Bucket), 'aws-s3' (S3 Bucket), 'operator' (Minio Operator inside the cluster. Default 'aws-multi-tenant-s3' for E20, and 'aws-s3' for E10 and E0/TE.")
 	createFlagSet.String("database", cloud.InstallationDatabasePerseus, "Specify the backing database. Can be 'perseus' (RDS Postgres with perseus proxy connections), 'aws-multitenant-rds-postgres-pgbouncer' (RDS Postgres with pgbouncer proxy connections), 'mysql-operator' (MySQL Operator inside the cluster)")
 	createFlagSet.Bool("test-data", false, "Set to pre-load the server with test data")
 	createFlagSet.String("image", defaultImage, fmt.Sprintf("Docker image repository. Can be %s", strings.Join(dockerRepoWhitelist, ", ")))
@@ -98,7 +98,7 @@ func (p *Plugin) parseCreateArgs(args []string, install *Installation) error {
 	}
 
 	if !validLicenseOption(install.License) {
-		return errors.Errorf("invalid license option %s, must be %s, %s or %s", install.License, licenseOptionE10, licenseOptionE20, licenseOptionTE)
+		return errors.Errorf("invalid license option %s, valid options are %s", install.License, strings.Join(validLicenseOptions, ", "))
 	}
 
 	install.Image, err = createFlagSet.GetString("image")
@@ -129,26 +129,18 @@ func (p *Plugin) parseCreateArgs(args []string, install *Installation) error {
 		return err
 	}
 
-	// the filestore has a different default depending upon the target installation type
-	if install.Filestore == "" {
-		if install.License == licenseOptionE20 {
-			install.Filestore = cloud.InstallationFilestoreMultiTenantAwsS3
-		} else {
-			install.Filestore = cloud.InstallationFilestoreAwsS3
-		}
-	}
-
 	if !cloud.IsSupportedFilestore(install.Filestore) {
-		return errors.Errorf("invalid filestore option %s; must be %s, %s, or %s",
+		return errors.Errorf("invalid filestore option %s; must be %s, %s, %s, or %s",
 			install.Filestore,
+			cloud.InstallationFilestoreBifrost,
 			cloud.InstallationFilestoreMinioOperator,
 			cloud.InstallationFilestoreAwsS3,
 			cloud.InstallationFilestoreMultiTenantAwsS3,
 		)
 	}
 
-	if install.Filestore == cloud.InstallationFilestoreMultiTenantAwsS3 && install.License != licenseOptionE20 {
-		return errors.Errorf("filestore option %s requires license option %s", cloud.InstallationFilestoreMultiTenantAwsS3, licenseOptionE20)
+	if install.Filestore == cloud.InstallationFilestoreMultiTenantAwsS3 && install.License != licenseOptionEnterprise && install.License != licenseOptionE20 {
+		return errors.Errorf("filestore option %s requires license option %s or %s", cloud.InstallationFilestoreMultiTenantAwsS3, licenseOptionEnterprise, licenseOptionE20)
 	}
 
 	install.TestData, err = createFlagSet.GetBool("test-data")
@@ -202,15 +194,6 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, true, err
 	}
 
-	config := p.getConfiguration()
-
-	license := ""
-	if install.License == licenseOptionE10 {
-		license = config.E10License
-	} else if install.License == licenseOptionE20 {
-		license = config.E20License
-	}
-
 	err = validVersionOption(install.Version)
 	if err != nil {
 		return nil, true, errors.Wrap(err, "Invalid version number")
@@ -231,6 +214,8 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 	}
 	install.Version = digest
 
+	config := p.getConfiguration()
+
 	req := &cloud.CreateInstallationRequest{
 		Name:        install.Name,
 		OwnerID:     extra.UserId,
@@ -240,7 +225,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		Database:    install.Database,
 		Filestore:   install.Filestore,
 		PriorityEnv: install.PriorityEnv,
-		License:     license,
+		License:     p.getLicenseValue(install.License),
 		Size:        install.Size,
 		Version:     install.Version,
 		Image:       install.Image,
@@ -295,7 +280,6 @@ type githubReleaseMetadata struct {
 }
 
 func (p *Plugin) githubLatestVersion() (string, error) {
-
 	// avoids Github rate limiting for unauthenticated requests
 	if p.latestMattermostVersion != nil &&
 		p.latestMattermostVersion.version != "" &&

@@ -101,6 +101,24 @@ func TestUpgradeCommand(t *testing.T) {
 			assert.Nil(t, resp)
 		})
 
+		t.Run("enterprise", func(t *testing.T) {
+			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
+
+			resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--license", licenseOptionE20}, &model.CommandArgs{UserId: "gabeid"})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Upgrade of installation")
+		})
+
+		t.Run("professional", func(t *testing.T) {
+			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
+
+			resp, isUserError, err := plugin.runUpgradeCommand([]string{"gabesinstall", "--license", licenseOptionProfessional}, &model.CommandArgs{UserId: "gabeid"})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Upgrade of installation")
+		})
+
 		t.Run("e20", func(t *testing.T) {
 			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
 
