@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Scrollbars} from 'react-custom-scrollbars-2';
-import {Badge} from 'react-bootstrap';
+import {Label} from 'react-bootstrap';
 
 export function renderView(props) {
     return (
@@ -86,20 +86,11 @@ export default class SidebarRight extends React.PureComponent {
                 style={style.li}
                 key={install.ID}
             >
-                <div style={style.name}>
-                    <span><b style={style.nameText}>{install.Name}</b></span>
+                <div style={style.header}>
+                    <div style={style.nameText}><b>{install.Name}</b></div>
+                    <span><Label style={install.State === 'stable' ? style.stable : style.inProgress}><b>{install.State}</b></Label></span>
                 </div>
                 <div style={style.installinfo}>
-                    {install.State === 'stable' ?
-                        <div>
-                            <span style={style.col1}>State:</span>
-                            <span><Badge style={style.successBadge}>{install.State}</Badge></span>
-                        </div> :
-                        <div>
-                            <span style={style.col1}>State:</span>
-                            <span><Badge style={style.warningBadge}>{install.State}</Badge></span>
-                        </div>
-                    }
                     <div>
                         <span style={style.col1}>DNS:</span>
                         {install.DNSRecords.length > 0 ?
@@ -186,31 +177,33 @@ const style = {
         margin: '0px',
     },
     li: {
-        borderTop: '1px solid #D3D3D3',
         padding: '20px',
     },
     col1: {
-        width: '100px',
+        width: '80px',
         float: 'left',
     },
-    name: {
-        marginBottom: '5px',
+    header: {
+        display: 'flex',
+        marginBottom: '10px',
     },
     installinfo: {
+        fontSize: '12px',
         marginBottom: '15px',
     },
     nameText: {
-        fontSize: '15px',
+        paddingRight: '10px',
+        fontSize: '16px',
     },
-    successBadge: {
-        width: '50px',
-        display: 'inline',
-        backgroundColor: '#00FF7F',
+    stable: {
+        fontSize: '11px',
+        color: 'var(--center-channel-bg)',
+        backgroundColor: 'var(--online-indicator)',
     },
-    warningBadge: {
-        width: '50px',
-        display: 'inline',
-        backgroundColor: '#FF8C00',
+    inProgress: {
+        fontSize: '11px',
+        color: 'var(--center-channel-bg)',
+        backgroundColor: 'var(--dnd-indicator)',
     },
     message: {
         margin: 'auto',
@@ -221,6 +214,5 @@ const style = {
         margin: '0 auto',
         width: '50%',
     },
-
 };
 
