@@ -1,14 +1,38 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
 	"io"
 	"net/http"
 	"os"
 	"path/filepath"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
+	"github.com/pkg/errors"
 )
+
+const (
+	installationLogsURLTmpl = `https://grafana.internal.mattermost.com/explore?orgId=1&left={"datasource":"PFB2D5CACEC34D62E","queries":[{"refId":"A","datasource":{"type":"loki","uid":"PFB2D5CACEC34D62E"},"editorMode":"code","expr":"{app=\"mattermost\", namespace=\"{{.ID}}\"}","queryType":"range"}],"range":{"from":"now-1h","to":"now"}}`
+	provisionerLogsURLTmpl  = `https://grafana.internal.mattermost.com/explore?orgId=1&left={"datasource":"PFB2D5CACEC34D62E","queries":[{"refId":"A","datasource":{"type":"loki","uid":"PFB2D5CACEC34D62E"},"editorMode":"code","expr":"{namespace=\"mattermost-cloud-test\", component=\"provisioner\"} |= %60{{.ID}}%60","queryType":"range"}],"range":{"from":"now-3h","to":"now"}}`
+)
+
+// getStringFromTemplate returns a string from a template and data provided.
+func getStringFromTemplate(tmpl string, data any) (string, error) {
+	t, err := template.New("tmpl").Parse(tmpl)
+	if err != nil {
+		return "", errors.Wrap(err, "error parsing template")
+	}
+
+	var result bytes.Buffer
+	err = t.Execute(&result, data)
+	if err != nil {
+		return "", errors.Wrap(err, "error executing template")
+	}
+
+	return result.String(), nil
+}
 
 func (p *Plugin) handleWebhook(w http.ResponseWriter, r *http.Request) {
 	payload, err := cloud.WebhookPayloadFromReader(r.Body)
@@ -121,6 +145,18 @@ Installation details:
 
 		install.HideSensitiveFields()
 
+		installationLogsURL, err := getStringFromTemplate(installationLogsURLTmpl, install)
+		if err != nil {
+			p.API.LogError(err.Error(), "installation", install.Name)
+			return
+		}
+
+		provisionerLogsURL, err := getStringFromTemplate(provisionerLogsURLTmpl, install)
+		if err != nil {
+			p.API.LogError(err.Error(), "installation", install.Name)
+			return
+		}
+
 		message := fmt.Sprintf(`
 Installation %s is ready!
 
@@ -133,9 +169,14 @@ Login with:
 | %s | %s | Admin user |
 | %s | %s | Regular user |
 
+Grafana logs for this installation:
+
+- [Installation logs](%s)
+- [Provisioner logs](%s)
+
 Installation details:
 %s
-`, install.Name, dnsRecord, defaultAdminUsername, defaultAdminPassword, defaultUserUsername, defaultUserPassword, jsonCodeBlock(install.ToPrettyJSON()))
+`, install.Name, dnsRecord, defaultAdminUsername, defaultAdminPassword, defaultUserUsername, defaultUserPassword, installationLogsURL, provisionerLogsURL, jsonCodeBlock(install.ToPrettyJSON()))
 
 		p.PostBotDM(install.OwnerID, message)
 	}
