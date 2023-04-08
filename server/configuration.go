@@ -62,6 +62,9 @@ type configuration struct {
 
 	InstallationWebhookAlertsEnable    bool
 	InstallationWebhookAlertsChannelID string
+
+	DefaultDatabase  string
+	DefaultFilestore string
 }
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if
