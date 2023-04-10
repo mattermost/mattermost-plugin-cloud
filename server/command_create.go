@@ -37,14 +37,24 @@ type latestMattermostVersionCache struct {
 	timestamp time.Time
 }
 
-func getCreateFlagSet() *flag.FlagSet {
+func (p *Plugin) getCreateFlagSet() *flag.FlagSet {
+	config := p.getConfiguration()
+	defaultFileStore := config.DefaultFilestore
+	if defaultFileStore == "" {
+		defaultFileStore = cloud.InstallationFilestoreBifrost
+	}
+	defaultDatabase := config.DefaultDatabase
+	if defaultDatabase == "" {
+		defaultDatabase = cloud.InstallationDatabaseMultiTenantRDSPostgresPGBouncer
+	}
+
 	createFlagSet := flag.NewFlagSet("create", flag.ContinueOnError)
 	createFlagSet.String("size", "miniSingleton", "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'")
 	createFlagSet.String("version", "latest", "Mattermost version to run, e.g. '7.8.1'")
 	createFlagSet.String("affinity", cloud.InstallationAffinityMultiTenant, "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
 	createFlagSet.String("license", licenseOptionEnterprise, "The Mattermost license to use. Can be 'enterprise', 'professional', 'e20', 'e10', or 'te'")
-	createFlagSet.String("filestore", cloud.InstallationFilestoreBifrost, "Specify the backing file store. Can be 'bifrost' (S3 Shared Bucket), 'aws-multitenant-s3' (S3 Shared Bucket), 'aws-s3' (S3 Bucket), 'operator' (Minio Operator inside the cluster. Default 'aws-multi-tenant-s3' for E20, and 'aws-s3' for E10 and E0/TE.")
-	createFlagSet.String("database", cloud.InstallationDatabaseMultiTenantRDSPostgresPGBouncer, "Specify the backing database. Can be 'perseus' (RDS Postgres with perseus proxy connections), 'aws-multitenant-rds-postgres-pgbouncer' (RDS Postgres with pgbouncer proxy connections), 'mysql-operator' (MySQL Operator inside the cluster)")
+	createFlagSet.String("filestore", defaultFileStore, "Specify the backing file store. Can be 'bifrost' (S3 Shared Bucket), 'aws-multitenant-s3' (S3 Shared Bucket), 'aws-s3' (S3 Bucket), 'minio-operator' (Minio Operator inside the cluster).")
+	createFlagSet.String("database", defaultDatabase, "Specify the backing database. Can be 'perseus' (RDS Postgres with perseus proxy connections), 'aws-multitenant-rds-postgres-pgbouncer' (RDS Postgres with pgbouncer proxy connections), 'mysql-operator' (MySQL Operator inside the cluster).")
 	createFlagSet.Bool("test-data", false, "Set to pre-load the server with test data")
 	createFlagSet.String("image", defaultImage, fmt.Sprintf("Docker image repository. Can be %s", strings.Join(dockerRepoWhitelist, ", ")))
 	createFlagSet.StringSlice("env", []string{}, "Environment variables in form: ENV1=test,ENV2=test")
@@ -53,7 +63,7 @@ func getCreateFlagSet() *flag.FlagSet {
 
 // parseCreateArgs is responsible for reading in arguments and basic input validation
 func (p *Plugin) parseCreateArgs(args []string, install *Installation) error {
-	createFlagSet := getCreateFlagSet()
+	createFlagSet := p.getCreateFlagSet()
 	err := createFlagSet.Parse(args)
 	if err != nil {
 		return err

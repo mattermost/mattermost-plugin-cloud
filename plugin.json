@@ -104,6 +104,52 @@
                 "display_name": "Installation Webhook Alerts Channel ID",
                 "type": "text",
                 "help_text": "The channel ID to send installation webhook alerts to when enabled. This channel must exist for alerts to be sent."
+            },
+            {
+                "key": "DefaultDatabase",
+                "display_name": "Default Database",
+                "type": "dropdown",
+                "help_text": "The default database to use for new installations.",
+                "default": "aws-multitenant-rds-postgres-pgbouncer",
+                "options": [
+                    {
+                        "display_name": "Perseus",
+                        "value": "perseus"
+                    },
+                    {
+                        "display_name": "PgBouncer",
+                        "value": "aws-multitenant-rds-postgres-pgbouncer"
+                    },
+                    {
+                        "display_name": "MySQL Operator",
+                        "value": "mysql-operator"
+                    }
+                ]
+            },
+            {
+                "key": "DefaultFilestore",
+                "display_name": "Default Filestore",
+                "type": "dropdown",
+                "help_text": "The default filestore to use for new installations.",
+                "default": "bifrost",
+                "options": [
+                    {
+                        "display_name": "Bifrost",
+                        "value": "bifrost"
+                    },
+                    {
+                        "display_name": "AWS Multitenant S3",
+                        "value": "aws-multitenant-s3"
+                    },
+                    {
+                        "display_name": "AWS S3",
+                        "value": "aws-s3"
+                    },
+                    {
+                        "display_name": "Minio Operator",
+                        "value": "minio-operator"
+                    }
+                ]
             }
         ]
     }

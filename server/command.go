@@ -8,7 +8,7 @@ import (
 	"github.com/mattermost/mattermost-server/v6/plugin"
 )
 
-func getHelp() string {
+func (p *Plugin) getHelp() string {
 	help := `Available Commands:
 
 create [name] [flags]
@@ -55,7 +55,7 @@ info
 `
 	return codeBlock(fmt.Sprintf(
 		help,
-		getCreateFlagSet().FlagUsages(),
+		p.getCreateFlagSet().FlagUsages(),
 		getUpgradeFlagSet().FlagUsages(),
 	))
 }
@@ -98,7 +98,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	stringArgs := strings.Split(args.Command, " ")
 
 	if len(stringArgs) < 2 {
-		return getCommandResponse(model.CommandResponseTypeEphemeral, getHelp(), args), nil
+		return getCommandResponse(model.CommandResponseTypeEphemeral, p.getHelp(), args), nil
 	}
 
 	command := stringArgs[1]
@@ -131,7 +131,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	}
 
 	if handler == nil {
-		return getCommandResponse(model.CommandResponseTypeEphemeral, getHelp(), args), nil
+		return getCommandResponse(model.CommandResponseTypeEphemeral, p.getHelp(), args), nil
 	}
 
 	resp, isUserError, err := handler(stringArgs[2:], args)
