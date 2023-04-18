@@ -270,7 +270,7 @@ func TestCreateCommand(t *testing.T) {
 
 	t.Run("image", func(t *testing.T) {
 		t.Run("valid image name", func(t *testing.T) {
-			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--image", "mattermost/mm-ee-test"}, &model.CommandArgs{})
+			resp, isUserError, err := plugin.runCreateCommand([]string{"gabetest", "--image", "mattermostdevelopment/mm-ee-test"}, &model.CommandArgs{})
 			require.NoError(t, err)
 			assert.False(t, isUserError)
 			assert.Contains(t, resp.Text, "Installation being created.")
