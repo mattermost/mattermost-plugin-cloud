@@ -23,10 +23,11 @@ const (
 
 var dockerRepoWhitelist = []string{
 	"mattermost/mattermost-enterprise-edition",
-	"mattermost/mm-ee-test",
 	"mattermost/mm-ee-cloud",
 	"mattermost/mm-te",
 	"mattermost/mattermost-team-edition",
+	"mattermostdevelopment/mm-ee-test",
+	"mattermostdevelopment/mm-te-test",
 }
 var installationNameMatcher = regexp.MustCompile(`^[a-zA-Z0-9-]*$`)
 
