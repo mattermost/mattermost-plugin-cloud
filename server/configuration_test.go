@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost-cloud/model"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -67,6 +68,55 @@ func TestConfigurationIsValid(t *testing.T) {
 		t.Run("valid", func(t *testing.T) {
 			config.InstallationWebhookAlertsChannelID = "channel1"
 			require.NoError(t, config.IsValid())
+		})
+	})
+}
+
+func TestGetLicenseValue(t *testing.T) {
+	plugin := Plugin{
+		configuration: &configuration{
+			E10License:              "e10license",
+			E20License:              "e20license",
+			EnterpriseLicense:       "enterpriselicense",
+			ProfessionalLicense:     "professionallicense",
+			TestEnterpriseLicense:   "testenterpriselicense",
+			TestProfessionalLicense: "testprofessionallicense",
+		},
+	}
+
+	t.Run("e20", func(t *testing.T) {
+		t.Run("no test image", func(t *testing.T) {
+			assert.Equal(t, "e20license", plugin.getLicenseValue(licenseOptionE20, imageEE))
+		})
+		t.Run("test image", func(t *testing.T) {
+			assert.Equal(t, "e20license", plugin.getLicenseValue(licenseOptionE20, imageEETest))
+		})
+	})
+
+	t.Run("e10", func(t *testing.T) {
+		t.Run("no test image", func(t *testing.T) {
+			assert.Equal(t, "e10license", plugin.getLicenseValue(licenseOptionE10, imageEE))
+		})
+		t.Run("test image", func(t *testing.T) {
+			assert.Equal(t, "e10license", plugin.getLicenseValue(licenseOptionE10, imageEETest))
+		})
+	})
+
+	t.Run("enterprise", func(t *testing.T) {
+		t.Run("no test image", func(t *testing.T) {
+			assert.Equal(t, "enterpriselicense", plugin.getLicenseValue(licenseOptionEnterprise, imageEE))
+		})
+		t.Run("test image", func(t *testing.T) {
+			assert.Equal(t, "testenterpriselicense", plugin.getLicenseValue(licenseOptionEnterprise, imageEETest))
+		})
+	})
+
+	t.Run("professional", func(t *testing.T) {
+		t.Run("no test image", func(t *testing.T) {
+			assert.Equal(t, "professionallicense", plugin.getLicenseValue(licenseOptionProfessional, imageEE))
+		})
+		t.Run("test image", func(t *testing.T) {
+			assert.Equal(t, "testprofessionallicense", plugin.getLicenseValue(licenseOptionProfessional, imageEETest))
 		})
 	})
 }

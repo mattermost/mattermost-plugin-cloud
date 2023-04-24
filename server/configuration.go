@@ -15,6 +15,13 @@ const (
 	licenseOptionE10          = "e10"
 	licenseOptionTE           = "te"
 
+	imageEE          = "mattermost/mattermost-enterprise-edition"
+	imageEECloud     = "mattermost/mm-ee-cloud"
+	imageTE          = "mattermost/mm-te"
+	imageTeamEdition = "mattermost/mattermost-team-edition"
+	imageEETest      = "mattermostdevelopment/mm-ee-test"
+	imageTETest      = "mattermostdevelopment/mm-te-test"
+
 	defaultImage = "mattermost/mattermost-enterprise-edition"
 )
 
@@ -24,6 +31,24 @@ var validLicenseOptions = []string{
 	licenseOptionE20,
 	licenseOptionE10,
 	licenseOptionTE,
+}
+
+// dockerRepoWhitelist is the full list of valid docker repositories which
+// Mattermost servers can be created from.
+var dockerRepoWhitelist = []string{
+	imageEE,
+	imageEECloud,
+	imageTE,
+	imageTeamEdition,
+	imageEETest,
+	imageTETest,
+}
+
+// dockerRepoTestImages are repositories that contain artifacts used primarily
+// for internal testing. They may require configuration overrides such as
+// special licenses.
+var dockerRepoTestImages = []string{
+	imageEETest,
 }
 
 // configuration captures the plugin's external configuration as exposed in the Mattermost server
@@ -44,10 +69,12 @@ type configuration struct {
 	AllowedEmailDomain          string
 
 	// License
-	E10License          string
-	E20License          string
-	EnterpriseLicense   string
-	ProfessionalLicense string
+	E10License              string
+	E20License              string
+	EnterpriseLicense       string
+	ProfessionalLicense     string
+	TestEnterpriseLicense   string
+	TestProfessionalLicense string
 
 	// Groups
 	GroupID string
@@ -177,13 +204,23 @@ func (p *Plugin) setCloudClient() {
 	p.cloudClient = cloud.NewClientWithHeaders(configuration.ProvisioningServerURL, authHeaders)
 }
 
-func (p *Plugin) getLicenseValue(option string) string {
+func (p *Plugin) getLicenseValue(licenseOption, image string) string {
 	config := p.getConfiguration()
 
-	switch option {
+	switch licenseOption {
 	case licenseOptionEnterprise:
+		for _, ti := range dockerRepoTestImages {
+			if ti == image {
+				return config.TestEnterpriseLicense
+			}
+		}
 		return config.EnterpriseLicense
 	case licenseOptionProfessional:
+		for _, ti := range dockerRepoTestImages {
+			if ti == image {
+				return config.TestProfessionalLicense
+			}
+		}
 		return config.ProfessionalLicense
 	case licenseOptionE20:
 		return config.E20License

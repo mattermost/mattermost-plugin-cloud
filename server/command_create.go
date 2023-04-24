@@ -21,14 +21,6 @@ const (
 	defaultMultiTenantAnnotation = "multi-tenant"
 )
 
-var dockerRepoWhitelist = []string{
-	"mattermost/mattermost-enterprise-edition",
-	"mattermost/mm-ee-cloud",
-	"mattermost/mm-te",
-	"mattermost/mattermost-team-edition",
-	"mattermostdevelopment/mm-ee-test",
-	"mattermostdevelopment/mm-te-test",
-}
 var installationNameMatcher = regexp.MustCompile(`^[a-zA-Z0-9-]*$`)
 
 var validInstallationSizes = []string{"miniSingleton", "miniHA"}
@@ -236,7 +228,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		Database:    install.Database,
 		Filestore:   install.Filestore,
 		PriorityEnv: install.PriorityEnv,
-		License:     p.getLicenseValue(install.License),
+		License:     p.getLicenseValue(install.License, install.Image),
 		Size:        install.Size,
 		Version:     install.Version,
 		Image:       install.Image,
