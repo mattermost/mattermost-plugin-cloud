@@ -13,7 +13,7 @@ import (
 func getUpgradeFlagSet() *flag.FlagSet {
 	upgradeFlagSet := flag.NewFlagSet("upgrade", flag.ContinueOnError)
 	upgradeFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
-	upgradeFlagSet.String("license", "", "The enterprise license to use. Can be 'e10', 'e20', or 'te'")
+	upgradeFlagSet.String("license", "", "The enterprise license to use. Can be 'enterprise', 'professional', 'e20', 'e10', or 'te'")
 	upgradeFlagSet.String("size", "", "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'")
 	upgradeFlagSet.String("image", "", fmt.Sprintf("Docker image repository, can be %s", strings.Join(dockerRepoWhitelist, ", ")))
 	upgradeFlagSet.StringSlice("env", []string{}, "Environment variables in form: ENV1=test,ENV2=test")
@@ -151,9 +151,14 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 		request.Version = &digest
 	}
 
+	// Obtain the new image value if there is one to properly apply a license.
+	image := installToUpgrade.Image
+	if request.Image != nil {
+		image = *request.Image
+	}
 	if request.License != nil {
 		// Translate the license option.
-		licenseValue := p.getLicenseValue(*request.License)
+		licenseValue := p.getLicenseValue(*request.License, image)
 		request.License = &licenseValue
 	}
 
