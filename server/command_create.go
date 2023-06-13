@@ -119,7 +119,7 @@ func (p *Plugin) parseCreateArgs(args []string, install *Installation) error {
 	}
 
 	if !cloud.IsSupportedDatabase(install.Database) {
-		return errors.Errorf("invalid database option %s; valid options are: %s, %s, %s, %s, %s, %s, %s",
+		return errors.Errorf("invalid database option %s; valid options are: %s, %s, %s",
 			install.Database,
 			cloud.InstallationDatabasePerseus,
 			cloud.InstallationDatabaseMultiTenantRDSPostgresPGBouncer,
