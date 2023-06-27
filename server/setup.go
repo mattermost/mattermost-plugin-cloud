@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	defaultAdminUsername = "sysadmin"
+	defaultAdminUsername = "admin"
 	defaultAdminPassword = "Sys@dmin123"
 	defaultAdminEmail    = "success+sysadmin@simulator.amazonses.com"
 
@@ -159,18 +159,11 @@ func (p *Plugin) createTestData(client *model.Client4, install *Installation) er
 			p.API.LogWarn(errors.Wrapf(err, "Unable to finish generating test data for cloud installation %s", install.Name).Error())
 		}
 
-		// Test data generation overrides the sysadmin password, so need to reset
-		_, err = p.execMattermostCLI(install.ID, []string{"user", "password", defaultAdminUsername, defaultAdminPassword})
-		if err != nil {
-			return errors.Wrap(err, "failed to reset sysadmin password back to the default")
-		}
-
 		return nil
 	}
 
 	clusterInstallations, err := p.cloudClient.GetClusterInstallations(
 		&cloud.GetClusterInstallationsRequest{
-			// any single CI will do, so only fetch one
 			Paging:         cloud.AllPagesNotDeleted(),
 			InstallationID: install.ID,
 		})
@@ -187,13 +180,6 @@ func (p *Plugin) createTestData(client *model.Client4, install *Installation) er
 		// Gabe thinks this might not complete before the AWS API Gateway timeout so
 		// log and move on the same as we do for versions previous to 6.0, seen earlier in this method.
 		p.API.LogWarn(errors.Wrapf(err, "Unable to finish generating test data for cloud installation %s", install.Name).Error())
-	}
-
-	// Test data generation overrides the sysadmin password, so need to reset (using mmctl)
-	_, err = p.cloudClient.ExecClusterInstallationCLI(clusterInstallations[0].ID,
-		"mmctl", []string{"--local", "user", "change-password", defaultAdminUsername, "--password", defaultAdminPassword})
-	if err != nil {
-		return errors.Wrap(err, "failed to reset sysadmin password back to the default")
 	}
 
 	return nil
