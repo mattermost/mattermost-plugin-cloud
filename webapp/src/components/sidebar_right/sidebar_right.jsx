@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Scrollbars} from 'react-custom-scrollbars-2';
-import {Label} from 'react-bootstrap';
+import {Label, ButtonToolbar} from 'react-bootstrap';
 
 export function renderView(props) {
     return (
@@ -129,20 +129,29 @@ export default class SidebarRight extends React.PureComponent {
                     </div>
                 </div>
 
-                <a
-                    href={'https://' + install.DNSRecords[0].DomainName}
-                    target='_blank'
-                    rel='noopener noreferrer'
-                >
-                    <div>
-                        <button
-                            className='btn btn-primary btn-block'
-                        >{'View Installation'}
-                        </button>
-
-                    </div>
-
-                </a>
+                <ButtonToolbar>
+                    <a
+                        className='btn btn-primary'
+                        href={'https://' + install.DNSRecords[0].DomainName}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                    >{'View Installation'}
+                    </a>
+                    <a
+                        className='btn btn-primary'
+                        href={install.InstallationLogsURL}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                    >{'Installation Logs'}
+                    </a>
+                    <a
+                        className='btn btn-primary'
+                        href={install.ProvisionerLogsURL}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                    >{'Provisioner Logs'}
+                    </a>
+                </ButtonToolbar>
             </li>
         ));
 

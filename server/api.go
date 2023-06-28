@@ -8,6 +8,30 @@ import (
 	"github.com/pkg/errors"
 )
 
+// InstallationWebWrapper embeds the standard plugin installation object with
+// some extra ephemeral fields used in the webapp.
+type InstallationWebWrapper struct {
+	*Installation
+	InstallationLogsURL string
+	ProvisionerLogsURL  string
+}
+
+// CreateInstallationWebWrapper creates a new InstallationWebWrapper from a
+// standard Installation.
+func CreateInstallationWebWrapper(i *Installation) (*InstallationWebWrapper, error) {
+	installationLogsURL, err := getStringFromTemplate(installationLogsURLTmpl, i)
+	if err != nil {
+		return nil, err
+	}
+
+	provisionerLogsURL, err := getStringFromTemplate(provisionerLogsURLTmpl, i)
+	if err != nil {
+		return nil, err
+	}
+
+	return &InstallationWebWrapper{i, installationLogsURL, provisionerLogsURL}, nil
+}
+
 // ServeHTTP handles HTTP requests to the plugin.
 func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 	config := p.getConfiguration()
@@ -61,9 +85,19 @@ func (p *Plugin) handleUserInstalls(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data, err := json.Marshal(installsForUser)
+	var webInstalls []*InstallationWebWrapper
+	for _, install := range installsForUser {
+		webInstall, wrapErr := CreateInstallationWebWrapper(install)
+		if wrapErr != nil {
+			p.API.LogError(errors.Wrapf(err, "Unable to CreateInstallationWebWrapper for %s", install.Name).Error())
+			continue
+		}
+		webInstalls = append(webInstalls, webInstall)
+	}
+
+	data, err := json.Marshal(webInstalls)
 	if err != nil {
-		p.API.LogError(errors.Wrap(err, "Unable to marshal installsForUser").Error())
+		p.API.LogError(errors.Wrap(err, "Unable to marshal webInstalls").Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
