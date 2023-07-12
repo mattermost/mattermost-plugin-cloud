@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Scrollbars} from 'react-custom-scrollbars-2';
-import {Label, ButtonToolbar} from 'react-bootstrap';
+import {Label, ButtonToolbar, Button} from 'react-bootstrap';
 
 export function renderView(props) {
     return (
@@ -32,10 +32,13 @@ export default class SidebarRight extends React.PureComponent {
         id: PropTypes.string.isRequired,
         installs: PropTypes.array.isRequired,
         serverError: PropTypes.string.isRequired,
+        deletionLockedInstallationId: PropTypes.string,
         actions: PropTypes.shape({
             setVisible: PropTypes.func.isRequired,
             telemetry: PropTypes.func.isRequired,
             getCloudUserData: PropTypes.func.isRequired,
+            deletionLockInstallation: PropTypes.func.isRequired,
+            deletionUnlockInstallation: PropTypes.func.isRequired,
         }).isRequired,
     };
 
@@ -52,6 +55,30 @@ export default class SidebarRight extends React.PureComponent {
 
     componentWillUnmount() {
         this.props.actions.setVisible(false);
+    }
+
+    deletionLockButton(installation) {
+        if (!this.props.deletionLockedInstallationId) {
+            return (
+                <Button
+                    className='btn btn-primary'
+                    onClick={() => this.props.actions.deletionLockInstallation(installation.Name)}
+                >{'Lock Deletion'}
+                </Button>
+            );
+        }
+
+        if (this.props.deletionLockedInstallationId === installation.ID) {
+            return (
+                <Button
+                    className='btn btn-danger'
+                    onClick={() => this.props.actions.deletionUnlockInstallation(installation.Name)}
+                >{'Unlock Deletion'}
+                </Button>
+            );
+        }
+
+        return null;
     }
 
     render() {
@@ -151,6 +178,7 @@ export default class SidebarRight extends React.PureComponent {
                         rel='noopener noreferrer'
                     >{'Provisioner Logs'}
                     </a>
+                    {this.deletionLockButton(install)}
                 </ButtonToolbar>
             </li>
         ));

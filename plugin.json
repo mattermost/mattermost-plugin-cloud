@@ -44,6 +44,13 @@
                 "help_text": "(Optional) When set, users must have an email ending in this domain to use the cloud slash command."
             },
             {
+                "key": "DeletionLockInstallationsAllowedPerPerson",
+                "display_name": "Deletion Lock Installations Per Person",
+                "type": "text",
+                "help_text": "(Optional) When set, this value represents the maximum number of workspaces each user is allowed to lock from deletion",
+                "default": "1"
+            },
+            {
                 "key": "E10License",
                 "display_name": "Mattermost E10 License",
                 "type": "longtext",

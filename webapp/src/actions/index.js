@@ -24,6 +24,54 @@ export function setServerError(errorString) {
     };
 }
 
+export function deletionLockInstallation(installationID) {
+    return async (dispatch, getState) => {
+        const config = getConfig(getState());
+        const currentUserId = config?.ServiceSettings?.SiteURL;
+        if (!currentUserId) {
+            return {};
+        }
+
+        const data = await Client.deletionLockInstallation(installationID);
+
+        if (data.error) {
+            dispatch(setServerError(`Status: ${data.error.status}, Message: ${data.error.message}`));
+            return data;
+        }
+
+        // Clear server error
+        if (serverError(getState())) {
+            dispatch(setServerError(''));
+        }
+
+        return {data};
+    };
+}
+
+export function deletionUnlockInstallation(installationID) {
+    return async (dispatch, getState) => {
+        const config = getConfig(getState());
+        const currentUserId = config?.ServiceSettings?.SiteURL;
+        if (!currentUserId) {
+            return {};
+        }
+
+        const data = await Client.deletionUnlockInstallation(installationID);
+
+        if (data.error) {
+            dispatch(setServerError(`Status: ${data.error.status}, Message: ${data.error.message}`));
+            return data;
+        }
+
+        // Clear server error
+        if (serverError(getState())) {
+            dispatch(setServerError(''));
+        }
+
+        return {data};
+    };
+}
+
 export function getCloudUserData(userID) {
     return async (dispatch, getState) => {
         if (!userID) {

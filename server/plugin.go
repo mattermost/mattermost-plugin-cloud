@@ -44,6 +44,8 @@ type CloudClient interface {
 	HibernateInstallation(installationID string) (*cloud.InstallationDTO, error)
 	WakeupInstallation(installationID string, request *cloud.PatchInstallationRequest) (*cloud.InstallationDTO, error)
 	DeleteInstallation(installationID string) error
+	LockDeletionLockForInstallation(installationID string) error
+	UnlockDeletionLockForInstallation(installationID string) error
 
 	GetClusterInstallations(request *cloud.GetClusterInstallationsRequest) ([]*cloud.ClusterInstallation, error)
 	RunMattermostCLICommandOnClusterInstallation(clusterInstallationID string, subcommand []string) ([]byte, error)

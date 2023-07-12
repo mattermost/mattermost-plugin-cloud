@@ -10,6 +10,10 @@ export default class Client {
         return this.doPost(`${this.url}/userinstalls`, JSON.stringify({user_id: userID}));
     }
 
+    deletionLockInstallation = async (installationID) => this.doPost(`${this.url}/deletion-lock`, JSON.stringify({installation_id: installationID}));
+
+    deletionUnlockInstallation = async (installationID) => this.doPost(`${this.url}/deletion-unlock`, JSON.stringify({installation_id: installationID}));
+
     fetchJSON = async (url, options) => {
         const {data} = await this.doFetchWithResponse(url, {
             headers: {

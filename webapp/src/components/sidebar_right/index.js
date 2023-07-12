@@ -5,9 +5,9 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 
-import {telemetry, setRhsVisible, getCloudUserData} from '../../actions';
+import {telemetry, setRhsVisible, getCloudUserData, deletionLockInstallation, deletionUnlockInstallation} from '../../actions';
 
-import {installsForUser, serverError} from '../../selectors';
+import {installsForUser, serverError, deletionLockedInstallId} from '../../selectors';
 
 import SidebarRight from './sidebar_right.jsx';
 
@@ -17,6 +17,7 @@ function mapStateToProps(state) {
         id,
         installs: installsForUser(state, id),
         serverError: serverError(state),
+        deletionLockedInstallationId: deletionLockedInstallId(state),
     };
 }
 
@@ -26,6 +27,8 @@ function mapDispatchToProps(dispatch) {
             telemetry,
             getCloudUserData,
             setVisible: setRhsVisible,
+            deletionLockInstallation,
+            deletionUnlockInstallation,
         }, dispatch),
     };
 }

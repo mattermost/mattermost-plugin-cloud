@@ -63,10 +63,11 @@ var dockerRepoTestImages = []string{
 // If you add non-reference types to your configuration struct, be sure to rewrite Clone as a deep
 // copy appropriate for your types.
 type configuration struct {
-	ProvisioningServerURL       string
-	ProvisioningServerAuthToken string
-	InstallationDNS             string
-	AllowedEmailDomain          string
+	ProvisioningServerURL                     string
+	ProvisioningServerAuthToken               string
+	InstallationDNS                           string
+	AllowedEmailDomain                        string
+	DeletionLockInstallationsAllowedPerPerson int
 
 	// License
 	E10License              string
