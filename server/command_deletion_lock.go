@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
@@ -13,7 +14,10 @@ func (p *Plugin) lockForDeletion(installationID string, userID string) error {
 		return err
 	}
 
-	maxLockedInstallations := p.getConfiguration().DeletionLockInstallationsAllowedPerPerson
+	maxLockedInstallations, err := strconv.Atoi(p.getConfiguration().DeletionLockInstallationsAllowedPerPerson)
+	if err != nil {
+		return errors.New("invalid value for DeletionLockInstallationsAllowedPerPerson")
+	}
 
 	numExistingLockedInstallations := 0
 	var installationToLock *Installation
@@ -22,7 +26,7 @@ func (p *Plugin) lockForDeletion(installationID string, userID string) error {
 			installationToLock = install
 			break
 		}
-		if install.DeletionLocked {
+		if install.OwnerID == userID && install.DeletionLocked {
 			numExistingLockedInstallations++
 		}
 	}
@@ -85,6 +89,9 @@ func (p *Plugin) runDeletionLockCommand(args []string, extra *model.CommandArgs)
 	}
 
 	err = p.lockForDeletion(installationIdToLock, extra.UserId)
+	if err != nil {
+		return getCommandResponse(model.CommandResponseTypeEphemeral, err.Error(), extra), false, err
+	}
 
 	return getCommandResponse(model.CommandResponseTypeEphemeral, "Deletion lock has been applied, your workspace will be preserved.", extra), false, nil
 }
@@ -114,6 +121,9 @@ func (p *Plugin) runDeletionUnlockCommand(args []string, extra *model.CommandArg
 	}
 
 	err = p.unlockForDeletion(installationIdToUnlock, extra.UserId)
+	if err != nil {
+		return getCommandResponse(model.CommandResponseTypeEphemeral, err.Error(), extra), false, err
+	}
 
-	return getCommandResponse(model.CommandResponseTypeEphemeral, "Deletion lock has been applied, your workspace will be preserved.", extra), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, "Deletion lock has been removed, your workspace can now be deleted", extra), false, nil
 }

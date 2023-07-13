@@ -67,7 +67,7 @@ type configuration struct {
 	ProvisioningServerAuthToken               string
 	InstallationDNS                           string
 	AllowedEmailDomain                        string
-	DeletionLockInstallationsAllowedPerPerson int
+	DeletionLockInstallationsAllowedPerPerson string
 
 	// License
 	E10License              string
@@ -93,6 +93,16 @@ type configuration struct {
 
 	DefaultDatabase  string
 	DefaultFilestore string
+}
+
+type ConfigResponse struct {
+	DeletionLockInstallationsAllowedPerPerson string
+}
+
+func (c *configuration) ToConfigResponse() *ConfigResponse {
+	return &ConfigResponse{
+		DeletionLockInstallationsAllowedPerPerson: c.DeletionLockInstallationsAllowedPerPerson,
+	}
 }
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if

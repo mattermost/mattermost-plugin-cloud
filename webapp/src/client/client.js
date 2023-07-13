@@ -14,6 +14,8 @@ export default class Client {
 
     deletionUnlockInstallation = async (installationID) => this.doPost(`${this.url}/deletion-unlock`, JSON.stringify({installation_id: installationID}));
 
+    getPluginConfiguration = async () => this.doGet(`${this.url}/config`);
+
     fetchJSON = async (url, options) => {
         const {data} = await this.doFetchWithResponse(url, {
             headers: {

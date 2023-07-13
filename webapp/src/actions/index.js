@@ -13,6 +13,7 @@ import {
     RECEIVED_SHOW_RHS_ACTION,
     SET_RHS_VISIBLE,
     SET_SERVER_ERROR,
+    RECEIVED_CONFIG,
 } from '../action_types';
 
 const CLOUD_USER_GET_TIMEOUT_MILLISECONDS = 1000 * 60; // 1 minute
@@ -26,12 +27,6 @@ export function setServerError(errorString) {
 
 export function deletionLockInstallation(installationID) {
     return async (dispatch, getState) => {
-        const config = getConfig(getState());
-        const currentUserId = config?.ServiceSettings?.SiteURL;
-        if (!currentUserId) {
-            return {};
-        }
-
         const data = await Client.deletionLockInstallation(installationID);
 
         if (data.error) {
@@ -50,12 +45,6 @@ export function deletionLockInstallation(installationID) {
 
 export function deletionUnlockInstallation(installationID) {
     return async (dispatch, getState) => {
-        const config = getConfig(getState());
-        const currentUserId = config?.ServiceSettings?.SiteURL;
-        if (!currentUserId) {
-            return {};
-        }
-
         const data = await Client.deletionUnlockInstallation(installationID);
 
         if (data.error) {
@@ -67,6 +56,29 @@ export function deletionUnlockInstallation(installationID) {
         if (serverError(getState())) {
             dispatch(setServerError(''));
         }
+
+        return {data};
+    };
+}
+
+export function getPluginConfiguration() {
+    return async (dispatch, getState) => {
+        const data = await Client.getPluginConfiguration();
+
+        if (data.error) {
+            dispatch(setServerError(`Status: ${data.error.status}, Message: ${data.error.message}`));
+            return data;
+        }
+
+        // Clear server error
+        if (serverError(getState())) {
+            dispatch(setServerError(''));
+        }
+
+        dispatch({
+            type: RECEIVED_CONFIG,
+            data,
+        });
 
         return {data};
     };

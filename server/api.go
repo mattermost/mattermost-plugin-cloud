@@ -54,6 +54,8 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 		p.handleDeletionLock(w, r)
 	case "/api/v1/deletion-unlock":
 		p.handleDeletionUnlock(w, r)
+	case "/api/v1/config":
+		p.handleGetConfig(w, r)
 	default:
 		http.NotFound(w, r)
 	}
@@ -139,7 +141,15 @@ func (p *Plugin) handleDeletionLock(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+
+	j, err := json.Marshal(req)
+	if err != nil {
+		p.API.LogError(errors.Wrap(err, "Unable to marshal cloud deletion lock request").Error())
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusCreated)
+	w.Write(j)
 }
 
 func (p *Plugin) handleDeletionUnlock(w http.ResponseWriter, r *http.Request) {
@@ -169,5 +179,24 @@ func (p *Plugin) handleDeletionUnlock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	j, err := json.Marshal(req)
+	if err != nil {
+		p.API.LogError(errors.Wrap(err, "Unable to marshal cloud deletion unlock request").Error())
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 	w.WriteHeader(http.StatusCreated)
+	w.Write(j)
+}
+
+func (p *Plugin) handleGetConfig(w http.ResponseWriter, r *http.Request) {
+	config := p.getConfiguration()
+
+	data, err := json.Marshal(config.ToConfigResponse())
+	if err != nil {
+		p.API.LogError(errors.Wrap(err, "Unable to marshal config").Error())
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	w.Write(data)
 }

@@ -33,24 +33,29 @@ export default class SidebarRight extends React.PureComponent {
         installs: PropTypes.array.isRequired,
         serverError: PropTypes.string.isRequired,
         deletionLockedInstallationId: PropTypes.string,
+        maxLockedInstallations: PropTypes.number,
         actions: PropTypes.shape({
             setVisible: PropTypes.func.isRequired,
             telemetry: PropTypes.func.isRequired,
             getCloudUserData: PropTypes.func.isRequired,
             deletionLockInstallation: PropTypes.func.isRequired,
             deletionUnlockInstallation: PropTypes.func.isRequired,
+            getPluginConfiguration: PropTypes.func.isRequired,
         }).isRequired,
     };
 
     constructor(props) {
         super(props);
 
-        this.state = {};
+        this.state = {
+            deletionLockedInstallationId: null,
+        };
     }
 
     componentDidMount() {
         this.props.actions.setVisible(true);
         this.props.actions.getCloudUserData(this.props.id);
+        this.props.actions.getPluginConfiguration();
     }
 
     componentWillUnmount() {
@@ -58,27 +63,33 @@ export default class SidebarRight extends React.PureComponent {
     }
 
     deletionLockButton(installation) {
-        if (!this.props.deletionLockedInstallationId) {
-            return (
-                <Button
-                    className='btn btn-primary'
-                    onClick={() => this.props.actions.deletionLockInstallation(installation.Name)}
-                >{'Lock Deletion'}
-                </Button>
-            );
-        }
-
-        if (this.props.deletionLockedInstallationId === installation.ID) {
+        const deletionLockedInstallationsIds = this.props.installs.filter((install) => install.DeletionLocked).map((install) => install.ID);
+        if (deletionLockedInstallationsIds.includes(installation.ID)) {
             return (
                 <Button
                     className='btn btn-danger'
-                    onClick={() => this.props.actions.deletionUnlockInstallation(installation.Name)}
+                    onClick={async () => {
+                        await this.props.actions.deletionUnlockInstallation(installation.ID);
+                        this.props.actions.getCloudUserData(this.props.id);
+                    }
+                    }
                 >{'Unlock Deletion'}
                 </Button>
             );
         }
 
-        return null;
+        return (
+            <Button
+                className='btn btn-primary'
+                disabled={deletionLockedInstallationsIds.length >= this.props.maxLockedInstallations}
+                onClick={async () => {
+                    await this.props.actions.deletionLockInstallation(installation.ID);
+                    this.props.actions.getCloudUserData(this.props.id);
+                }
+                }
+            >{'Lock Deletion'}
+            </Button>
+        );
     }
 
     render() {
