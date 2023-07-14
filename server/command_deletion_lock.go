@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"strconv"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -77,6 +78,7 @@ func (p *Plugin) runDeletionLockCommand(args []string, extra *model.CommandArgs)
 		return nil, false, err
 	}
 	var installationIdToLock string
+	log.Printf("%+v", installations)
 	for _, installation := range installations {
 		if installation.OwnerID == extra.UserId && installation.Name == name {
 			installationIdToLock = installation.ID

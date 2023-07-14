@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Scrollbars} from 'react-custom-scrollbars-2';
-import {Label, ButtonToolbar, Button} from 'react-bootstrap';
+import {Badge, ButtonToolbar, Button} from 'react-bootstrap';
 
 export function renderView(props) {
     return (
@@ -126,7 +126,7 @@ export default class SidebarRight extends React.PureComponent {
             >
                 <div style={style.header}>
                     <div style={style.nameText}><b>{install.Name}</b></div>
-                    <span><Label style={install.State === 'stable' ? style.stable : style.inProgress}><b>{install.State}</b></Label></span>
+                    <span><Badge pill bg={install.State === 'stable' ? 'primary' : 'danger'}><b>{install.State}</b></Badge></span>
                 </div>
                 <div style={style.installinfo}>
                     <div>
