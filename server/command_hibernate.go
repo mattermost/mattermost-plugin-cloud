@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -23,7 +22,6 @@ func (p *Plugin) runHibernateCommand(args []string, extra *model.CommandArgs) (*
 	}
 
 	var installToHibernate *Installation
-	log.Printf("%+v", installs)
 	for _, install := range installs {
 		if install.OwnerID == extra.UserId && install.Name == name {
 			installToHibernate = install
