@@ -8,7 +8,8 @@ export function renderView(props) {
         <div
             {...props}
             className='scrollbar--view'
-        />);
+        />
+    );
 }
 
 export function renderThumbHorizontal(props) {
@@ -16,7 +17,8 @@ export function renderThumbHorizontal(props) {
         <div
             {...props}
             className='scrollbar--horizontal'
-        />);
+        />
+    );
 }
 
 export function renderThumbVertical(props) {
@@ -24,7 +26,8 @@ export function renderThumbVertical(props) {
         <div
             {...props}
             className='scrollbar--vertical'
-        />);
+        />
+    );
 }
 
 export default class SidebarRight extends React.PureComponent {
@@ -126,7 +129,14 @@ export default class SidebarRight extends React.PureComponent {
             >
                 <div style={style.header}>
                     <div style={style.nameText}><b>{install.Name}</b></div>
-                    <span><Badge pill bg={install.State === 'stable' ? 'primary' : 'danger'}><b>{install.State}</b></Badge></span>
+                    <span>
+                        <Badge
+                            pill={true}
+                            bg={install.State === 'stable' ? 'primary' : 'danger'}
+                        >
+                            <b>{install.State}</b>
+                        </Badge>
+                    </span>
                 </div>
                 <div style={style.installinfo}>
                     <div>

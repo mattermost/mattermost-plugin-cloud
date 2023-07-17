@@ -8,7 +8,7 @@ export default class Client {
 
     getUserInstalls = async (userID) => {
         return this.doPost(`${this.url}/userinstalls`, JSON.stringify({user_id: userID}));
-    }
+    };
 
     deletionLockInstallation = async (installationID) => this.doPost(`${this.url}/deletion-lock`, JSON.stringify({installation_id: installationID}));
 
@@ -59,7 +59,7 @@ export default class Client {
             },
             body,
         });
-    }
+    };
 
     doPost = async (url, body, headers = {}) => {
         return this.fetchJSON(url, {
@@ -70,7 +70,7 @@ export default class Client {
             },
             body,
         });
-    }
+    };
 
     doDelete = async (url, body, headers = {}) => {
         return this.fetchJSON(url, {
@@ -81,7 +81,7 @@ export default class Client {
             },
             body,
         });
-    }
+    };
 
     doPut = async (url, body, headers = {}) => {
         return this.fetchJSON(url, {
@@ -92,5 +92,5 @@ export default class Client {
             },
             body,
         });
-    }
+    };
 }

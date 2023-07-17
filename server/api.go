@@ -66,6 +66,7 @@ type CloudUserRequest struct {
 	UserID string `json:"user_id"`
 }
 
+// CloudDeletionLockRequest is the request type to lock or unlock an installation for deletion.
 type CloudDeletionLockRequest struct {
 	InstallationID string `json:"installation_id"`
 }
