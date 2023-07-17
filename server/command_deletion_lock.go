@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"strconv"
 
 	"github.com/mattermost/mattermost-server/v6/model"
@@ -92,20 +91,19 @@ func (p *Plugin) runDeletionLockCommand(args []string, extra *model.CommandArgs)
 	if err != nil {
 		return nil, true, err
 	}
-	var installationIdToLock string
-	log.Printf("%+v", installations)
+	var installationIDToLock string
 	for _, installation := range installations {
 		if installation.OwnerID == extra.UserId && installation.Name == name {
-			installationIdToLock = installation.ID
+			installationIDToLock = installation.ID
 			break
 		}
 	}
 
-	if installationIdToLock == "" {
+	if installationIDToLock == "" {
 		return nil, true, errors.Errorf("no installation with the name %s found", name)
 	}
 
-	err = p.lockForDeletion(installationIdToLock, extra.UserId)
+	err = p.lockForDeletion(installationIDToLock, extra.UserId)
 	if err != nil {
 		return getCommandResponse(model.CommandResponseTypeEphemeral, err.Error(), extra), false, err
 	}
@@ -125,19 +123,19 @@ func (p *Plugin) runDeletionUnlockCommand(args []string, extra *model.CommandArg
 		return nil, false, err
 	}
 
-	var installationIdToUnlock string
+	var installationIDToUnlock string
 	for _, install := range installs {
 		if install.OwnerID == extra.UserId && install.Name == name {
-			installationIdToUnlock = install.ID
+			installationIDToUnlock = install.ID
 			break
 		}
 	}
 
-	if installationIdToUnlock == "" {
+	if installationIDToUnlock == "" {
 		return nil, true, errors.Errorf("no installation with the name %s found", name)
 	}
 
-	err = p.unlockForDeletion(installationIdToUnlock, extra.UserId)
+	err = p.unlockForDeletion(installationIDToUnlock, extra.UserId)
 	if err != nil {
 		return getCommandResponse(model.CommandResponseTypeEphemeral, err.Error(), extra), false, err
 	}

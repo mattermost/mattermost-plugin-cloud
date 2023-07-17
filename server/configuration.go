@@ -95,6 +95,7 @@ type configuration struct {
 	DefaultFilestore string
 }
 
+// ConfigResponse is a struct representing a sanitized configuration object, intended to be passed to the front-end for usage
 type ConfigResponse struct {
 	DeletionLockInstallationsAllowedPerPerson string
 }
