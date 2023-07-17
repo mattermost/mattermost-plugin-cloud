@@ -10,9 +10,16 @@ import (
 )
 
 func (p *Plugin) lockForDeletion(installationID string, userID string) error {
+	if installationID == "" {
+		return errors.New("installationID must not be empty")
+	}
 	installations, err := p.getUpdatedInstallsForUser(userID)
 	if err != nil {
 		return err
+	}
+
+	if len(installations) == 0 {
+		return errors.New("no installations found for the given User ID")
 	}
 
 	maxLockedInstallations, err := strconv.Atoi(p.getConfiguration().DeletionLockInstallationsAllowedPerPerson)
@@ -45,9 +52,17 @@ func (p *Plugin) lockForDeletion(installationID string, userID string) error {
 }
 
 func (p *Plugin) unlockForDeletion(installationID string, userID string) error {
+	if installationID == "" {
+		return errors.New("installationID must not be empty")
+	}
+
 	installations, err := p.getUpdatedInstallsForUser(userID)
 	if err != nil {
 		return err
+	}
+
+	if len(installations) == 0 {
+		return errors.New("no installations found for the given User ID")
 	}
 
 	var installationToLock *Installation
@@ -59,7 +74,7 @@ func (p *Plugin) unlockForDeletion(installationID string, userID string) error {
 	}
 
 	if installationToLock == nil {
-		return errors.New("installation to be locked not found")
+		return errors.New("installation to be unlocked not found")
 	}
 
 	err = p.cloudClient.UnlockDeletionLockForInstallation(installationToLock.ID)
@@ -75,7 +90,7 @@ func (p *Plugin) runDeletionLockCommand(args []string, extra *model.CommandArgs)
 
 	installations, err := p.getUpdatedInstallsForUser(extra.UserId)
 	if err != nil {
-		return nil, false, err
+		return nil, true, err
 	}
 	var installationIdToLock string
 	log.Printf("%+v", installations)
