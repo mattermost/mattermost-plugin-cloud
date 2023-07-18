@@ -63,10 +63,11 @@ var dockerRepoTestImages = []string{
 // If you add non-reference types to your configuration struct, be sure to rewrite Clone as a deep
 // copy appropriate for your types.
 type configuration struct {
-	ProvisioningServerURL       string
-	ProvisioningServerAuthToken string
-	InstallationDNS             string
-	AllowedEmailDomain          string
+	ProvisioningServerURL                     string
+	ProvisioningServerAuthToken               string
+	InstallationDNS                           string
+	AllowedEmailDomain                        string
+	DeletionLockInstallationsAllowedPerPerson string
 
 	// License
 	E10License              string
@@ -92,6 +93,17 @@ type configuration struct {
 
 	DefaultDatabase  string
 	DefaultFilestore string
+}
+
+// ConfigResponse is a struct representing a sanitized configuration object, intended to be passed to the front-end for usage
+type ConfigResponse struct {
+	DeletionLockInstallationsAllowedPerPerson string
+}
+
+func (c *configuration) ToConfigResponse() *ConfigResponse {
+	return &ConfigResponse{
+		DeletionLockInstallationsAllowedPerPerson: c.DeletionLockInstallationsAllowedPerPerson,
+	}
 }
 
 // Clone shallow copies the configuration. Your implementation may require a deep copy if

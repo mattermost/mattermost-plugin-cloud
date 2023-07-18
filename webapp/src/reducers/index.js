@@ -1,6 +1,6 @@
 import {combineReducers} from 'redux';
 
-import {RECEIVED_USER_INSTALLS, RECEIVED_SHOW_RHS_ACTION, SET_RHS_VISIBLE, SET_SERVER_ERROR} from '../action_types';
+import {RECEIVED_USER_INSTALLS, RECEIVED_SHOW_RHS_ACTION, SET_RHS_VISIBLE, SET_SERVER_ERROR, RECEIVED_CONFIG} from '../action_types';
 
 function cloudUserInstalls(state = {}, action) {
     switch (action.type) {
@@ -9,6 +9,15 @@ function cloudUserInstalls(state = {}, action) {
         nextState[action.userID] = action.data;
         return nextState;
     }
+    default:
+        return state;
+    }
+}
+
+function pluginConfiguration(state = {}, action) {
+    switch (action.type) {
+    case RECEIVED_CONFIG:
+        return action.data;
     default:
         return state;
     }
@@ -46,4 +55,5 @@ export default combineReducers({
     rhsPluginAction,
     isRhsVisible,
     serverError,
+    pluginConfiguration,
 });

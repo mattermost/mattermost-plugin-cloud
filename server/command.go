@@ -128,6 +128,10 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		handler = p.runInfoCommand
 	case "import":
 		handler = p.runImportCommand
+	case "deletion-lock":
+		handler = p.runDeletionLockCommand
+	case "deletion-unlock":
+		handler = p.runDeletionUnlockCommand
 	}
 
 	if handler == nil {

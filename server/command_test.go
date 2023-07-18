@@ -79,6 +79,14 @@ func (mc *MockClient) WakeupInstallation(installationID string, request *cloud.P
 	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid", OwnerID: "joramid"}}, nil
 }
 
+func (mc *MockClient) LockDeletionLockForInstallation(installationID string) error {
+	return nil
+}
+
+func (mc *MockClient) UnlockDeletionLockForInstallation(installationID string) error {
+	return nil
+}
+
 func (mc *MockClient) DeleteInstallation(installationID string) error {
 	return nil
 }
