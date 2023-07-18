@@ -6,7 +6,7 @@ require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/docker/distribution v2.8.1+incompatible
 	github.com/heroku/docker-registry-client v0.0.0-20211012143308-9463674c8930
-	github.com/mattermost/mattermost-cloud v0.74.1-0.20230712170639-ad601bf89a32
+	github.com/mattermost/mattermost-cloud v0.75.0
 	github.com/mattermost/mattermost-server/v6 v6.7.2
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/pkg/errors v0.9.1
