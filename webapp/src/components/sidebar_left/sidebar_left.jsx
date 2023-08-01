@@ -17,16 +17,13 @@ const SidebarLeft = ({ id, installs, actions, showRHS, theme }) => {
     return (
         <div className='CloudPlugin__SidebarLeft'>
             <OverlayTrigger
-                key='githubYourPrsLink'
                 placement={'right'}
-                
                 overlay={<Tooltip id='yourCloudInstallationsToolTip'>{'Your Cloud installations'}</Tooltip>}
             >
                 <a
                     data-testid={'yourCloudInstallationsTestId'}
                     style={style}
                     onClick={() => {
-                        console.log("Hey");
                         showRHS(true);
                     }}
                 >
