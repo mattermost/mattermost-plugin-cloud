@@ -132,6 +132,7 @@ export function setShowRHSAction(showRHSPluginAction) {
 }
 
 export function setRhsVisible(payload) {
+    console.log("helloooo");
     return {
         type: SET_RHS_VISIBLE,
         payload,
