@@ -5,7 +5,7 @@ import {id as pluginId} from './manifest';
 import {getPluginServerRoute, setShowRHSAction, telemetry} from './actions/index.js';
 import ChannelHeaderButton from './components/channel_header_button';
 import SidebarRight from './components/sidebar_right';
-import SidebarLeft from './components/sidebar_left'
+import SidebarLeft from './components/sidebar_left';
 
 class Plugin {
     async initialize(registry, store) {

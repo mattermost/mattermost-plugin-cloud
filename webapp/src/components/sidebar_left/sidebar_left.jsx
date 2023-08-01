@@ -1,17 +1,15 @@
 
-
 import React, {useEffect} from 'react';
 
 import PropTypes from 'prop-types';
 import {makeStyleFromTheme, changeOpacity} from 'mattermost-redux/utils/theme_utils';
 import {Tooltip, OverlayTrigger} from 'react-bootstrap';
 
-
-const SidebarLeft = ({ id, installs, actions, showRHS, theme }) => {
+const SidebarLeft = ({id, installs, actions, showRHS, theme}) => {
     useEffect(() => {
         actions.getCloudUserData(id);
     }, [id, actions]);
-    
+
     const style = getStyle(theme);
 
     return (
@@ -27,7 +25,7 @@ const SidebarLeft = ({ id, installs, actions, showRHS, theme }) => {
                         showRHS(true);
                     }}
                 >
-                    <i className='fa fa-cloud' />
+                    <i className='fa fa-cloud'/>
                     {' ' + installs.length}
                 </a>
             </OverlayTrigger>
@@ -43,7 +41,7 @@ SidebarLeft.propTypes = {
     }),
     theme: PropTypes.object.isRequired,
     showRHS: PropTypes.func.isRequired,
-}
+};
 
 const getStyle = makeStyleFromTheme((theme) => {
     return {

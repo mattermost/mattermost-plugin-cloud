@@ -1,15 +1,17 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react';
+import {render, fireEvent} from '@testing-library/react';
+
 import SidebarLeft from './sidebar_left';
 
 jest.mock('mattermost-redux/utils/theme_utils', () => ({
     makeStyleFromTheme: jest.fn((style) => style),
+    // eslint-disable-next-line no-unused-vars
     changeOpacity: jest.fn((color, opacity) => color),
 }));
 
 jest.mock('react-bootstrap', () => ({
-    Tooltip: jest.fn(({ children }) => children),
-    OverlayTrigger: jest.fn(({ children }) => children),
+    Tooltip: jest.fn(({children}) => children),
+    OverlayTrigger: jest.fn(({children}) => children),
 }));
 
 describe('SidebarLeft', () => {
@@ -28,8 +30,14 @@ describe('SidebarLeft', () => {
     });
 
     it('should render the component', () => {
-        const { getByTestId } = render(
-            <SidebarLeft id={id} installs={installs} actions={actions} showRHS={showRHS} theme={theme} />,
+        const {getByTestId} = render(
+            <SidebarLeft
+                id={id}
+                installs={installs}
+                actions={actions}
+                showRHS={showRHS}
+                theme={theme}
+            />,
         );
 
         const tooltip = getByTestId('yourCloudInstallationsTestId');
@@ -37,8 +45,14 @@ describe('SidebarLeft', () => {
     });
 
     it('should call the showRHS function when the link is clicked', () => {
-        const { getByTestId } = render(
-            <SidebarLeft id={id} installs={installs} actions={actions} showRHS={showRHS} theme={theme} />,
+        const {getByTestId} = render(
+            <SidebarLeft
+                id={id}
+                installs={installs}
+                actions={actions}
+                showRHS={showRHS}
+                theme={theme}
+            />,
         );
 
         fireEvent.click(getByTestId('yourCloudInstallationsTestId'));
@@ -47,22 +61,42 @@ describe('SidebarLeft', () => {
     });
 
     it('should call the getCloudUserData action creator on mount', () => {
-        render(<SidebarLeft id={id} installs={installs} actions={actions} showRHS={showRHS} theme={theme} />);
+        render(
+            <SidebarLeft
+                id={id}
+                installs={installs}
+                actions={actions}
+                showRHS={showRHS}
+                theme={theme}
+            />,
+        );
 
         expect(actions.getCloudUserData).toHaveBeenCalledWith(id);
     });
 
     it('should render the correct number of installs', () => {
-        const { getByText } = render(
-            <SidebarLeft id={id} installs={installs} actions={actions} showRHS={showRHS} theme={theme} />,
+        const {getByText} = render(
+            <SidebarLeft
+                id={id}
+                installs={installs}
+                actions={actions}
+                showRHS={showRHS}
+                theme={theme}
+            />,
         );
 
         expect(getByText('3')).toBeInTheDocument();
     });
 
     it('should apply the correct style to the link', () => {
-        const { getByTestId } = render(
-            <SidebarLeft id={id} installs={installs} actions={actions} showRHS={showRHS} theme={theme} />,
+        const {getByTestId} = render(
+            <SidebarLeft
+                id={id}
+                installs={installs}
+                actions={actions}
+                showRHS={showRHS}
+                theme={theme}
+            />,
         );
 
         const link = getByTestId('yourCloudInstallationsTestId');

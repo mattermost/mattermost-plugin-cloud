@@ -5,7 +5,8 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getCloudUserData} from '../../actions';
 
 import {getShowRHSAction, installsForUser} from '../../selectors';
-import SidebarLeft from './sidebar_left'
+
+import SidebarLeft from './sidebar_left';
 
 function mapStateToProps(state) {
     const id = getCurrentUserId(state);
