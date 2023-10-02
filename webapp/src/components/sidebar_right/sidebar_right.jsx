@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import {Scrollbars} from 'react-custom-scrollbars-2';
-import {Badge, ButtonToolbar, Button} from 'react-bootstrap';
+import {Button, Label, DropdownButton, MenuItem} from 'react-bootstrap';
 
 export function renderView(props) {
     return (
@@ -65,12 +65,39 @@ export default class SidebarRight extends React.PureComponent {
         this.props.actions.setVisible(false);
     }
 
+    installationButtons(installation) {
+        return (
+            <div>
+                <Button
+                    className='btn btn-primary btn-sm'
+                    onClick={() => window.open('https://' + installation.DNSRecords[0].DomainName, '_blank')}
+                >{'Open'}
+                </Button>
+                <DropdownButton
+                    style={style.dropdownButton}
+                    className='btn btn-tertiary btn-sm'
+                    title='Logs'
+                >
+                    <MenuItem
+                        onClick={() => window.open(installation.InstallationLogsURL, '_blank')}
+                    >{'Installation Logs'}
+                    </MenuItem>
+                    <MenuItem
+                        onClick={() => window.open(installation.ProvisionerLogsURL, '_blank')}
+                    >{'Provisioner Logs'}
+                    </MenuItem>
+                </DropdownButton>
+                {this.deletionLockButton(installation)}
+            </div>
+        );
+    }
+
     deletionLockButton(installation) {
         const deletionLockedInstallationsIds = this.props.installs.filter((install) => install.DeletionLocked).map((install) => install.ID);
         if (deletionLockedInstallationsIds.includes(installation.ID)) {
             return (
                 <Button
-                    className='btn btn-danger'
+                    className='btn btn-danger btn-sm'
                     onClick={async () => {
                         await this.props.actions.deletionUnlockInstallation(installation.ID);
                         this.props.actions.getCloudUserData(this.props.id);
@@ -83,7 +110,7 @@ export default class SidebarRight extends React.PureComponent {
 
         return (
             <Button
-                className='btn btn-primary'
+                className='btn btn-tertiary btn-sm'
                 disabled={deletionLockedInstallationsIds.length >= this.props.maxLockedInstallations}
                 onClick={async () => {
                     await this.props.actions.deletionLockInstallation(installation.ID);
@@ -130,12 +157,14 @@ export default class SidebarRight extends React.PureComponent {
                 <div style={style.header}>
                     <div style={style.nameText}><b>{install.Name}</b></div>
                     <span>
-                        <Badge
-                            pill={true}
-                            bg={install.State === 'stable' ? 'primary' : 'danger'}
-                        >
+                        <Label style={install.State === 'stable' ? style.stable : style.inProgress}>
                             <b>{install.State}</b>
-                        </Badge>
+                        </Label>
+                        {install.DeletionLocked &&
+                            <Label style={style.stable}>
+                                <b>deletion locked</b>
+                            </Label>
+                        }
                     </span>
                 </div>
                 <div style={style.installinfo}>
@@ -176,31 +205,7 @@ export default class SidebarRight extends React.PureComponent {
                         <span>{install.Size}</span>
                     </div>
                 </div>
-
-                <ButtonToolbar>
-                    <a
-                        className='btn btn-primary'
-                        href={'https://' + install.DNSRecords[0].DomainName}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                    >{'View Installation'}
-                    </a>
-                    <a
-                        className='btn btn-primary'
-                        href={install.InstallationLogsURL}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                    >{'Installation Logs'}
-                    </a>
-                    <a
-                        className='btn btn-primary'
-                        href={install.ProvisionerLogsURL}
-                        target='_blank'
-                        rel='noopener noreferrer'
-                    >{'Provisioner Logs'}
-                    </a>
-                    {this.deletionLockButton(install)}
-                </ButtonToolbar>
+                {this.installationButtons(install)}
             </li>
         ));
 
@@ -257,11 +262,13 @@ const style = {
         fontSize: '11px',
         color: 'var(--center-channel-bg)',
         backgroundColor: 'var(--online-indicator)',
+        marginRight: '10px',
     },
     inProgress: {
         fontSize: '11px',
         color: 'var(--center-channel-bg)',
         backgroundColor: 'var(--dnd-indicator)',
+        marginRight: '10px',
     },
     message: {
         margin: 'auto',
@@ -271,6 +278,9 @@ const style = {
     serverIcon: {
         margin: '0 auto',
         width: '50%',
+    },
+    dropdownButton: {
+        margin: '0 8px',
     },
 };
 
