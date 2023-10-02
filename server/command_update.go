@@ -10,34 +10,34 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
-func getUpgradeFlagSet() *flag.FlagSet {
-	upgradeFlagSet := flag.NewFlagSet("upgrade", flag.ContinueOnError)
-	upgradeFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
-	upgradeFlagSet.String("license", "", "The enterprise license to use. Can be 'enterprise', 'professional', 'e20', 'e10', or 'te'")
-	upgradeFlagSet.String("size", "", "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'")
-	upgradeFlagSet.String("image", "", fmt.Sprintf("Docker image repository, can be %s", strings.Join(dockerRepoWhitelist, ", ")))
-	upgradeFlagSet.StringSlice("env", []string{}, "Environment variables in form: ENV1=test,ENV2=test")
-	upgradeFlagSet.StringSlice("clear-env", []string{}, "List of custom environment variables to erase, for example: ENV1,ENV2")
+func getUpdateFlagSet() *flag.FlagSet {
+	updateFlagSet := flag.NewFlagSet("update", flag.ContinueOnError)
+	updateFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
+	updateFlagSet.String("license", "", "The enterprise license to use. Can be 'enterprise', 'professional', 'e20', 'e10', or 'te'")
+	updateFlagSet.String("size", "", "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'")
+	updateFlagSet.String("image", "", fmt.Sprintf("Docker image repository, can be %s", strings.Join(dockerRepoWhitelist, ", ")))
+	updateFlagSet.StringSlice("env", []string{}, "Environment variables in form: ENV1=test,ENV2=test")
+	updateFlagSet.StringSlice("clear-env", []string{}, "List of custom environment variables to erase, for example: ENV1,ENV2")
 
-	return upgradeFlagSet
+	return updateFlagSet
 }
 
 func buildPatchInstallationRequestFromArgs(args []string) (*cloud.PatchInstallationRequest, error) {
-	upgradeFlagSet := getUpgradeFlagSet()
-	err := upgradeFlagSet.Parse(args)
+	updateFlagSet := getUpdateFlagSet()
+	err := updateFlagSet.Parse(args)
 	if err != nil {
 		return nil, err
 	}
 
-	version, err := upgradeFlagSet.GetString("version")
+	version, err := updateFlagSet.GetString("version")
 	if err != nil {
 		return nil, err
 	}
-	license, err := upgradeFlagSet.GetString("license")
+	license, err := updateFlagSet.GetString("license")
 	if err != nil {
 		return nil, err
 	}
-	size, err := upgradeFlagSet.GetString("size")
+	size, err := updateFlagSet.GetString("size")
 	if err != nil {
 		return nil, err
 	}
@@ -45,15 +45,15 @@ func buildPatchInstallationRequestFromArgs(args []string) (*cloud.PatchInstallat
 		return nil, fmt.Errorf("Invalid size: %s", size)
 	}
 
-	image, err := upgradeFlagSet.GetString("image")
+	image, err := updateFlagSet.GetString("image")
 	if err != nil {
 		return nil, err
 	}
-	envVars, err := upgradeFlagSet.GetStringSlice("env")
+	envVars, err := updateFlagSet.GetStringSlice("env")
 	if err != nil {
 		return nil, err
 	}
-	envClear, err := upgradeFlagSet.GetStringSlice("clear-env")
+	envClear, err := updateFlagSet.GetStringSlice("clear-env")
 	if err != nil {
 		return nil, err
 	}
@@ -91,10 +91,10 @@ func buildPatchInstallationRequestFromArgs(args []string) (*cloud.PatchInstallat
 	return request, nil
 }
 
-// runUpgradeCommand requests an upgrade and returns the response, an
+// runUpdateCommand requests an update and returns the response, an
 // error, and a boolean set to true if a non-nil error is returned due
 // to user error, and false if the error was caused by something else.
-func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
+func (p *Plugin) runUpdateCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
 	if len(args) == 0 || len(args[0]) == 0 {
 		return nil, true, errors.Errorf("must provide an installation name")
 	}
@@ -106,15 +106,15 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 		return nil, false, err
 	}
 
-	var installToUpgrade *Installation
+	var installToUpdate *Installation
 	for _, install := range installs {
 		if install.OwnerID == extra.UserId && install.Name == name {
-			installToUpgrade = install
+			installToUpdate = install
 			break
 		}
 	}
 
-	if installToUpgrade == nil {
+	if installToUpdate == nil {
 		return nil, true, errors.Errorf("no installation with the name %s found", name)
 	}
 
@@ -124,8 +124,8 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 	}
 
 	if request.Version != nil || request.Image != nil {
-		dockerTag := installToUpgrade.Version
-		dockerRepository := installToUpgrade.Image
+		dockerTag := installToUpdate.Version
+		dockerRepository := installToUpdate.Image
 
 		if request.Version != nil {
 			dockerTag = *request.Version
@@ -147,12 +147,12 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 		if err != nil {
 			return nil, false, errors.Wrapf(err, "failed to find a manifest digest for version %s", dockerTag)
 		}
-		installToUpgrade.Tag = dockerTag
+		installToUpdate.Tag = dockerTag
 		request.Version = &digest
 	}
 
 	// Obtain the new image value if there is one to properly apply a license.
-	image := installToUpgrade.Image
+	image := installToUpdate.Image
 	if request.Image != nil {
 		image = *request.Image
 	}
@@ -162,15 +162,15 @@ func (p *Plugin) runUpgradeCommand(args []string, extra *model.CommandArgs) (*mo
 		request.License = &licenseValue
 	}
 
-	_, err = p.cloudClient.UpdateInstallation(installToUpgrade.ID, request)
+	_, err = p.cloudClient.UpdateInstallation(installToUpdate.ID, request)
 	if err != nil {
 		return nil, false, errors.Wrap(err, "failed to update installation")
 	}
 
-	err = p.updateInstallation(installToUpgrade)
+	err = p.updateInstallation(installToUpdate)
 	if err != nil {
 		return nil, false, errors.Wrap(err, "failed to store updated installation metadata")
 	}
 
-	return getCommandResponse(model.CommandResponseTypeEphemeral, fmt.Sprintf("Upgrade of installation %s has begun. You will receive a notification when it is ready. Use /cloud list to check on the status of your installations.", name), extra), false, nil
+	return getCommandResponse(model.CommandResponseTypeEphemeral, fmt.Sprintf("Update of installation %s has begun. You will receive a notification when it is ready. Use /cloud list to check on the status of your installations.", name), extra), false, nil
 }
