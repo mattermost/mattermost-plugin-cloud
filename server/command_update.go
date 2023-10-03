@@ -12,7 +12,7 @@ import (
 
 func getUpdateFlagSet() *flag.FlagSet {
 	updateFlagSet := flag.NewFlagSet("update", flag.ContinueOnError)
-	updateFlagSet.String("version", "", "Mattermost version to run, e.g. '5.12.4'")
+	updateFlagSet.String("version", "", "Mattermost version to run, e.g. '9.1.0'")
 	updateFlagSet.String("license", "", "The enterprise license to use. Can be 'enterprise', 'professional', 'e20', 'e10', or 'te'")
 	updateFlagSet.String("size", "", "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'")
 	updateFlagSet.String("image", "", fmt.Sprintf("Docker image repository, can be %s", strings.Join(dockerRepoWhitelist, ", ")))
