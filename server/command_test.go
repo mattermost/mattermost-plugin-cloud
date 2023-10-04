@@ -119,6 +119,18 @@ func TestInfoCommand(t *testing.T) {
 	})
 }
 
+func TestUpgradeHelperCommand(t *testing.T) {
+	mockedCloudClient := &MockClient{}
+	plugin := Plugin{cloudClient: mockedCloudClient}
+
+	t.Run("success", func(t *testing.T) {
+		resp, isUserError, err := plugin.runUpgradeHelperCommand([]string{""}, &model.CommandArgs{UserId: "gabeid"})
+		require.NoError(t, err)
+		assert.False(t, isUserError)
+		assert.Contains(t, resp.Text, "`/cloud upgrade` has been deprecated. Use `/cloud update` instead.")
+	})
+}
+
 func TestValidInstallationName(t *testing.T) {
 	tests := []struct {
 		name  string

@@ -23,11 +23,11 @@ list
 import [DNS]
 	Imports installation using DNS value.
 
-upgrade [name] [flags]
-	Upgrades a Mattermost installation.
+update [name] [flags]
+	Update a Mattermost installation.
 	Flags:
 %s
-	example: /cloud upgrade myinstallation --version 7.8.1
+	example: /cloud update myinstallation --version 7.8.1
 
 hibernate [name]
 	Hibernates a Mattermost installation.
@@ -56,7 +56,7 @@ info
 	return codeBlock(fmt.Sprintf(
 		help,
 		p.getCreateFlagSet().FlagUsages(),
-		getUpgradeFlagSet().FlagUsages(),
+		getUpdateFlagSet().FlagUsages(),
 	))
 }
 
@@ -66,7 +66,7 @@ func getCommand() *model.Command {
 		DisplayName:      "Mattermost Private Cloud",
 		Description:      "This command allows spinning up and down Mattermost installations using Mattermost Private Cloud.",
 		AutoComplete:     false,
-		AutoCompleteDesc: "Available commands: create, list, upgrade, mmcli, delete",
+		AutoCompleteDesc: "Available commands: create, list, update, mmcli, mmctl, delete",
 		AutoCompleteHint: "[command]",
 	}
 }
@@ -115,7 +115,9 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	case "list":
 		handler = p.runListCommand
 	case "upgrade":
-		handler = p.runUpgradeCommand
+		handler = p.runUpgradeHelperCommand
+	case "update":
+		handler = p.runUpdateCommand
 	case "hibernate":
 		handler = p.runHibernateCommand
 	case "wake-up":
@@ -157,4 +159,14 @@ func (p *Plugin) runInfoCommand(args []string, extra *model.CommandArgs) (*model
 		manifest.Version, BuildHashShort, BuildHash, BuildDate)
 
 	return getCommandResponse(model.CommandResponseTypeEphemeral, resp, extra), false, nil
+}
+
+// Helper function to prevent user confusion.
+// TODO: remove this at a later date.
+func (p *Plugin) runUpgradeHelperCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
+	return getCommandResponse(
+		model.CommandResponseTypeEphemeral,
+		"`/cloud upgrade` has been deprecated. Use `/cloud update` instead.",
+		extra,
+	), false, nil
 }
