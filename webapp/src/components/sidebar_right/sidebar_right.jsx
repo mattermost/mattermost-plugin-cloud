@@ -71,7 +71,8 @@ export default class SidebarRight extends React.PureComponent {
             {onClick: () => window.open(installation.ProvisionerLogsURL, '_blank'), buttonText: 'Provisioner Logs'},
         ];
         const menuItems = dropdownButtonItems.map((menuItem, index) => (
-            <MenuItem key={'log-menu-' + installation.ID + '-' + index}
+            <MenuItem
+                key={'log-menu-' + installation.ID + '-' + index}
                 onClick={menuItem.onClick}
             >{menuItem.buttonText}
             </MenuItem>
