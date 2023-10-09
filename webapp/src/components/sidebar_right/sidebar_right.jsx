@@ -66,6 +66,17 @@ export default class SidebarRight extends React.PureComponent {
     }
 
     installationButtons(installation) {
+        const dropdownButtonItems = [
+            {onClick: () => window.open(installation.InstallationLogsURL, '_blank'), buttonText: 'Installation Logs'},
+            {onClick: () => window.open(installation.ProvisionerLogsURL, '_blank'), buttonText: 'Provisioner Logs'},
+        ]
+        const menuItems = dropdownButtonItems.map(menuItem => (
+            <MenuItem
+                onClick={menuItem.onClick}
+            >{menuItem.buttonText}
+            </MenuItem>
+        ));
+
         return (
             <div>
                 <Button
@@ -78,14 +89,7 @@ export default class SidebarRight extends React.PureComponent {
                     className='btn btn-tertiary btn-sm'
                     title='Logs'
                 >
-                    <MenuItem
-                        onClick={() => window.open(installation.InstallationLogsURL, '_blank')}
-                    >{'Installation Logs'}
-                    </MenuItem>
-                    <MenuItem
-                        onClick={() => window.open(installation.ProvisionerLogsURL, '_blank')}
-                    >{'Provisioner Logs'}
-                    </MenuItem>
+                    {menuItems}
                 </DropdownButton>
                 {this.deletionLockButton(installation)}
             </div>
