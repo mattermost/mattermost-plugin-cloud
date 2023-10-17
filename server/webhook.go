@@ -137,7 +137,9 @@ Installation details:
 		cloud.InstallationStateCreationFailed,
 		cloud.InstallationStateCreationFinalTasks:
 
-		err = p.setupInstallation(install)
+		adminPassword := generateRandomPassword(defaultAdminUsername)
+		userPassword := generateRandomPassword(defaultUserUsername)
+		err = p.setupInstallation(install, adminPassword, userPassword)
 		if err != nil {
 			p.API.LogError(err.Error(), "installation", install.Name)
 			return
@@ -176,7 +178,14 @@ Grafana logs for this installation:
 
 Installation details:
 %s
-`, install.Name, dnsRecord, defaultAdminUsername, defaultAdminPassword, defaultUserUsername, defaultUserPassword, installationLogsURL, provisionerLogsURL, jsonCodeBlock(install.ToPrettyJSON()))
+`,
+			install.Name,
+			dnsRecord,
+			inlineCode(defaultAdminUsername), inlineCode(adminPassword),
+			inlineCode(defaultUserUsername), inlineCode(userPassword),
+			installationLogsURL, provisionerLogsURL,
+			jsonCodeBlock(install.ToPrettyJSON()),
+		)
 
 		p.PostBotDM(install.OwnerID, message)
 	}

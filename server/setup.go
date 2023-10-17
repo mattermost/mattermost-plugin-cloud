@@ -14,15 +14,13 @@ import (
 
 const (
 	defaultAdminUsername = "admin"
-	defaultAdminPassword = "Sys@dmin123"
 	defaultAdminEmail    = "success+sysadmin@simulator.amazonses.com"
 
 	defaultUserUsername = "user"
-	defaultUserPassword = "User@123"
 	defaultUserEmail    = "success+user@simulator.amazonses.com"
 )
 
-func (p *Plugin) setupInstallation(install *Installation) error {
+func (p *Plugin) setupInstallation(install *Installation, adminPassword, userPassword string) error {
 	if len(install.DNSRecords) == 0 {
 		return fmt.Errorf("Installation %s doesn't have any DNSRecords", install.ID)
 	}
@@ -37,7 +35,7 @@ func (p *Plugin) setupInstallation(install *Installation) error {
 		return errors.Wrap(err, "encountered an error waiting for installation DNS")
 	}
 
-	err = p.createAndLoginAdminUser(client)
+	err = p.createAndLoginAdminUser(client, adminPassword)
 	if err != nil {
 		return errors.Wrap(err, "encountered an error creating installation admin account")
 	}
@@ -48,7 +46,7 @@ func (p *Plugin) setupInstallation(install *Installation) error {
 	}
 
 	// Create normal user
-	err = p.createUser(client, defaultUserUsername, defaultUserPassword, defaultUserEmail)
+	err = p.createUser(client, defaultUserUsername, userPassword, defaultUserEmail)
 	if err != nil {
 		return errors.Wrap(err, "encountered an error creating installation user account")
 	}
@@ -82,13 +80,13 @@ func (p *Plugin) createUser(client *model.Client4, username, password, email str
 	return err
 }
 
-func (p *Plugin) createAndLoginAdminUser(client *model.Client4) error {
-	err := p.createUser(client, defaultAdminUsername, defaultAdminPassword, defaultAdminEmail)
+func (p *Plugin) createAndLoginAdminUser(client *model.Client4, password string) error {
+	err := p.createUser(client, defaultAdminUsername, password, defaultAdminEmail)
 	if err != nil {
 		return err
 	}
 
-	_, _, err = client.Login(defaultAdminUsername, defaultAdminPassword)
+	_, _, err = client.Login(defaultAdminUsername, password)
 	if err != nil {
 		return err
 	}
@@ -183,4 +181,8 @@ func (p *Plugin) createTestData(client *model.Client4, install *Installation) er
 	}
 
 	return nil
+}
+
+func generateRandomPassword(prefix string) string {
+	return fmt.Sprintf("%s@%s", prefix, cloud.NewID())
 }
