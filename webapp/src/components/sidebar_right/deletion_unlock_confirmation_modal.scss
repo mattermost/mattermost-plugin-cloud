@@ -1,0 +1,19 @@
+.CloudPluginUnlockDeletionConfirmationModal {
+    .modal-content {
+        border: none;
+        border-radius: 8px;
+        .modal-header {
+            border: none;
+            border-bottom: 1px solid #e5e5e5;
+            background: var(--center-channel-bg);
+            .modal-title {
+                color: var(--center-channel-color);
+            }
+        }
+        .modal-footer {
+            border: none;
+            border-radius: 8px;
+        }
+    }
+
+}

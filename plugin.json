@@ -32,6 +32,12 @@
                 "help_text": "The token required for authenticating with the AWS API Gateway."
             },
             {
+                "key": "ProvisioningServerWebhookSecret",
+                "display_name": "Webhook secret sent by the provisioning server",
+                "type": "text",
+                "help_text": "The secret used to verify that webhooks are coming from the provisioning server. Plugin will read from the X-MM-Cloud-Plugin-Auth HTTP header"
+            },
+            {
                 "key": "InstallationDNS",
                 "display_name": "Installation DNS",
                 "type": "text",

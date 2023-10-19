@@ -34,7 +34,23 @@ func getStringFromTemplate(tmpl string, data any) (string, error) {
 	return result.String(), nil
 }
 
+func (p *Plugin) authenticateWebhook(r *http.Request) error {
+	token := r.Header.Get("X-MM-Cloud-Plugin-Auth-Token")
+
+	if token != p.configuration.ProvisioningServerWebhookSecret {
+		return errors.New("unauthorized")
+	}
+
+	return nil
+}
+
 func (p *Plugin) handleWebhook(w http.ResponseWriter, r *http.Request) {
+	if err := p.authenticateWebhook(r); err != nil {
+		p.API.LogError(err.Error())
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	payload, err := cloud.WebhookPayloadFromReader(r.Body)
 	if err != nil {
 		p.API.LogError(err.Error())

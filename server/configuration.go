@@ -68,6 +68,7 @@ type configuration struct {
 	InstallationDNS                           string
 	AllowedEmailDomain                        string
 	DeletionLockInstallationsAllowedPerPerson string
+	ProvisioningServerWebhookSecret           string
 
 	// License
 	E10License              string
