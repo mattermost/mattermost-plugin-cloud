@@ -1,13 +1,13 @@
 import React from 'react';
-import { Button, Modal } from 'react-bootstrap';
-import './deletion_unlock_confirmation_modal.scss'
+import {Button, Modal} from 'react-bootstrap';
+import PropTypes from 'prop-types';
+import './deletion_unlock_confirmation_modal.scss';
 
-
-export default function DeletionUnlockConfirmationModal({visible, onConfirm, onCancel}) {
+function DeletionUnlockConfirmationModal({visible, onConfirm, onCancel}) {
     return (
         <Modal
             show={visible}
-            onHide = {onCancel}
+            onHide={onCancel}
             onCancel={onCancel}
             className={'CloudPluginUnlockDeletionConfirmationModal'}
         >
@@ -21,20 +21,28 @@ export default function DeletionUnlockConfirmationModal({visible, onConfirm, onC
             </Modal.Body>
             <Modal.Footer>
                 <Button
-                    type="button"
-                    bsStyle="tertiary"
+                    type='button'
+                    bsStyle='tertiary'
                     onClick={onCancel}
                 >
                     Cancel
                 </Button>
                 <Button
-                    type="button"
-                    bsStyle="danger"
+                    type='button'
+                    bsStyle='danger'
                     onClick={onConfirm}
                 >
                     Remove Lock
                 </Button>
             </Modal.Footer>
         </Modal>
-    )
+    );
 }
+
+DeletionUnlockConfirmationModal.propTypes = {
+    visible: PropTypes.bool.isRequired,
+    onConfirm: PropTypes.func.isRequired,
+    onCancel: PropTypes.func.isRequired,
+};
+
+export default DeletionUnlockConfirmationModal;

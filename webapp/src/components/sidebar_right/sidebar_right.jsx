@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import {Scrollbars} from 'react-custom-scrollbars-2';
 import {Button, Label, DropdownButton, MenuItem} from 'react-bootstrap';
+
 import DeletionUnlockConfirmationModal from './deletion_unlock_confirmation_modal';
 
 export function renderView(props) {
@@ -102,7 +103,7 @@ export default class SidebarRight extends React.PureComponent {
     async handleDeletionUnlock(installation) {
         await this.props.actions.deletionUnlockInstallation(installation.ID);
         this.props.actions.getCloudUserData(this.props.id);
-        this.setState({deletionConfirmationModal: {visible: false}})
+        this.setState({deletionConfirmationModal: {visible: false}});
     }
 
     handleDeletionUnlockButtonClick(installation) {
@@ -226,8 +227,13 @@ export default class SidebarRight extends React.PureComponent {
             <React.Fragment>
                 <>
                     {
-                        this.state.deletionConfirmationModal.visible && <DeletionUnlockConfirmationModal visible={this.state.deletionConfirmationModal.visible} onConfirm={this.state.deletionConfirmationModal.onConfirm} onCancel={this.state.deletionConfirmationModal.onCancel}/>
-                    }   
+                        this.state.deletionConfirmationModal.visible &&
+                            <DeletionUnlockConfirmationModal
+                                visible={this.state.deletionConfirmationModal.visible}
+                                onConfirm={this.state.deletionConfirmationModal.onConfirm}
+                                onCancel={this.state.deletionConfirmationModal.onCancel}
+                            />
+                    }
                     <Scrollbars
                         autoHide={true}
                         autoHideTimeout={500}
