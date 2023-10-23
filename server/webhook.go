@@ -46,7 +46,7 @@ func (p *Plugin) authenticateWebhook(r *http.Request) error {
 
 func (p *Plugin) handleWebhook(w http.ResponseWriter, r *http.Request) {
 	if err := p.authenticateWebhook(r); err != nil {
-		p.API.LogError(err.Error())
+		p.API.LogError(errors.Wrap(err, "provisioner webhook authentication failed").Error())
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
