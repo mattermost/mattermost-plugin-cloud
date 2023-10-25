@@ -17,6 +17,8 @@ import (
 const (
 	installationLogsURLTmpl = `https://grafana.internal.mattermost.com/explore?orgId=1&left={"datasource":"PFB2D5CACEC34D62E","queries":[{"refId":"A","datasource":{"type":"loki","uid":"PFB2D5CACEC34D62E"},"editorMode":"code","expr":"{app=\"mattermost\", namespace=\"{{.ID}}\"}","queryType":"range"}],"range":{"from":"now-1h","to":"now"}}`
 	provisionerLogsURLTmpl  = `https://grafana.internal.mattermost.com/explore?orgId=1&left={"datasource":"PFB2D5CACEC34D62E","queries":[{"refId":"A","datasource":{"type":"loki","uid":"PFB2D5CACEC34D62E"},"editorMode":"code","expr":"{namespace=\"mattermost-cloud-test\", component=\"provisioner\"} |= %60{{.ID}}%60","queryType":"range"}],"range":{"from":"now-3h","to":"now"}}`
+
+	authHeaderKey = "X-MM-Cloud-Plugin-Auth-Token"
 )
 
 // getStringFromTemplate returns a string from a template and data provided.
@@ -36,7 +38,7 @@ func getStringFromTemplate(tmpl string, data any) (string, error) {
 }
 
 func (p *Plugin) authenticateWebhook(r *http.Request) error {
-	token := r.Header.Get("X-MM-Cloud-Plugin-Auth-Token")
+	token := r.Header.Get(authHeaderKey)
 
 	if equal := subtle.ConstantTimeCompare([]byte(token), []byte(p.configuration.ProvisioningServerWebhookSecret)); equal != 1 {
 		return errors.New("unauthorized")
