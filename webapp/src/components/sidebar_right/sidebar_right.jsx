@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import {Scrollbars} from 'react-custom-scrollbars-2';
 import {Button, Label, DropdownButton, MenuItem} from 'react-bootstrap';
 
+import DeletionUnlockConfirmationModal from './deletion_unlock_confirmation_modal';
+
 export function renderView(props) {
     return (
         <div
@@ -52,6 +54,7 @@ export default class SidebarRight extends React.PureComponent {
 
         this.state = {
             deletionLockedInstallationId: null,
+            deletionConfirmationModal: {visible: false},
         };
     }
 
@@ -97,17 +100,23 @@ export default class SidebarRight extends React.PureComponent {
         );
     }
 
+    async handleDeletionUnlock(installation) {
+        await this.props.actions.deletionUnlockInstallation(installation.ID);
+        this.props.actions.getCloudUserData(this.props.id);
+        this.setState({deletionConfirmationModal: {visible: false}});
+    }
+
+    handleDeletionUnlockButtonClick(installation) {
+        this.setState({deletionConfirmationModal: {visible: true, onConfirm: () => this.handleDeletionUnlock(installation), onCancel: () => this.setState({deletionConfirmationModal: {visible: false}})}});
+    }
+
     deletionLockButton(installation) {
         const deletionLockedInstallationsIds = this.props.installs.filter((install) => install.DeletionLocked).map((install) => install.ID);
         if (deletionLockedInstallationsIds.includes(installation.ID)) {
             return (
                 <Button
                     className='btn btn-danger btn-sm'
-                    onClick={async () => {
-                        await this.props.actions.deletionUnlockInstallation(installation.ID);
-                        this.props.actions.getCloudUserData(this.props.id);
-                    }
-                    }
+                    onClick={() => this.handleDeletionUnlockButtonClick(installation)}
                 >{'Unlock Deletion'}
                 </Button>
             );
@@ -216,21 +225,31 @@ export default class SidebarRight extends React.PureComponent {
 
         return (
             <React.Fragment>
-                <Scrollbars
-                    autoHide={true}
-                    autoHideTimeout={500}
-                    autoHideDuration={500}
-                    renderThumbHorizontal={renderThumbHorizontal}
-                    renderThumbVertical={renderThumbVertical}
-                    renderView={renderView}
-                    className='SidebarRight'
-                >
-                    <div style={style.container}>
-                        <ul style={style.ul}>
-                            {entries}
-                        </ul>
-                    </div>
-                </Scrollbars>
+                <>
+                    {
+                        this.state.deletionConfirmationModal.visible &&
+                            <DeletionUnlockConfirmationModal
+                                visible={this.state.deletionConfirmationModal.visible}
+                                onConfirm={this.state.deletionConfirmationModal.onConfirm}
+                                onCancel={this.state.deletionConfirmationModal.onCancel}
+                            />
+                    }
+                    <Scrollbars
+                        autoHide={true}
+                        autoHideTimeout={500}
+                        autoHideDuration={500}
+                        renderThumbHorizontal={renderThumbHorizontal}
+                        renderThumbVertical={renderThumbVertical}
+                        renderView={renderView}
+                        className='SidebarRight'
+                    >
+                        <div style={style.container}>
+                            <ul style={style.ul}>
+                                {entries}
+                            </ul>
+                        </div>
+                    </Scrollbars>
+                </>
             </React.Fragment>
         );
     }

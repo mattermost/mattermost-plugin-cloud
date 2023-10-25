@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"crypto/subtle"
 	"fmt"
 	"html/template"
 	"io"
@@ -34,7 +35,23 @@ func getStringFromTemplate(tmpl string, data any) (string, error) {
 	return result.String(), nil
 }
 
+func (p *Plugin) authenticateWebhook(r *http.Request) error {
+	token := r.Header.Get("X-MM-Cloud-Plugin-Auth-Token")
+
+	if equal := subtle.ConstantTimeCompare([]byte(token), []byte(p.configuration.ProvisioningServerWebhookSecret)); equal != 1 {
+		return errors.New("unauthorized")
+	}
+
+	return nil
+}
+
 func (p *Plugin) handleWebhook(w http.ResponseWriter, r *http.Request) {
+	if err := p.authenticateWebhook(r); err != nil {
+		p.API.LogError(errors.Wrap(err, "provisioner webhook authentication failed").Error())
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	payload, err := cloud.WebhookPayloadFromReader(r.Body)
 	if err != nil {
 		p.API.LogError(err.Error())
