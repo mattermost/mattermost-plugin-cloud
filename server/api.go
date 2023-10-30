@@ -100,7 +100,7 @@ func (p *Plugin) handleUserInstalls(w http.ResponseWriter, r *http.Request) {
 	for _, install := range installsForUser {
 		webInstall, wrapErr := CreateInstallationWebWrapper(install)
 		if wrapErr != nil {
-			p.API.LogError(errors.Wrapf(err, "Unable to CreateInstallationWebWrapper for %s", install.Name).Error())
+			p.API.LogError(errors.Wrapf(wrapErr, "Unable to CreateInstallationWebWrapper for %s", install.Name).Error())
 			continue
 		}
 		webInstalls = append(webInstalls, webInstall)
