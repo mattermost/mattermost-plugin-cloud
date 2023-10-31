@@ -21,6 +21,8 @@ const (
 	imageTeamEdition = "mattermost/mattermost-team-edition"
 	imageEETest      = "mattermostdevelopment/mm-ee-test"
 	imageTETest      = "mattermostdevelopment/mm-te-test"
+	imageEEDev       = "mattermostdevelopment/mattermost-enterprise-edition"
+	imageTEDev       = "mattermostdevelopment/mattermost-team-edition"
 
 	defaultImage = "mattermost/mattermost-enterprise-edition"
 )
@@ -42,6 +44,8 @@ var dockerRepoWhitelist = []string{
 	imageTeamEdition,
 	imageEETest,
 	imageTETest,
+	imageEEDev,
+	imageTEDev,
 }
 
 // dockerRepoTestImages are repositories that contain artifacts used primarily
@@ -49,6 +53,7 @@ var dockerRepoWhitelist = []string{
 // special licenses.
 var dockerRepoTestImages = []string{
 	imageEETest,
+	imageEEDev,
 }
 
 // configuration captures the plugin's external configuration as exposed in the Mattermost server
