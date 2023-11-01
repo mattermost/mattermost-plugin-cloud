@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/blang/semver/v4"
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
@@ -144,22 +143,6 @@ func (p *Plugin) createTestData(client *model.Client4, install *Installation) er
 		return nil
 	}
 
-	mmReleaseVersion, err := semver.Parse(install.Tag)
-	if err != nil {
-		return errors.Wrapf(err, "failed to parse version %s", install.Tag)
-	}
-
-	if mmReleaseVersion.LT(semver.MustParse("6.0.0")) {
-		_, err = p.execMattermostCLI(install.ID, []string{"sampledata"})
-		if err != nil {
-			// This probably won't complete before the AWS API Gateway timeout so
-			// log and move on.
-			p.API.LogWarn(errors.Wrapf(err, "Unable to finish generating test data for cloud installation %s", install.Name).Error())
-		}
-
-		return nil
-	}
-
 	clusterInstallations, err := p.cloudClient.GetClusterInstallations(
 		&cloud.GetClusterInstallationsRequest{
 			Paging:         cloud.AllPagesNotDeleted(),
@@ -172,11 +155,9 @@ func (p *Plugin) createTestData(client *model.Client4, install *Installation) er
 		return errors.Errorf("got unexpected number of ClusterInstallations (%d)", len(clusterInstallations))
 	}
 
-	_, err = p.cloudClient.ExecClusterInstallationCLI(clusterInstallations[0].ID,
-		"mmctl", []string{"--local", "sampledata"})
+	_, err = p.cloudClient.ExecClusterInstallationCLI(clusterInstallations[0].ID, "mmctl", []string{"sampledata", "--local"})
 	if err != nil {
-		// Gabe thinks this might not complete before the AWS API Gateway timeout so
-		// log and move on the same as we do for versions previous to 6.0, seen earlier in this method.
+		// Hitting a timeout is likely, so log and continue.
 		p.API.LogWarn(errors.Wrapf(err, "Unable to finish generating test data for cloud installation %s", install.Name).Error())
 	}
 
