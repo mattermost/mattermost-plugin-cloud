@@ -1,12 +1,12 @@
 module github.com/mattermost/mattermost-plugin-cloud
 
-go 1.19
+go 1.21
 
 require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/docker/distribution v2.8.1+incompatible
 	github.com/heroku/docker-registry-client v0.0.0-20211012143308-9463674c8930
-	github.com/mattermost/mattermost-cloud v0.75.0
+	github.com/mattermost/mattermost-cloud v0.78.0
 	github.com/mattermost/mattermost-server/v6 v6.7.2
 	github.com/mholt/archiver/v3 v3.5.1
 	github.com/pkg/errors v0.9.1
@@ -56,7 +56,7 @@ require (
 	github.com/mattermost/ldap v3.0.4+incompatible // indirect
 	github.com/mattermost/logr/v2 v2.0.15 // indirect
 	github.com/mattermost/mattermost-operator v1.21.0-rc.1 // indirect
-	github.com/mattermost/rotator v0.2.1-0.20230602082239-661a3981f623 // indirect
+	github.com/mattermost/rotator v0.2.1-0.20230830064954-61490ed26761 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/minio/md5-simd v1.1.2 // indirect
