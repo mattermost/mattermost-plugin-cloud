@@ -29,6 +29,9 @@ update [name] [flags]
 %s
 	example: /cloud update myinstallation --version 7.8.1
 
+restart [name]
+	Restarts the servers in a Mattermost installation.
+
 hibernate [name]
 	Hibernates a Mattermost installation.
 
@@ -118,6 +121,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		handler = p.runUpgradeHelperCommand
 	case "update":
 		handler = p.runUpdateCommand
+	case "restart":
+		handler = p.runRestartCommand
 	case "hibernate":
 		handler = p.runHibernateCommand
 	case "wake-up":
