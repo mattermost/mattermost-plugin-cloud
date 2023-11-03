@@ -224,5 +224,5 @@ func getInstallationServiceEnvironment(installation *Installation) string {
 		return v.Value
 	}
 
-	return "not-defined"
+	return "production"
 }
