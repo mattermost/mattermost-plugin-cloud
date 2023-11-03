@@ -16,7 +16,7 @@ func (p *Plugin) runWakeUpCommand(args []string, extra *model.CommandArgs) (*mod
 
 	name := standardizeName(args[0])
 
-	installs, err := p.getUpdatedInstallsForUser(extra.UserId)
+	installs, err := p.getUpdatedInstallsForUser(extra.UserId, true)
 	if err != nil {
 		return nil, false, err
 	}

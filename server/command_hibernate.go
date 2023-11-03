@@ -16,7 +16,7 @@ func (p *Plugin) runHibernateCommand(args []string, extra *model.CommandArgs) (*
 
 	name := standardizeName(args[0])
 
-	installs, err := p.getUpdatedInstallsForUser(extra.UserId)
+	installs, err := p.getUpdatedInstallsForUser(extra.UserId, true)
 	if err != nil {
 		return nil, false, err
 	}

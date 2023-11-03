@@ -63,7 +63,7 @@ func TestGetUpdatedInstallsForUser(t *testing.T) {
 		api.On("CreatePost", mock.Anything).Return(nil, nil)
 		api.On("LogWarn", mock.AnythingOfTypeArgument("string")).Return(nil)
 
-		installations, err := plugin.getUpdatedInstallsForUser("owner 1")
+		installations, err := plugin.getUpdatedInstallsForUser("owner 1", true)
 		require.NoError(t, err)
 		require.Equal(t, len(pluginInstalls), len(installations))
 		assert.Equal(t, "id1", installations[0].ID)

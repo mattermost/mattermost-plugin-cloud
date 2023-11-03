@@ -4,14 +4,19 @@ import (
 	"encoding/json"
 	"net/http"
 
+	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/v6/plugin"
 	"github.com/pkg/errors"
 )
+
+const serviceEnvironmentEnvVarKey = "MM_SERVICEENVIRONMENT"
 
 // InstallationWebWrapper embeds the standard plugin installation object with
 // some extra ephemeral fields used in the webapp.
 type InstallationWebWrapper struct {
 	*Installation
+	CreateAtDate        string
+	ServiceEnvironment  string
 	InstallationLogsURL string
 	ProvisionerLogsURL  string
 }
@@ -29,7 +34,16 @@ func CreateInstallationWebWrapper(i *Installation) (*InstallationWebWrapper, err
 		return nil, err
 	}
 
-	return &InstallationWebWrapper{i, installationLogsURL, provisionerLogsURL}, nil
+	serviceEnvironment := getInstallationServiceEnvironment(i)
+	i.HideSensitiveFields()
+
+	return &InstallationWebWrapper{
+		Installation:        i,
+		CreateAtDate:        cloud.DateStringFromMillis(i.CreateAt),
+		ServiceEnvironment:  serviceEnvironment,
+		InstallationLogsURL: installationLogsURL,
+		ProvisionerLogsURL:  provisionerLogsURL,
+	}, nil
 }
 
 // ServeHTTP handles HTTP requests to the plugin.
@@ -89,7 +103,7 @@ func (p *Plugin) handleUserInstalls(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	installsForUser, err := p.getUpdatedInstallsForUser(req.UserID)
+	installsForUser, err := p.getUpdatedInstallsForUser(req.UserID, false)
 	if err != nil {
 		p.API.LogError(errors.Wrap(err, "Unable to getUpdatedInstallsForUser").Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -200,4 +214,15 @@ func (p *Plugin) handleGetConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write(data)
+}
+
+func getInstallationServiceEnvironment(installation *Installation) string {
+	if v, ok := installation.PriorityEnv[serviceEnvironmentEnvVarKey]; ok {
+		return v.Value
+	}
+	if v, ok := installation.MattermostEnv[serviceEnvironmentEnvVarKey]; ok {
+		return v.Value
+	}
+
+	return "not-defined"
 }

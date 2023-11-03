@@ -10,7 +10,7 @@ import (
 )
 
 func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
-	installsForUser, err := p.getUpdatedInstallsForUser(extra.UserId)
+	installsForUser, err := p.getUpdatedInstallsForUser(extra.UserId, true)
 	if err != nil {
 		return nil, false, err
 	}
@@ -27,7 +27,7 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 	return getCommandResponse(model.CommandResponseTypeEphemeral, jsonCodeBlock(prettyPrintJSON(string(data))), extra), false, nil
 }
 
-func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, error) {
+func (p *Plugin) getUpdatedInstallsForUser(userID string, hideSensitive bool) ([]*Installation, error) {
 	pluginInstalls, err := p.getInstallationsForUser(userID)
 	if err != nil {
 		return nil, err
@@ -47,7 +47,7 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, erro
 
 	var deleted bool
 	for i, pluginInstall := range pluginInstalls {
-		deleted, err = p.processInstallationUpdate(pluginInstall, cloudInstalls)
+		deleted, err = p.processInstallationUpdate(pluginInstall, cloudInstalls, hideSensitive)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to process installation")
 		}
@@ -64,11 +64,13 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string) ([]*Installation, erro
 	return pluginInstalls, nil
 }
 
-func (p *Plugin) processInstallationUpdate(pluginInstall *Installation, cloudInstalls []*cloud.InstallationDTO) (bool, error) {
+func (p *Plugin) processInstallationUpdate(pluginInstall *Installation, cloudInstalls []*cloud.InstallationDTO, hideSensitive bool) (bool, error) {
 	for _, cloudInstall := range cloudInstalls {
 		if pluginInstall.ID == cloudInstall.ID {
 			pluginInstall.InstallationDTO = *cloudInstall
-			pluginInstall.HideSensitiveFields()
+			if hideSensitive {
+				pluginInstall.HideSensitiveFields()
+			}
 			return false, nil
 		}
 	}
@@ -87,7 +89,9 @@ func (p *Plugin) processInstallationUpdate(pluginInstall *Installation, cloudIns
 	}
 
 	pluginInstall.Installation = updatedInstall.Installation
-	pluginInstall.HideSensitiveFields()
+	if hideSensitive {
+		pluginInstall.HideSensitiveFields()
+	}
 
 	if updatedInstall.State != cloud.InstallationStateDeleted {
 		// This is strange as the installation should have been retrieved in the
