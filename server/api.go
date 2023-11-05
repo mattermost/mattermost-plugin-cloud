@@ -103,9 +103,9 @@ func (p *Plugin) handleUserInstalls(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	installsForUser, err := p.getUpdatedInstallsForUser(req.UserID, false)
+	installsForUser, err := p.getUpdatedInstallsForUserWithSensitive(req.UserID)
 	if err != nil {
-		p.API.LogError(errors.Wrap(err, "Unable to getUpdatedInstallsForUser").Error())
+		p.API.LogError(errors.Wrap(err, "Unable to getUpdatedInstallsForUserWithSensitive").Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}

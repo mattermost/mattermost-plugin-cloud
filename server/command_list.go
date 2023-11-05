@@ -10,7 +10,7 @@ import (
 )
 
 func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
-	installsForUser, err := p.getUpdatedInstallsForUser(extra.UserId, true)
+	installsForUser, err := p.getUpdatedInstallsForUserWithoutSensitive(extra.UserId)
 	if err != nil {
 		return nil, false, err
 	}
@@ -25,6 +25,14 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 	}
 
 	return getCommandResponse(model.CommandResponseTypeEphemeral, jsonCodeBlock(prettyPrintJSON(string(data))), extra), false, nil
+}
+
+func (p *Plugin) getUpdatedInstallsForUserWithSensitive(userID string) ([]*Installation, error) {
+	return p.getUpdatedInstallsForUser(userID, false)
+}
+
+func (p *Plugin) getUpdatedInstallsForUserWithoutSensitive(userID string) ([]*Installation, error) {
+	return p.getUpdatedInstallsForUser(userID, true)
 }
 
 func (p *Plugin) getUpdatedInstallsForUser(userID string, hideSensitive bool) ([]*Installation, error) {
