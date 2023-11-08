@@ -218,6 +218,14 @@ export default class SidebarRight extends React.PureComponent {
                         <span style={style.col1}>Size:</span>
                         <span>{install.Size}</span>
                     </div>
+                    <div>
+                        <span style={style.col1}>Service Env:</span>
+                        <span>{install.ServiceEnvironment}</span>
+                    </div>
+                    <div>
+                        <span style={style.col1}>Created:</span>
+                        <span>{install.CreateAtDate}</span>
+                    </div>
                 </div>
                 {this.installationButtons(install)}
             </li>

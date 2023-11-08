@@ -23,8 +23,9 @@ func TestGetUpdatedInstallsForUser(t *testing.T) {
 			mockedCloudInstallationsDTO: []*cloud.InstallationDTO{
 				{
 					Installation: &cloud.Installation{
-						ID:    "id1",
-						State: cloud.InstallationStateStable,
+						ID:            "id1",
+						State:         cloud.InstallationStateStable,
+						MattermostEnv: cloud.EnvVarMap{"secret": cloud.EnvVar{Value: "supersecret"}},
 					},
 				},
 				{
@@ -54,6 +55,33 @@ func TestGetUpdatedInstallsForUser(t *testing.T) {
 
 	plugin.SetAPI(api)
 
+	t.Run("test sensitivity", func(t *testing.T) {
+		pluginInstalls, installationBytes, err := getFakePluginInstallations()
+		require.NoError(t, err)
+		api.On("KVGet", mock.AnythingOfType("string")).Return(installationBytes, nil)
+		api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
+		api.On("GetDirectChannel", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.Channel{}, nil)
+		api.On("CreatePost", mock.Anything).Return(nil, nil)
+		api.On("LogWarn", mock.AnythingOfTypeArgument("string")).Return(nil)
+
+		t.Run("with sensitive", func(t *testing.T) {
+			installations, err := plugin.getUpdatedInstallsForUserWithSensitive("owner 1")
+			require.NoError(t, err)
+			require.Equal(t, len(pluginInstalls), len(installations))
+			assert.Equal(t, "id1", installations[0].ID)
+			assert.NotNil(t, installations[0].MattermostEnv)
+			t.Log(installations[0].State)
+		})
+
+		t.Run("without sensitive", func(t *testing.T) {
+			installations, err := plugin.getUpdatedInstallsForUserWithoutSensitive("owner 1")
+			require.NoError(t, err)
+			require.Equal(t, len(pluginInstalls), len(installations))
+			assert.Equal(t, "id1", installations[0].ID)
+			assert.Nil(t, installations[0].MattermostEnv)
+		})
+	})
+
 	t.Run("test deleted installations", func(t *testing.T) {
 		pluginInstalls, installationBytes, err := getFakePluginInstallations()
 		require.NoError(t, err)
@@ -63,7 +91,7 @@ func TestGetUpdatedInstallsForUser(t *testing.T) {
 		api.On("CreatePost", mock.Anything).Return(nil, nil)
 		api.On("LogWarn", mock.AnythingOfTypeArgument("string")).Return(nil)
 
-		installations, err := plugin.getUpdatedInstallsForUser("owner 1")
+		installations, err := plugin.getUpdatedInstallsForUserWithoutSensitive("owner 1")
 		require.NoError(t, err)
 		require.Equal(t, len(pluginInstalls), len(installations))
 		assert.Equal(t, "id1", installations[0].ID)

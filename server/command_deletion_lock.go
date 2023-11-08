@@ -12,7 +12,7 @@ func (p *Plugin) lockForDeletion(installationID string, userID string) error {
 	if installationID == "" {
 		return errors.New("installationID must not be empty")
 	}
-	installations, err := p.getUpdatedInstallsForUser(userID)
+	installations, err := p.getUpdatedInstallsForUserWithoutSensitive(userID)
 	if err != nil {
 		return err
 	}
@@ -55,7 +55,7 @@ func (p *Plugin) unlockForDeletion(installationID string, userID string) error {
 		return errors.New("installationID must not be empty")
 	}
 
-	installations, err := p.getUpdatedInstallsForUser(userID)
+	installations, err := p.getUpdatedInstallsForUserWithoutSensitive(userID)
 	if err != nil {
 		return err
 	}
@@ -87,7 +87,7 @@ func (p *Plugin) runDeletionLockCommand(args []string, extra *model.CommandArgs)
 
 	name := standardizeName(args[0])
 
-	installations, err := p.getUpdatedInstallsForUser(extra.UserId)
+	installations, err := p.getUpdatedInstallsForUserWithoutSensitive(extra.UserId)
 	if err != nil {
 		return nil, true, err
 	}
@@ -118,7 +118,7 @@ func (p *Plugin) runDeletionUnlockCommand(args []string, extra *model.CommandArg
 
 	name := standardizeName(args[0])
 
-	installs, err := p.getUpdatedInstallsForUser(extra.UserId)
+	installs, err := p.getUpdatedInstallsForUserWithoutSensitive(extra.UserId)
 	if err != nil {
 		return nil, false, err
 	}
