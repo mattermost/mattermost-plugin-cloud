@@ -119,6 +119,9 @@ describe('SidebarRight', () => {
         const unlockButton = screen.getByText('Unlock Deletion');
         fireEvent.click(unlockButton);
 
+        const confirmButton = screen.getByText('Remove Lock');
+        fireEvent.click(confirmButton);
+
         expect(props.actions.deletionUnlockInstallation).toHaveBeenCalledWith('2');
     });
 
