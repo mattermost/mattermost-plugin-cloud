@@ -16,6 +16,9 @@ export default function ChannelHeaderButton(props: Props) {
     }
 
     return (
-        <i role='button' className={btnClass}/>
+        <i
+            role='button'
+            className={btnClass}
+        />
     );
 }

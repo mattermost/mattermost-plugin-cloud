@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
+
 import UserAttribute from './user_attribute';
 
 describe('UserAttribute', () => {
@@ -13,7 +14,7 @@ describe('UserAttribute', () => {
             },
         };
 
-        render(<UserAttribute {...props} />);
+        render(<UserAttribute {...props}/>);
 
         expect(screen.queryByText('Cloud Servers')).toBeNull();
     });
@@ -28,7 +29,7 @@ describe('UserAttribute', () => {
             },
         };
 
-        render(<UserAttribute {...props} />);
+        render(<UserAttribute {...props}/>);
 
         expect(screen.queryByText('Cloud Servers')).toBeNull();
     });
@@ -40,7 +41,7 @@ describe('UserAttribute', () => {
                 {
                     ID: '1',
                     Name: 'Test Installation 1',
-                    DNSRecords: [{ DomainName: 'example.com' }],
+                    DNSRecords: [{DomainName: 'example.com'}],
                 },
                 {
                     ID: '2',
@@ -54,7 +55,7 @@ describe('UserAttribute', () => {
             },
         };
 
-        render(<UserAttribute {...props} />);
+        render(<UserAttribute {...props}/>);
 
         expect(screen.getByText('Cloud Servers')).toBeInTheDocument();
         expect(screen.getByText('Test Installation 1')).toBeInTheDocument();

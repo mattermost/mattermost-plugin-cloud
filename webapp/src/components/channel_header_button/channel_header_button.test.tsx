@@ -1,5 +1,6 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import {render, screen} from '@testing-library/react';
+
 import ChannelHeaderButton from './channel_header_button';
 
 describe('ChannelHeaderButton', () => {
@@ -8,7 +9,7 @@ describe('ChannelHeaderButton', () => {
             shouldHighlight: false,
         };
 
-        render(<ChannelHeaderButton {...props} />);
+        render(<ChannelHeaderButton {...props}/>);
 
         const button = screen.getByRole('button');
         expect(button).toBeInTheDocument();
@@ -21,7 +22,7 @@ describe('ChannelHeaderButton', () => {
             shouldHighlight: true,
         };
 
-        render(<ChannelHeaderButton {...props} />);
+        render(<ChannelHeaderButton {...props}/>);
 
         const button = screen.getByRole('button');
         expect(button).toBeInTheDocument();
