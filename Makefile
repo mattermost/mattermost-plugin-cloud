@@ -164,7 +164,7 @@ ifneq ($(HAS_SERVER),)
 	$(GO) test -v $(GO_TEST_FLAGS) -ldflags '$(LDFLAGS)' ./server/...
 endif
 ifneq ($(HAS_WEBAPP),)
-	cd webapp && $(NPM) run fix;
+	cd webapp && $(NPM) run test;
 endif
 
 ## Creates a coverage report for the server code.
