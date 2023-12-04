@@ -10,6 +10,7 @@ import {installsForUser, serverError} from 'selectors';
 
 import {
     RECEIVED_USER_INSTALLS,
+    RECEIVED_SHARED_INSTALLS,
     RECEIVED_SHOW_RHS_ACTION,
     SET_RHS_VISIBLE,
     SET_SERVER_ERROR,
@@ -117,6 +118,29 @@ export function getCloudUserData(userID) {
         dispatch({
             type: RECEIVED_USER_INSTALLS,
             userID,
+            data,
+        });
+
+        return {data};
+    };
+}
+
+export function getSharedInstalls() {
+    return async (dispatch, getState) => {
+        const data = await Client.getSharedInstalls();
+
+        if (data.error) {
+            dispatch(setServerError(`Status: ${data.error.status}, Message: ${data.error.message}`));
+            return data;
+        }
+
+        // Clear server error
+        if (serverError(getState())) {
+            dispatch(setServerError(''));
+        }
+
+        dispatch({
+            type: RECEIVED_SHARED_INSTALLS,
             data,
         });
 

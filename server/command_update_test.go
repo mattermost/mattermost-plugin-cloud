@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"testing"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
@@ -262,4 +263,79 @@ func TestUpdateCommand(t *testing.T) {
 		})
 	})
 
+	t.Run("shared installations", func(t *testing.T) {
+		api.On("GetUser", mock.AnythingOfType("string")).Return(&model.User{}, nil)
+		api.On("GetDirectChannel", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.Channel{}, nil)
+		api.On("CreatePost", mock.Anything).Return(nil, nil)
+
+		t.Run("not shared", func(t *testing.T) {
+			installBytes, err := json.Marshal([]*Installation{{
+				Name:               "gabesinstall",
+				Shared:             false,
+				AllowSharedUpdates: false,
+				InstallationDTO:    cloud.InstallationDTO{Installation: &cloud.Installation{ID: cloud.NewID()}},
+			}})
+			require.NoError(t, err)
+			api.On("KVGet").Unset()
+			api.On("KVGet", mock.AnythingOfType("string")).Return(installBytes, nil)
+
+			resp, isUserError, err := plugin.runUpdateCommand([]string{"gabesinstall", "--env", "ENV1=test", "--shared-installation"}, &model.CommandArgs{UserId: "gabeid"})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "no installation with the name gabesinstall found")
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+		})
+
+		t.Run("shared, but not with updates allowed", func(t *testing.T) {
+			installBytes, err := json.Marshal([]*Installation{{
+				Name:               "gabesinstall",
+				Shared:             true,
+				AllowSharedUpdates: false,
+				InstallationDTO:    cloud.InstallationDTO{Installation: &cloud.Installation{ID: cloud.NewID()}},
+			}})
+			require.NoError(t, err)
+			api.On("KVGet").Unset()
+			api.On("KVGet", mock.AnythingOfType("string")).Return(installBytes, nil)
+
+			resp, isUserError, err := plugin.runUpdateCommand([]string{"gabesinstall", "--env", "ENV1=test", "--shared-installation"}, &model.CommandArgs{UserId: "gabeid"})
+			require.Error(t, err)
+			assert.Contains(t, err.Error(), "installation gabesinstall is shared, but the owner has not allowed for others to update it")
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+		})
+
+		t.Run("shared and updates allowed", func(t *testing.T) {
+			installBytes, err := json.Marshal([]*Installation{{
+				Name:               "gabesinstall",
+				Shared:             true,
+				AllowSharedUpdates: true,
+				InstallationDTO:    cloud.InstallationDTO{Installation: &cloud.Installation{ID: cloud.NewID()}},
+			}})
+			require.NoError(t, err)
+			api.On("KVGet").Unset()
+			api.On("KVGet", mock.AnythingOfType("string")).Return(installBytes, nil)
+
+			resp, isUserError, err := plugin.runUpdateCommand([]string{"gabesinstall", "--env", "ENV1=test", "--shared-installation"}, &model.CommandArgs{UserId: "gabeid"})
+			require.NoError(t, err)
+			assert.False(t, isUserError)
+			assert.Contains(t, resp.Text, "Update of installation")
+		})
+
+		t.Run("missing --shared-installation flag", func(t *testing.T) {
+			installBytes, err := json.Marshal([]*Installation{{
+				Name:               "gabesinstall",
+				Shared:             true,
+				AllowSharedUpdates: true,
+				InstallationDTO:    cloud.InstallationDTO{Installation: &cloud.Installation{ID: cloud.NewID()}},
+			}})
+			require.NoError(t, err)
+			api.On("KVGet").Unset()
+			api.On("KVGet", mock.AnythingOfType("string")).Return(installBytes, nil)
+
+			resp, isUserError, err := plugin.runUpdateCommand([]string{"gabesinstall", "--env", "ENV1=test"}, &model.CommandArgs{UserId: "gabeid"})
+			assert.Contains(t, err.Error(), "no installation with the name gabesinstall found")
+			assert.True(t, isUserError)
+			assert.Nil(t, resp)
+		})
+	})
 }

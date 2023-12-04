@@ -18,58 +18,59 @@ func getUpdateFlagSet() *flag.FlagSet {
 	updateFlagSet.String("image", "", fmt.Sprintf("Docker image repository, can be %s", strings.Join(dockerRepoWhitelist, ", ")))
 	updateFlagSet.StringSlice("env", []string{}, "Environment variables in form: ENV1=test,ENV2=test")
 	updateFlagSet.StringSlice("clear-env", []string{}, "List of custom environment variables to erase, for example: ENV1,ENV2")
+	updateFlagSet.Bool("shared-installation", false, "Set this to true when attempting to update a shared installation")
 
 	return updateFlagSet
 }
 
-func buildPatchInstallationRequestFromArgs(args []string) (*cloud.PatchInstallationRequest, error) {
+func buildPatchInstallationRequestFromArgs(args []string) (*cloud.PatchInstallationRequest, bool, error) {
 	updateFlagSet := getUpdateFlagSet()
 	err := updateFlagSet.Parse(args)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	version, err := updateFlagSet.GetString("version")
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	license, err := updateFlagSet.GetString("license")
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	size, err := updateFlagSet.GetString("size")
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	if size != "" && !Contains(validInstallationSizes, size) {
-		return nil, fmt.Errorf("Invalid size: %s", size)
+		return nil, false, fmt.Errorf("Invalid size: %s", size)
 	}
 
 	image, err := updateFlagSet.GetString("image")
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	envVars, err := updateFlagSet.GetStringSlice("env")
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	envClear, err := updateFlagSet.GetStringSlice("clear-env")
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 	if version == "" && license == "" && size == "" && image == "" && len(envVars) == 0 && len(envClear) == 0 {
-		return nil, errors.New("must specify at least one option: version, license, image, size, env, clear-env")
+		return nil, false, errors.New("must specify at least one option: version, license, image, size, env, clear-env")
 	}
 	if license != "" && !validLicenseOption(license) {
-		return nil, errors.Errorf("invalid license option %s, valid options are %s", license, strings.Join(validLicenseOptions, ", "))
+		return nil, false, errors.Errorf("invalid license option %s, valid options are %s", license, strings.Join(validLicenseOptions, ", "))
 	}
 	if image != "" && !validImageName(image) {
-		return nil, errors.Errorf("invalid image name %s, valid options are %s", image, strings.Join(dockerRepoWhitelist, ", "))
+		return nil, false, errors.Errorf("invalid image name %s, valid options are %s", image, strings.Join(dockerRepoWhitelist, ", "))
 	}
 
 	envVarMap, err := parseEnvVarInput(envVars, envClear)
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	request := &cloud.PatchInstallationRequest{
@@ -88,7 +89,12 @@ func buildPatchInstallationRequestFromArgs(args []string) (*cloud.PatchInstallat
 		request.Image = &image
 	}
 
-	return request, nil
+	shared, err := updateFlagSet.GetBool("shared-installation")
+	if err != nil {
+		return nil, false, err
+	}
+
+	return request, shared, nil
 }
 
 // runUpdateCommand requests an update and returns the response, an
@@ -101,26 +107,43 @@ func (p *Plugin) runUpdateCommand(args []string, extra *model.CommandArgs) (*mod
 
 	name := standardizeName(args[0])
 
-	installs, _, err := p.getInstallations()
+	request, shared, err := buildPatchInstallationRequestFromArgs(args)
 	if err != nil {
-		return nil, false, err
+		return nil, true, err
 	}
-
 	var installToUpdate *Installation
-	for _, install := range installs {
-		if install.OwnerID == extra.UserId && install.Name == name {
-			installToUpdate = install
-			break
+
+	if shared {
+		installs, sharedErr := p.getSharedInstallations()
+		if sharedErr != nil {
+			return nil, false, sharedErr
+		}
+
+		for _, install := range installs {
+			if install.Name == name {
+				if !install.AllowSharedUpdates {
+					return nil, true, errors.Errorf("installation %s is shared, but the owner has not allowed for others to update it", name)
+				}
+				installToUpdate = install
+				break
+			}
+		}
+	} else {
+		installs, _, installsErr := p.getInstallations()
+		if installsErr != nil {
+			return nil, false, installsErr
+		}
+
+		for _, install := range installs {
+			if install.OwnerID == extra.UserId && install.Name == name {
+				installToUpdate = install
+				break
+			}
 		}
 	}
 
 	if installToUpdate == nil {
 		return nil, true, errors.Errorf("no installation with the name %s found", name)
-	}
-
-	request, err := buildPatchInstallationRequestFromArgs(args)
-	if err != nil {
-		return nil, true, err
 	}
 
 	if request.Version != nil || request.Image != nil {
@@ -170,6 +193,20 @@ func (p *Plugin) runUpdateCommand(args []string, extra *model.CommandArgs) (*mod
 	err = p.updateInstallation(installToUpdate)
 	if err != nil {
 		return nil, false, errors.Wrap(err, "failed to store updated installation metadata")
+	}
+
+	if shared {
+		// Send a message to the installation owner to let them know an update
+		// occured. Only log an error if there is an issue getting the update
+		// requester details, but still try to send the message.
+		username := "A user"
+		updateRquester, err := p.API.GetUser(extra.UserId)
+		if err != nil {
+			p.API.LogError(errors.Wrap(err, "failed to get update request user details").Error())
+		} else {
+			username = fmt.Sprintf("@%s", updateRquester.Username)
+		}
+		p.PostBotDM(installToUpdate.OwnerID, fmt.Sprintf("%s has updated an installation you have shared. The following command was run: `%s`", username, extra.Command))
 	}
 
 	return getCommandResponse(model.CommandResponseTypeEphemeral, fmt.Sprintf("Update of installation %s has begun. You will receive a notification when it is ready. Use /cloud list to check on the status of your installations.", name), extra), false, nil

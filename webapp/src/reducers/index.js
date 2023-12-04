@@ -1,6 +1,6 @@
 import {combineReducers} from 'redux';
 
-import {RECEIVED_USER_INSTALLS, RECEIVED_SHOW_RHS_ACTION, SET_RHS_VISIBLE, SET_SERVER_ERROR, RECEIVED_CONFIG} from '../action_types';
+import {RECEIVED_USER_INSTALLS, RECEIVED_SHARED_INSTALLS, RECEIVED_SHOW_RHS_ACTION, SET_RHS_VISIBLE, SET_SERVER_ERROR, RECEIVED_CONFIG} from '../action_types';
 
 function cloudUserInstalls(state = {}, action) {
     switch (action.type) {
@@ -9,6 +9,15 @@ function cloudUserInstalls(state = {}, action) {
         nextState[action.userID] = action.data;
         return nextState;
     }
+    default:
+        return state;
+    }
+}
+
+function sharedInstalls(state = [], action) {
+    switch (action.type) {
+    case RECEIVED_SHARED_INSTALLS:
+        return action.data;
     default:
         return state;
     }
@@ -52,6 +61,7 @@ function serverError(state = '', action) {
 
 export default combineReducers({
     cloudUserInstalls,
+    sharedInstalls,
     rhsPluginAction,
     isRhsVisible,
     serverError,

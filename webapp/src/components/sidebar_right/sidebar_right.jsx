@@ -36,13 +36,16 @@ export default class SidebarRight extends React.PureComponent {
     static propTypes = {
         id: PropTypes.string.isRequired,
         installs: PropTypes.array.isRequired,
+        sharedInstalls: PropTypes.array.isRequired,
         serverError: PropTypes.string.isRequired,
         deletionLockedInstallationId: PropTypes.string,
         maxLockedInstallations: PropTypes.number,
+        serverTypeValue: PropTypes.string,
         actions: PropTypes.shape({
             setVisible: PropTypes.func.isRequired,
             telemetry: PropTypes.func.isRequired,
             getCloudUserData: PropTypes.func.isRequired,
+            getSharedInstalls: PropTypes.func.isRequired,
             deletionLockInstallation: PropTypes.func.isRequired,
             deletionUnlockInstallation: PropTypes.func.isRequired,
             getPluginConfiguration: PropTypes.func.isRequired,
@@ -55,12 +58,14 @@ export default class SidebarRight extends React.PureComponent {
         this.state = {
             deletionLockedInstallationId: null,
             deletionConfirmationModal: {visible: false},
+            serverTypeValue: 'Personal',
         };
     }
 
     componentDidMount() {
         this.props.actions.setVisible(true);
         this.props.actions.getCloudUserData(this.props.id);
+        this.props.actions.getSharedInstalls();
         this.props.actions.getPluginConfiguration();
     }
 
@@ -68,7 +73,11 @@ export default class SidebarRight extends React.PureComponent {
         this.props.actions.setVisible(false);
     }
 
-    installationButtons(installation) {
+    setServerTypeValue(value) {
+        this.setState({serverTypeValue: value});
+    }
+
+    installationButtons(installation, shared) {
         const dropdownButtonItems = [
             {onClick: () => window.open(installation.InstallationLogsURL, '_blank'), buttonText: 'Installation Logs'},
             {onClick: () => window.open(installation.ProvisionerLogsURL, '_blank'), buttonText: 'Provisioner Logs'},
@@ -80,6 +89,10 @@ export default class SidebarRight extends React.PureComponent {
             >{menuItem.buttonText}
             </MenuItem>
         ));
+        let actionButtons;
+        if (!shared) {
+            actionButtons = this.deletionLockButton(installation);
+        }
 
         return (
             <div>
@@ -95,7 +108,7 @@ export default class SidebarRight extends React.PureComponent {
                 >
                     {menuItems}
                 </DropdownButton>
-                {this.deletionLockButton(installation)}
+                {actionButtons}
             </div>
         );
     }
@@ -136,100 +149,150 @@ export default class SidebarRight extends React.PureComponent {
         );
     }
 
-    render() {
-        if (this.props.serverError) {
-            return (
-                <div style={style.message}>
-                    <p>{'Received a server error'}</p>
-                    <p>{this.props.serverError}</p>
-                    <div style={style.serverIcon}>
-                        <i className='fa fa-server fa-4x'/>
-                    </div>
+    personalInstallationList(installations) {
+        return this.installationList(installations, false);
+    }
 
-                </div>
-            );
-        }
+    sharedInstallationList(installations) {
+        return this.installationList(installations, true);
+    }
 
-        const installs = this.props.installs;
-        if (installs.length === 0) {
-            return (
-                <div style={style.message}>
-                    <p>{'There are no installations, use the /cloud create command to add an installation.'}</p>
-                    <div style={style.serverIcon}>
-                        <i className='fa fa-server fa-4x'/>
-                    </div>
-
-                </div>
-            );
-        }
-
-        const entries = installs.map((install) => (
+    installationList(installations, shared) {
+        return installations.map((installation) => (
             <li
                 style={style.li}
-                key={install.ID}
+                key={installation.ID}
             >
+                <div>
+                    <div style={style.nameText}><b>{installation.Name}</b></div>
+                </div>
                 <div style={style.header}>
-                    <div style={style.nameText}><b>{install.Name}</b></div>
-                    <span>
-                        <Label style={install.State === 'stable' ? style.stable : style.inProgress}>
-                            <b>{install.State}</b>
-                        </Label>
-                        {install.DeletionLocked &&
-                            <Label style={style.stable}>
-                                <b>deletion locked</b>
-                            </Label>
-                        }
-                    </span>
+                    <Label style={installation.State === 'stable' ? style.stable : style.inProgress}>
+                        <b>{installation.State}</b>
+                        <span
+                            style={style.badgeIcon}
+                            className={installation.State === 'stable' ? 'fa fa-check' : 'fa fa-spinner'}
+                        />
+                    </Label>
+                    {installation.DeletionLocked &&
+                    <Label style={style.stable}>
+                        <b>deletion locked</b>
+                        <span
+                            style={style.badgeIcon}
+                            className='fa fa-lock'
+                        />
+                    </Label>
+                    }
+                    {installation.Shared &&
+                    <Label style={style.stable}>
+                        {installation.AllowSharedUpdates ? 'shared-updates' : 'shared'}
+                        <span
+                            style={style.badgeIcon}
+                            className='fa fa-users'
+                        />
+                    </Label>
+                    }
                 </div>
                 <div style={style.installinfo}>
                     <div>
                         <span style={style.col1}>DNS:</span>
-                        {install.DNSRecords.length > 0 ?
-                            <span>{install.DNSRecords[0].DomainName}</span> :
+                        {installation.DNSRecords.length > 0 ?
+                            <span>{installation.DNSRecords[0].DomainName}</span> :
                             <span>No URL!</span>
                         }
                     </div>
 
                     <div>
                         <span style={style.col1}>Image:</span>
-                        <span>{install.Image}</span>
+                        <span>{installation.Image}</span>
                     </div>
                     <div>
-                        {install.Tag === '' ?
+                        {installation.Tag === '' ?
                             <div>
                                 <span style={style.col1}>Version:</span>
-                                <span>{install.Version}</span>
+                                <span>{installation.Version}</span>
                             </div> :
                             <div>
                                 <span style={style.col1}>Tag:</span>
-                                <span>{install.Tag}</span>
+                                <span>{installation.Tag}</span>
                             </div>
                         }
                     </div>
                     <div>
                         <span style={style.col1}>Database:</span>
-                        <span>{install.Database}</span>
+                        <span>{installation.Database}</span>
                     </div>
                     <div>
                         <span style={style.col1}>Filestore:</span>
-                        <span>{install.Filestore}</span>
+                        <span>{installation.Filestore}</span>
                     </div>
                     <div>
                         <span style={style.col1}>Size:</span>
-                        <span>{install.Size}</span>
+                        <span>{installation.Size}</span>
                     </div>
                     <div>
                         <span style={style.col1}>Service Env:</span>
-                        <span>{install.ServiceEnvironment}</span>
+                        <span>{installation.ServiceEnvironment}</span>
                     </div>
                     <div>
                         <span style={style.col1}>Created:</span>
-                        <span>{install.CreateAtDate}</span>
+                        <span>{installation.CreateAtDate}</span>
                     </div>
                 </div>
-                {this.installationButtons(install)}
+                {this.installationButtons(installation, shared)}
             </li>
         ));
+    }
+
+    render() {
+        if (this.props.serverError) {
+            return (
+                <div style={style.sidebarMessage}>
+                    <i className='fa fa-cloud fa-5x'/>
+                    <p>{'Received a server error'}</p>
+                    <p>{this.props.serverError}</p>
+                </div>
+            );
+        }
+
+        const installs = this.props.installs;
+        const sharedInstalls = this.props.sharedInstalls;
+        let content;
+
+        if (this.state.serverTypeValue === 'Personal') {
+            if (installs.length === 0) {
+                content = (
+                    <div style={style.sidebarMessage}>
+                        <i className='fa fa-cloud fa-5x'/>
+                        <p>{'There are no installations. Use the `/cloud create` command to add an installation.'}</p>
+                    </div>
+                );
+            } else {
+                content = (
+                    <ul style={style.ul}>
+                        {this.personalInstallationList(installs)}
+                    </ul>
+                );
+            }
+        } else if (sharedInstalls.length === 0) {
+            content = (
+                <div style={style.sidebarMessage}>
+                    <i className='fa fa-cloud fa-5x'/>
+                    <p>{'There are no shared installations. Use the `/cloud share` command to share one of yours with other plugin users.'}</p>
+                </div>
+            );
+        } else {
+            content = (
+                <ul style={style.ul}>
+                    {this.sharedInstallationList(sharedInstalls)}
+                </ul>
+            );
+        }
+
+        const serverType = [
+            {name: 'Personal', value: 'Personal', icon: 'fa fa-user', count: installs.length},
+            {name: 'Shared', value: 'Shared', icon: 'fa fa-users', count: sharedInstalls.length},
+        ];
 
         return (
             <React.Fragment>
@@ -252,9 +315,25 @@ export default class SidebarRight extends React.PureComponent {
                         className='SidebarRight'
                     >
                         <div style={style.container}>
-                            <ul style={style.ul}>
-                                {entries}
-                            </ul>
+                            <div style={style.serverTypeSelect}>
+                                {serverType.map((type, idx) => (
+                                    <Button
+                                        key={idx}
+                                        className={this.state.serverTypeValue === type.value ? 'btn btn-tertiary' : 'btn btn-quaternary'}
+                                        value={type.value}
+                                        onClick={(e) => this.setServerTypeValue(e.currentTarget.value)}
+                                    >
+                                        <i className={type.icon}/>
+                                        {type.name}
+                                        <span
+                                            style={style.serverCountBadge}
+                                            className='badge'
+                                        >{type.count}
+                                        </span>
+                                    </Button>
+                                ))}
+                            </div>
+                            {content}
                         </div>
                     </Scrollbars>
                 </>
@@ -287,32 +366,40 @@ const style = {
         marginBottom: '15px',
     },
     nameText: {
-        paddingRight: '10px',
+        marginBottom: '5px',
         fontSize: '16px',
     },
     stable: {
-        fontSize: '11px',
+        fontSize: '12px',
         color: 'var(--center-channel-bg)',
         backgroundColor: 'var(--online-indicator)',
         marginRight: '10px',
     },
     inProgress: {
-        fontSize: '11px',
+        fontSize: '12px',
         color: 'var(--center-channel-bg)',
-        backgroundColor: 'var(--dnd-indicator)',
+        backgroundColor: 'var(--away-indicator)',
         marginRight: '10px',
     },
-    message: {
+    sidebarMessage: {
         margin: 'auto',
         width: '50%',
         marginTop: '50px',
-    },
-    serverIcon: {
-        margin: '0 auto',
-        width: '50%',
+        textAlign: 'center',
     },
     dropdownButton: {
         margin: '0 8px',
+    },
+    serverTypeSelect: {
+        padding: '15px',
+        borderBottom: '1px solid rgba(var(--center-channel-color-rgb), 0.1)',
+    },
+    serverCountBadge: {
+        color: 'var(--mention-color)',
+        backgroundColor: 'var(--mention-bg)',
+    },
+    badgeIcon: {
+        marginLeft: '4px',
     },
 };
 

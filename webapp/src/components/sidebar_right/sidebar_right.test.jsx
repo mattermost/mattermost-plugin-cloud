@@ -36,6 +36,22 @@ describe('SidebarRight', () => {
                 DeletionLocked: true,
             },
         ],
+        sharedInstalls: [
+            {
+                ID: '3',
+                Name: 'Test Installation 3',
+                State: 'stable',
+                DNSRecords: [{DomainName: 'test3.example.com'}],
+                Image: 'test-image',
+                Tag: '',
+                Database: 'test-db',
+                Filestore: 'test-filestore',
+                Size: 'test-size',
+                InstallationLogsURL: 'https://test3.example.com/logs',
+                ProvisionerLogsURL: 'https://test3.example.com/provisioner-logs',
+                DeletionLocked: false,
+            },
+        ],
         serverError: '',
         deletionLockedInstallationId: null,
         maxLockedInstallations: 1,
@@ -43,6 +59,7 @@ describe('SidebarRight', () => {
             setVisible: jest.fn(),
             telemetry: jest.fn(),
             getCloudUserData: jest.fn(),
+            getSharedInstalls: jest.fn(),
             deletionLockInstallation: jest.fn(),
             deletionUnlockInstallation: jest.fn(),
             getPluginConfiguration: jest.fn(),
@@ -63,7 +80,7 @@ describe('SidebarRight', () => {
         const propsWithNoInstalls = {...props, installs: []};
         render(<SidebarRight {...propsWithNoInstalls}/>);
 
-        const message = screen.getByText('There are no installations, use the /cloud create command to add an installation.');
+        const message = screen.getByText('There are no installations. Use the `/cloud create` command to add an installation.');
 
         expect(message).toBeInTheDocument();
     });
@@ -93,10 +110,11 @@ describe('SidebarRight', () => {
         expect(props.actions.setVisible).toHaveBeenCalledWith(false);
     });
 
-    it('calls the getCloudUserData and getPluginConfiguration actions on mount', () => {
+    it('calls the getCloudUserData, getSharedInstalls, and getPluginConfiguration actions on mount', () => {
         render(<SidebarRight {...props}/>);
 
         expect(props.actions.getCloudUserData).toHaveBeenCalledWith('test-id');
+        expect(props.actions.getSharedInstalls).toHaveBeenCalled();
         expect(props.actions.getPluginConfiguration).toHaveBeenCalled();
     });
 
@@ -140,5 +158,28 @@ describe('SidebarRight', () => {
 
         expect(props.actions.deletionLockInstallation).not.toHaveBeenCalledWith('2');
         expect(lockButton2).toBeDisabled();
+    });
+
+    it('renders a list of shared installations', () => {
+        render(<SidebarRight {...props}/>);
+
+        const sharedServerButton = screen.getByText('Shared');
+        fireEvent.click(sharedServerButton);
+
+        const installation3 = screen.getByText('Test Installation 3');
+
+        expect(installation3).toBeInTheDocument();
+    });
+
+    it('displays a message when there are no shared installations', () => {
+        const propsWithNoSharedInstalls = {...props, sharedInstalls: []};
+        render(<SidebarRight {...propsWithNoSharedInstalls}/>);
+
+        const sharedServerButton = screen.getByText('Shared');
+        fireEvent.click(sharedServerButton);
+
+        const message = screen.getByText('There are no shared installations. Use the `/cloud share` command to share one of yours with other plugin users.');
+
+        expect(message).toBeInTheDocument();
     });
 });

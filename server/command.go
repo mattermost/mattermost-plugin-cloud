@@ -29,6 +29,17 @@ update [name] [flags]
 %s
 	example: /cloud update myinstallation --version 7.8.1
 
+share [name] [flags]
+	Share a Mattermost installation with other plugin users.
+	Flags:
+%s
+	example: /cloud share myinstallation --allow-updates=true
+
+unshare [name] [flags]
+	Remove the shared setting from an installation that is already shared.
+
+	example: /cloud unshare myinstallation
+
 restart [name]
 	Restarts the servers in a Mattermost installation.
 
@@ -60,6 +71,7 @@ info
 		help,
 		p.getCreateFlagSet().FlagUsages(),
 		getUpdateFlagSet().FlagUsages(),
+		getShareFlagSet().FlagUsages(),
 	))
 }
 
@@ -126,6 +138,10 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		handler = p.runInfoCommand
 	case "import":
 		handler = p.runImportCommand
+	case "share":
+		handler = p.runShareInstallationCommand
+	case "unshare":
+		handler = p.runUnshareInstallationCommand
 	case "deletion-lock":
 		handler = p.runDeletionLockCommand
 	case "deletion-unlock":
