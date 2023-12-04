@@ -5,8 +5,10 @@ import (
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -158,6 +160,35 @@ func TestValidInstallationName(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			assert.Equal(t, test.valid, validInstallationName(test.name))
+		})
+	}
+}
+
+func TestAuthorizedPluginUser(t *testing.T) {
+	tests := []struct {
+		name      string
+		userID    string
+		userEmail string
+		config    configuration
+		expected  bool
+	}{
+		{"no email config", "id1", "user1@mattermost.com", configuration{AllowedEmailDomain: ""}, true},
+		{"valid email", "id1", "user1@mattermost.com", configuration{AllowedEmailDomain: "mattermost.com"}, true},
+		{"invalid email", "id1", "user1@matterleast.com", configuration{AllowedEmailDomain: "mattermost.com"}, false},
+		{"invalid email subdomain check", "id1", "user1@subdomain.mattermost.com", configuration{AllowedEmailDomain: "mattermost.com"}, false},
+		{"invalid user ID", "id2", "user2@mattermost.com", configuration{AllowedEmailDomain: "mattermost.com"}, false},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			plugin := Plugin{configuration: &test.config}
+			api := &plugintest.API{}
+			api.On("GetUser", "id1").Return(&model.User{Email: test.userEmail}, nil)
+			api.On("GetUser", mock.AnythingOfType("string")).Return(nil, model.NewAppError("", "", nil, "not found", 404))
+			api.On("LogError", mock.AnythingOfType("string"), mock.Anything, mock.Anything)
+			plugin.SetAPI(api)
+
+			assert.Equal(t, test.expected, plugin.authorizedPluginUser(test.userID))
 		})
 	}
 }

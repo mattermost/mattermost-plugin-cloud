@@ -85,17 +85,8 @@ func getCommandResponse(responseType, text string, args *model.CommandArgs) *mod
 
 // ExecuteCommand executes a given command and returns a command response.
 func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	config := p.getConfiguration()
-
-	if config.AllowedEmailDomain != "" {
-		user, err := p.API.GetUser(args.UserId)
-		if err != nil {
-			return nil, err
-		}
-
-		if !strings.HasSuffix(user.Email, "@"+config.AllowedEmailDomain) {
-			return getCommandResponse(model.CommandResponseTypeEphemeral, "Permission denied. Please talk to your system administrator to get access.", args), nil
-		}
+	if !p.authorizedPluginUser(args.UserId) {
+		return getCommandResponse(model.CommandResponseTypeEphemeral, "Permission denied. Please talk to your system administrator to get access.", args), nil
 	}
 
 	stringArgs := strings.Split(args.Command, " ")
@@ -174,4 +165,25 @@ func (p *Plugin) runUpgradeHelperCommand(args []string, extra *model.CommandArgs
 		"`/cloud upgrade` has been deprecated. Use `/cloud update` instead.",
 		extra,
 	), false, nil
+}
+
+// authorizedPluginUser returns if a given userID is authorized to use the plugin
+// commands with the current plugin configuration.
+func (p *Plugin) authorizedPluginUser(userID string) bool {
+	config := p.getConfiguration()
+
+	if config.AllowedEmailDomain == "" {
+		return true
+	}
+
+	user, err := p.API.GetUser(userID)
+	if err != nil {
+		p.API.LogError("Failed to get user", "error", err)
+		return false
+	}
+	if !strings.HasSuffix(user.Email, "@"+config.AllowedEmailDomain) {
+		return false
+	}
+
+	return true
 }
