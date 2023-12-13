@@ -150,4 +150,13 @@ func TestListCommand(t *testing.T) {
 		assert.False(t, isUserError)
 		assert.False(t, strings.Contains(resp.Text, "someid"))
 	})
+
+	t.Run("no shared installations", func(t *testing.T) {
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\"}]"), nil)
+
+		resp, isUserError, err := plugin.runListCommand([]string{"--shared-installations"}, &model.CommandArgs{UserId: "gabeid"})
+		require.Nil(t, err)
+		assert.False(t, isUserError)
+		assert.True(t, strings.Contains(resp.Text, "No installations found."))
+	})
 }
