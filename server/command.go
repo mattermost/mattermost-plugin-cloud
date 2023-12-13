@@ -19,6 +19,7 @@ create [name] [flags]
 
 list
 	Lists the Mattermost installations created by you.
+%s
 
 import [DNS]
 	Imports installation using DNS value.
@@ -70,6 +71,7 @@ info
 	return codeBlock(fmt.Sprintf(
 		help,
 		p.getCreateFlagSet().FlagUsages(),
+		getListFlagSet().FlagUsages(),
 		getUpdateFlagSet().FlagUsages(),
 		getShareFlagSet().FlagUsages(),
 	))

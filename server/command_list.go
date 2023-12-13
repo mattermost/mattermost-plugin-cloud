@@ -7,19 +7,60 @@ import (
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
+	flag "github.com/spf13/pflag"
 )
 
-func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
-	installsForUser, err := p.getUpdatedInstallsForUserWithoutSensitive(extra.UserId)
+type listConfig struct {
+	Shared bool
+}
+
+func getListFlagSet() *flag.FlagSet {
+	flagSet := flag.NewFlagSet("list", flag.ContinueOnError)
+	flagSet.Bool("shared-installations", false, "Lists shared installations instead of personal ones")
+
+	return flagSet
+}
+
+func parseListFlagSet(args []string) (*listConfig, error) {
+	flagSet := getListFlagSet()
+	err := flagSet.Parse(args)
 	if err != nil {
-		return nil, false, err
+		return nil, errors.Wrap(err, "falied to parse flags")
 	}
 
-	if len(installsForUser) == 0 {
+	config := &listConfig{}
+	config.Shared, err = flagSet.GetBool("shared-installations")
+	if err != nil {
+		return nil, errors.Wrap(err, "falied to get shared-installations value")
+	}
+
+	return config, nil
+}
+
+func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
+	config, err := parseListFlagSet(args)
+	if err != nil {
+		return nil, true, err
+	}
+
+	var installs []*Installation
+	if config.Shared {
+		installs, err = p.getUpdatedSharedInstallations()
+		if err != nil {
+			return nil, false, err
+		}
+	} else {
+		installs, err = p.getUpdatedInstallsForUserWithoutSensitive(extra.UserId)
+		if err != nil {
+			return nil, false, err
+		}
+	}
+
+	if len(installs) == 0 {
 		return getCommandResponse(model.CommandResponseTypeEphemeral, "No installations found.", extra), false, nil
 	}
 
-	data, err := json.Marshal(installsForUser)
+	data, err := json.Marshal(installs)
 	if err != nil {
 		return nil, false, err
 	}
