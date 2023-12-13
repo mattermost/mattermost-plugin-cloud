@@ -64,6 +64,8 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 		p.handleProfileImage(w, r)
 	case "/api/v1/userinstalls":
 		p.handleUserInstalls(w, r)
+	case "/api/v1/sharedinstalls":
+		p.handleSharedInstalls(w, r)
 	case "/api/v1/deletion-lock":
 		p.handleDeletionLock(w, r)
 	case "/api/v1/deletion-unlock":
@@ -112,6 +114,47 @@ func (p *Plugin) handleUserInstalls(w http.ResponseWriter, r *http.Request) {
 
 	var webInstalls []*InstallationWebWrapper
 	for _, install := range installsForUser {
+		webInstall, wrapErr := CreateInstallationWebWrapper(install)
+		if wrapErr != nil {
+			p.API.LogError(errors.Wrapf(wrapErr, "Unable to CreateInstallationWebWrapper for %s", install.Name).Error())
+			continue
+		}
+		webInstalls = append(webInstalls, webInstall)
+	}
+
+	data, err := json.Marshal(webInstalls)
+	if err != nil {
+		p.API.LogError(errors.Wrap(err, "Unable to marshal webInstalls").Error())
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	w.Write(data)
+}
+
+func (p *Plugin) handleSharedInstalls(w http.ResponseWriter, r *http.Request) {
+	userID := r.Header.Get("Mattermost-User-ID")
+	if userID == "" {
+		http.Error(w, "Not authorized", http.StatusUnauthorized)
+		return
+	}
+	// Let's require users to also have plugin permissions to view the shared
+	// list. It should be fine to allow for all logged in users to see the list,
+	// but let's start with this.
+	if !p.authorizedPluginUser(userID) {
+		http.Error(w, "Not authorized", http.StatusUnauthorized)
+		return
+	}
+
+	sharedInstalls, err := p.getUpdatedSharedInstallations()
+	if err != nil {
+		p.API.LogError(errors.Wrap(err, "Unable to getUpdatedSharedInstallations").Error())
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	var webInstalls []*InstallationWebWrapper
+	for _, install := range sharedInstalls {
 		webInstall, wrapErr := CreateInstallationWebWrapper(install)
 		if wrapErr != nil {
 			p.API.LogError(errors.Wrapf(wrapErr, "Unable to CreateInstallationWebWrapper for %s", install.Name).Error())
@@ -205,6 +248,12 @@ func (p *Plugin) handleDeletionUnlock(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Plugin) handleGetConfig(w http.ResponseWriter, r *http.Request) {
+	userID := r.Header.Get("Mattermost-User-ID")
+	if userID == "" {
+		http.Error(w, "Not authorized", http.StatusUnauthorized)
+		return
+	}
+
 	config := p.getConfiguration()
 
 	data, err := json.Marshal(config.ToConfigResponse())

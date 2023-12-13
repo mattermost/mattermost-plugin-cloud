@@ -20,8 +20,10 @@ const (
 type Installation struct {
 	Name string
 	cloud.InstallationDTO
-	TestData bool
-	Tag      string
+	Tag                string
+	TestData           bool
+	Shared             bool
+	AllowSharedUpdates bool
 }
 
 // ToPrettyJSON will return a JSON string installation with indentation and new lines
@@ -74,7 +76,7 @@ func (p *Plugin) storeInstallation(install *Installation) error {
 		p.API.LogWarn("unable to store installs due to another process making an update first")
 	}
 
-	return fmt.Errorf("failed %d times to store installation %s", StoreInstallRetries, install.ID)
+	return errors.Errorf("failed %d times to store installation %s", StoreInstallRetries, install.ID)
 }
 
 func (p *Plugin) updateInstallation(install *Installation) error {
@@ -228,4 +230,43 @@ func (p *Plugin) getInstallationsForUser(userID string) ([]*Installation, error)
 	}
 
 	return installsForUser, nil
+}
+
+func (p *Plugin) getUpdatedSharedInstallations() ([]*Installation, error) {
+	sharedInstalls, err := p.getSharedInstallations()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, install := range sharedInstalls {
+		updatedInstall, err := p.cloudClient.GetInstallation(install.ID,
+			&cloud.GetInstallationRequest{
+				IncludeGroupConfig: true,
+			})
+		if err != nil {
+			return nil, errors.Wrapf(err, "unable to get installation %s from cloud server", install.ID)
+		}
+		if updatedInstall == nil {
+			return nil, fmt.Errorf("could not find installation %s", install.ID)
+		}
+		install.InstallationDTO = *updatedInstall
+	}
+
+	return sharedInstalls, nil
+}
+
+func (p *Plugin) getSharedInstallations() ([]*Installation, error) {
+	installs, _, err := p.getInstallations()
+	if err != nil {
+		return nil, err
+	}
+
+	sharedInstalls := []*Installation{}
+	for _, install := range installs {
+		if install.Shared {
+			sharedInstalls = append(sharedInstalls, install)
+		}
+	}
+
+	return sharedInstalls, nil
 }
