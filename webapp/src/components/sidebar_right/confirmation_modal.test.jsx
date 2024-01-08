@@ -1,7 +1,7 @@
 import React from 'react';
 import {render, screen, fireEvent} from '@testing-library/react';
 
-import DeletionUnlockConfirmationModal from './deletion_unlock_confirmation_modal';
+import ConfirmationModal from './confirmation_modal';
 
 describe('DeletionUnlockConfirmationModal', () => {
     const mockOnConfirm = jest.fn();
@@ -12,45 +12,50 @@ describe('DeletionUnlockConfirmationModal', () => {
     });
 
     it('renders the modal with the correct title and message', () => {
+        const title = 'Title Message';
+        const bodyText = 'Scary message about what could go wrong';
+
         const props = {
+            title,
+            bodyText,
             visible: true,
             onConfirm: mockOnConfirm,
             onCancel: mockOnCancel,
         };
 
-        render(<DeletionUnlockConfirmationModal {...props}/>);
+        render(<ConfirmationModal {...props}/>);
 
-        expect(screen.getByText('Remove deletion lock?')).toBeInTheDocument();
-        expect(
-            screen.getByText(
-                'Are you sure you want to remove the deletion lock? Doing so will add this installation back into the clean up pool, meaning it can be deleted.',
-            ),
-        ).toBeInTheDocument();
+        expect(screen.getByText(title)).toBeInTheDocument();
+        expect(screen.getByText(bodyText)).toBeInTheDocument();
     });
 
-    it('calls the onConfirm function when "Remove Lock" button is clicked', () => {
+    it('calls the onConfirm function when "Confirm" button is clicked', () => {
         const props = {
+            title: 'title',
+            bodyText: 'text',
             visible: true,
             onConfirm: mockOnConfirm,
             onCancel: mockOnCancel,
         };
 
-        render(<DeletionUnlockConfirmationModal {...props}/>);
+        render(<ConfirmationModal {...props}/>);
 
-        const removeLockButton = screen.getByText('Remove Lock');
-        fireEvent.click(removeLockButton);
+        const confirmButton = screen.getByText('Confirm');
+        fireEvent.click(confirmButton);
 
         expect(mockOnConfirm).toHaveBeenCalledTimes(1);
     });
 
     it('calls the onCancel function when "Cancel" button is clicked', () => {
         const props = {
+            title: 'title',
+            bodyText: 'text',
             visible: true,
             onConfirm: mockOnConfirm,
             onCancel: mockOnCancel,
         };
 
-        render(<DeletionUnlockConfirmationModal {...props}/>);
+        render(<ConfirmationModal {...props}/>);
 
         const cancelButton = screen.getByText('Cancel');
         fireEvent.click(cancelButton);
@@ -59,19 +64,20 @@ describe('DeletionUnlockConfirmationModal', () => {
     });
 
     it('does not render the modal when visible is false', () => {
+        const title = 'Title Message';
+        const bodyText = 'Scary message about what could go wrong';
+
         const props = {
+            title,
+            bodyText,
             visible: false,
             onConfirm: mockOnConfirm,
             onCancel: mockOnCancel,
         };
 
-        render(<DeletionUnlockConfirmationModal {...props}/>);
+        render(<ConfirmationModal {...props}/>);
 
-        expect(screen.queryByText('Remove deletion lock?')).toBeNull();
-        expect(
-            screen.queryByText(
-                'Are you sure you want to remove the deletion lock? Doing so will add this installation back into the clean up pool, meaning it can be deleted.',
-            ),
-        ).toBeNull();
+        expect(screen.queryByText(title)).toBeNull();
+        expect(screen.queryByText(bodyText)).toBeNull();
     });
 });

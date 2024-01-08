@@ -176,6 +176,16 @@ export const getPluginServerRoute = (state) => {
 
     return basePath + '/plugins/' + pluginId;
 };
+
+export function restartInstallation(name) {
+    return async (dispatch, getState) => {
+        const command = `/cloud restart ${name}`;
+        await Client.clientExecuteCommand(getState, command);
+
+        return {data: null};
+    };
+}
+
 export const telemetry = (event, properties) => async (dispatch, getState) => {
     await fetch(getPluginServerRoute(getState()) + '/telemetry', Client4.getOptions({
         method: 'post',

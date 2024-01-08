@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 
-import {telemetry, setRhsVisible, getCloudUserData, getSharedInstalls, deletionLockInstallation, deletionUnlockInstallation, getPluginConfiguration} from '../../actions';
+import {telemetry, setRhsVisible, getCloudUserData, getSharedInstalls, restartInstallation, deletionLockInstallation, deletionUnlockInstallation, getPluginConfiguration} from '../../actions';
 
 import {installsForUser, sharedInstalls, serverError, pluginConfiguration} from '../../selectors';
 
@@ -29,6 +29,7 @@ function mapDispatchToProps(dispatch) {
             getCloudUserData,
             getSharedInstalls,
             setVisible: setRhsVisible,
+            restartInstallation,
             deletionLockInstallation,
             deletionUnlockInstallation,
             getPluginConfiguration,

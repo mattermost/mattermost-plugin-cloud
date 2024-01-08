@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import {Scrollbars} from 'react-custom-scrollbars-2';
 import {Button, Label, DropdownButton, MenuItem} from 'react-bootstrap';
 
-import DeletionUnlockConfirmationModal from './deletion_unlock_confirmation_modal';
+import ConfirmationModal from './confirmation_modal';
 
 export function renderView(props) {
     return (
@@ -46,6 +46,7 @@ export default class SidebarRight extends React.PureComponent {
             telemetry: PropTypes.func.isRequired,
             getCloudUserData: PropTypes.func.isRequired,
             getSharedInstalls: PropTypes.func.isRequired,
+            restartInstallation: PropTypes.func.isRequired,
             deletionLockInstallation: PropTypes.func.isRequired,
             deletionUnlockInstallation: PropTypes.func.isRequired,
             getPluginConfiguration: PropTypes.func.isRequired,
@@ -57,7 +58,7 @@ export default class SidebarRight extends React.PureComponent {
 
         this.state = {
             deletionLockedInstallationId: null,
-            deletionConfirmationModal: {visible: false},
+            confirmationModal: {visible: false},
             serverTypeValue: 'Personal',
         };
     }
@@ -91,7 +92,16 @@ export default class SidebarRight extends React.PureComponent {
         ));
         let actionButtons;
         if (!shared) {
-            actionButtons = this.deletionLockButton(installation);
+            actionButtons = [
+                <Button
+                    data-testid={'restart-' + installation.ID}
+                    key={'restart-' + installation.ID}
+                    className='btn btn-tertiary btn-sm'
+                    onClick={() => this.handleRestartButtonClick(installation)}
+                >{'Restart'}
+                </Button>,
+                this.deletionLockButton(installation),
+            ];
         }
 
         return (
@@ -113,14 +123,36 @@ export default class SidebarRight extends React.PureComponent {
         );
     }
 
+    handleRestart = async (installation) => {
+        await this.props.actions.restartInstallation(installation.Name);
+        this.props.actions.getCloudUserData(this.props.id);
+        this.setState({confirmationModal: {visible: false}});
+    };
+
+    handleRestartButtonClick(installation) {
+        this.setState({confirmationModal: {
+            title: 'Restart installation servers?',
+            bodyText: 'Are you sure you want to restart the mattermost server instances? Doing so force new servers to be created while removing the old ones.',
+            visible: true,
+            onConfirm: () => this.handleRestart(installation),
+            onCancel: () => this.setState({confirmationModal: {visible: false}}),
+        }});
+    }
+
     async handleDeletionUnlock(installation) {
         await this.props.actions.deletionUnlockInstallation(installation.ID);
         this.props.actions.getCloudUserData(this.props.id);
-        this.setState({deletionConfirmationModal: {visible: false}});
+        this.setState({confirmationModal: {visible: false}});
     }
 
     handleDeletionUnlockButtonClick(installation) {
-        this.setState({deletionConfirmationModal: {visible: true, onConfirm: () => this.handleDeletionUnlock(installation), onCancel: () => this.setState({deletionConfirmationModal: {visible: false}})}});
+        this.setState({confirmationModal: {
+            title: 'Remove deletion lock?',
+            bodyText: 'Are you sure you want to remove the deletion lock? Doing so will add this installation back into the clean up pool, meaning it can be deleted.',
+            visible: true,
+            onConfirm: () => this.handleDeletionUnlock(installation),
+            onCancel: () => this.setState({confirmationModal: {visible: false}}),
+        }});
     }
 
     deletionLockButton(installation) {
@@ -196,9 +228,7 @@ export default class SidebarRight extends React.PureComponent {
                 <div style={style.installinfo}>
                     <div>
                         <span style={style.col1}>DNS:</span>
-                        {installation.DNSRecords.length > 0 ?
-                            <span>{installation.DNSRecords[0].DomainName}</span> :
-                            <span>No URL!</span>
+                        {installation.DNSRecords.length > 0 ? <span>{installation.DNSRecords[0].DomainName}</span> : <span>No URL!</span>
                         }
                     </div>
 
@@ -207,15 +237,13 @@ export default class SidebarRight extends React.PureComponent {
                         <span>{installation.Image}</span>
                     </div>
                     <div>
-                        {installation.Tag === '' ?
-                            <div>
-                                <span style={style.col1}>Version:</span>
-                                <span>{installation.Version}</span>
-                            </div> :
-                            <div>
-                                <span style={style.col1}>Tag:</span>
-                                <span>{installation.Tag}</span>
-                            </div>
+                        {installation.Tag === '' ? <div>
+                            <span style={style.col1}>Version:</span>
+                            <span>{installation.Version}</span>
+                        </div> : <div>
+                            <span style={style.col1}>Tag:</span>
+                            <span>{installation.Tag}</span>
+                        </div>
                         }
                     </div>
                     <div>
@@ -298,11 +326,13 @@ export default class SidebarRight extends React.PureComponent {
             <React.Fragment>
                 <>
                     {
-                        this.state.deletionConfirmationModal.visible &&
-                            <DeletionUnlockConfirmationModal
-                                visible={this.state.deletionConfirmationModal.visible}
-                                onConfirm={this.state.deletionConfirmationModal.onConfirm}
-                                onCancel={this.state.deletionConfirmationModal.onCancel}
+                        this.state.confirmationModal.visible &&
+                            <ConfirmationModal
+                                title={this.state.confirmationModal.title}
+                                bodyText={this.state.confirmationModal.bodyText}
+                                visible={this.state.confirmationModal.visible}
+                                onConfirm={this.state.confirmationModal.onConfirm}
+                                onCancel={this.state.confirmationModal.onCancel}
                             />
                     }
                     <Scrollbars
