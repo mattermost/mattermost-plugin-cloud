@@ -1,7 +1,5 @@
 import {Client4} from 'mattermost-redux/client';
 import {ClientError} from 'mattermost-redux/client/client4';
-import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 export default class Client {
     constructor() {
@@ -98,13 +96,10 @@ export default class Client {
         });
     };
 
-    clientExecuteCommand = async (getState, command) => {
-        const currentChannel = getCurrentChannel(getState());
-        const currentTeamId = getCurrentTeamId(getState());
-
+    clientExecuteCommand = async (command, channelID, teamID) => {
         const args = {
-            channel_id: currentChannel.id,
-            team_id: currentTeamId,
+            channel_id: channelID,
+            team_id: teamID,
         };
 
         try {
