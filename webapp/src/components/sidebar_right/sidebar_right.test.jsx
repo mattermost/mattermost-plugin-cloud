@@ -60,6 +60,7 @@ describe('SidebarRight', () => {
             telemetry: jest.fn(),
             getCloudUserData: jest.fn(),
             getSharedInstalls: jest.fn(),
+            restartInstallation: jest.fn(),
             deletionLockInstallation: jest.fn(),
             deletionUnlockInstallation: jest.fn(),
             getPluginConfiguration: jest.fn(),
@@ -118,6 +119,18 @@ describe('SidebarRight', () => {
         expect(props.actions.getPluginConfiguration).toHaveBeenCalled();
     });
 
+    it('calls the restartInstallation action when the restart button is clicked', () => {
+        render(<SidebarRight {...props}/>);
+
+        const restartButton = screen.getByTestId('restart-1');
+        fireEvent.click(restartButton);
+
+        const confirmButton = screen.getByText('Confirm');
+        fireEvent.click(confirmButton);
+
+        expect(props.actions.restartInstallation).toHaveBeenCalledWith('Test Installation 1');
+    });
+
     it('calls the deletionLockInstallation action when the lock deletion button is clicked', () => {
         const newProps = props;
 
@@ -137,7 +150,7 @@ describe('SidebarRight', () => {
         const unlockButton = screen.getByText('Unlock Deletion');
         fireEvent.click(unlockButton);
 
-        const confirmButton = screen.getByText('Remove Lock');
+        const confirmButton = screen.getByText('Confirm');
         fireEvent.click(confirmButton);
 
         expect(props.actions.deletionUnlockInstallation).toHaveBeenCalledWith('2');

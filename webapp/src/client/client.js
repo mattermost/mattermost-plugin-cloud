@@ -95,4 +95,17 @@ export default class Client {
             body,
         });
     };
+
+    clientExecuteCommand = async (command, channelID, teamID) => {
+        const args = {
+            channel_id: channelID,
+            team_id: teamID,
+        };
+
+        try {
+            await Client4.executeCommand(command, args);
+        } catch (error) {
+            console.error(error); //eslint-disable-line no-console
+        }
+    };
 }

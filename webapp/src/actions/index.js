@@ -1,6 +1,8 @@
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {Client4} from 'mattermost-redux/client';
+import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import Client from '../client';
 
@@ -176,6 +178,22 @@ export const getPluginServerRoute = (state) => {
 
     return basePath + '/plugins/' + pluginId;
 };
+
+export function executeCommand(command) {
+    return async (dispatch, getState) => {
+        const currentChannelID = getCurrentChannel(getState()).id;
+        const currentTeamID = getCurrentTeamId(getState());
+
+        await Client.clientExecuteCommand(command, currentChannelID, currentTeamID);
+
+        return {data: null};
+    };
+}
+
+export function restartInstallation(name) {
+    return executeCommand(`/cloud restart ${name}`);
+}
+
 export const telemetry = (event, properties) => async (dispatch, getState) => {
     await fetch(getPluginServerRoute(getState()) + '/telemetry', Client4.getOptions({
         method: 'post',
