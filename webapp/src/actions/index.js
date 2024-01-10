@@ -99,8 +99,7 @@ export function getCloudUserData(userID) {
         }
 
         const data = await Client.getUserInstalls(userID);
-
-        if (data.error) {
+        if (data && data.error) {
             if (data.error.status === 404) {
                 dispatch({
                     type: RECEIVED_USER_INSTALLS,
@@ -131,7 +130,7 @@ export function getSharedInstalls() {
     return async (dispatch, getState) => {
         const data = await Client.getSharedInstalls();
 
-        if (data.error) {
+        if (data && data.error) {
             dispatch(setServerError(`Status: ${data.error.status}, Message: ${data.error.message}`));
             return data;
         }
