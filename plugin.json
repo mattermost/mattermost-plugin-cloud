@@ -2,14 +2,13 @@
     "id": "com.mattermost.cloud",
     "name": "Mattermost Private Cloud",
     "description": "This plugin allows spinning up and down Mattermost installations using Mattermost Private Cloud.",
-    "version": "0.1.34",
+    "version": "0.1.35",
     "min_server_version": "8.1.0",
     "server": {
         "executables": {
             "linux-amd64": "server/dist/plugin-linux-amd64",
             "darwin-amd64": "server/dist/plugin-darwin-amd64",
-            "darwin-arm64": "server/dist/plugin-darwin-arm64",
-            "windows-amd64": "server/dist/plugin-windows-amd64.exe"
+            "darwin-arm64": "server/dist/plugin-darwin-arm64"
         }
     },
     "webapp": {
