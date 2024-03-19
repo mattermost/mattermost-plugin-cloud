@@ -113,32 +113,16 @@ func (p *Plugin) runUpdateCommand(args []string, extra *model.CommandArgs) (*mod
 	}
 	var installToUpdate *Installation
 
-	if shared {
-		installs, sharedErr := p.getSharedInstallations()
-		if sharedErr != nil {
-			return nil, false, sharedErr
-		}
+	installs, err := p.getUpdatableInstallationsForUser(extra.UserId, shared)
+	if err != nil {
+		return nil, false, err
+	}
 
-		for _, install := range installs {
-			if install.Name == name {
-				if !install.AllowSharedUpdates {
-					return nil, true, errors.Errorf("installation %s is shared, but the owner has not allowed for others to update it", name)
-				}
-				installToUpdate = install
-				break
-			}
-		}
-	} else {
-		installs, _, installsErr := p.getInstallations()
-		if installsErr != nil {
-			return nil, false, installsErr
-		}
-
-		for _, install := range installs {
-			if install.OwnerID == extra.UserId && install.Name == name {
-				installToUpdate = install
-				break
-			}
+	// Find the installation by name
+	for _, install := range installs {
+		if install.Name == name {
+			installToUpdate = install
+			break
 		}
 	}
 

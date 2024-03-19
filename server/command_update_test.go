@@ -299,7 +299,7 @@ func TestUpdateCommand(t *testing.T) {
 
 			resp, isUserError, err := plugin.runUpdateCommand([]string{"gabesinstall", "--env", "ENV1=test", "--shared-installation"}, &model.CommandArgs{UserId: "gabeid"})
 			require.Error(t, err)
-			assert.Contains(t, err.Error(), "installation gabesinstall is shared, but the owner has not allowed for others to update it")
+			assert.Contains(t, err.Error(), "no installation with the name gabesinstall found")
 			assert.True(t, isUserError)
 			assert.Nil(t, resp)
 		})

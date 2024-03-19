@@ -232,6 +232,24 @@ func (p *Plugin) getInstallationsForUser(userID string) ([]*Installation, error)
 	return installsForUser, nil
 }
 
+// getUpdatableInstallationsForUser returns installations the given user can update. Unless
+// includeShared is set, this is equivalent to calling getInstallationsForUser.
+func (p *Plugin) getUpdatableInstallationsForUser(userID string, includeShared bool) ([]*Installation, error) {
+	installs, _, err := p.getInstallations()
+	if err != nil {
+		return nil, err
+	}
+
+	updatableInstallsForUser := []*Installation{}
+	for _, install := range installs {
+		if install.OwnerID == userID || (includeShared && install.Shared && install.AllowSharedUpdates) {
+			updatableInstallsForUser = append(updatableInstallsForUser, install)
+		}
+	}
+
+	return updatableInstallsForUser, nil
+}
+
 func (p *Plugin) getUpdatedSharedInstallations() ([]*Installation, error) {
 	sharedInstalls, err := p.getSharedInstallations()
 	if err != nil {
