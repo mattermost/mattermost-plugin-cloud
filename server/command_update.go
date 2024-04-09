@@ -158,14 +158,9 @@ func (p *Plugin) runUpdateCommand(args []string, extra *model.CommandArgs) (*mod
 		request.Version = &digest
 	}
 
-	// Obtain the new image value if there is one to properly apply a license.
-	image := installToUpdate.Image
-	if request.Image != nil {
-		image = *request.Image
-	}
 	if request.License != nil {
 		// Translate the license option.
-		licenseValue := p.getLicenseValue(*request.License, image)
+		licenseValue := p.getLicenseValue(*request.License)
 		request.License = &licenseValue
 	}
 

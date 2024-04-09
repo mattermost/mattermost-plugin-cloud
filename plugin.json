@@ -80,18 +80,6 @@
                 "help_text": "The contents of a Professional license."
             },
             {
-                "key": "TestEnterpriseLicense",
-                "display_name": "Mattermost Enterprise License used for servers built for internal testing",
-                "type": "longtext",
-                "help_text": "The contents of an Enterpise license."
-            },
-            {
-                "key": "TestProfessionalLicense",
-                "display_name": "Mattermost Professional License used for servers built for internal testing",
-                "type": "longtext",
-                "help_text": "The contents of a Professional license."
-            },
-            {
                 "key": "GroupID",
                 "display_name": "Group ID",
                 "type": "text",
