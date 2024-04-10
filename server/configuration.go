@@ -76,12 +76,10 @@ type configuration struct {
 	ProvisioningServerWebhookSecret           string
 
 	// License
-	E10License              string
-	E20License              string
-	EnterpriseLicense       string
-	ProfessionalLicense     string
-	TestEnterpriseLicense   string
-	TestProfessionalLicense string
+	E10License          string
+	E20License          string
+	EnterpriseLicense   string
+	ProfessionalLicense string
 
 	// Groups
 	GroupID string
@@ -222,23 +220,13 @@ func (p *Plugin) setCloudClient() {
 	p.cloudClient = cloud.NewClientWithHeaders(configuration.ProvisioningServerURL, authHeaders)
 }
 
-func (p *Plugin) getLicenseValue(licenseOption, image string) string {
+func (p *Plugin) getLicenseValue(licenseOption string) string {
 	config := p.getConfiguration()
 
 	switch licenseOption {
 	case licenseOptionEnterprise:
-		for _, ti := range dockerRepoTestImages {
-			if ti == image {
-				return config.TestEnterpriseLicense
-			}
-		}
 		return config.EnterpriseLicense
 	case licenseOptionProfessional:
-		for _, ti := range dockerRepoTestImages {
-			if ti == image {
-				return config.TestProfessionalLicense
-			}
-		}
 		return config.ProfessionalLicense
 	case licenseOptionE20:
 		return config.E20License

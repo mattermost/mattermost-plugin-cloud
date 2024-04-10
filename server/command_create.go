@@ -228,7 +228,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		Database:    install.Database,
 		Filestore:   install.Filestore,
 		PriorityEnv: install.PriorityEnv,
-		License:     p.getLicenseValue(install.License, install.Image),
+		License:     p.getLicenseValue(install.License),
 		Size:        install.Size,
 		Version:     install.Version,
 		Image:       install.Image,

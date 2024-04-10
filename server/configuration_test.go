@@ -75,48 +75,38 @@ func TestConfigurationIsValid(t *testing.T) {
 func TestGetLicenseValue(t *testing.T) {
 	plugin := Plugin{
 		configuration: &configuration{
-			E10License:              "e10license",
-			E20License:              "e20license",
-			EnterpriseLicense:       "enterpriselicense",
-			ProfessionalLicense:     "professionallicense",
-			TestEnterpriseLicense:   "testenterpriselicense",
-			TestProfessionalLicense: "testprofessionallicense",
+			E10License:          "e10license",
+			E20License:          "e20license",
+			EnterpriseLicense:   "enterpriselicense",
+			ProfessionalLicense: "professionallicense",
 		},
 	}
 
 	t.Run("e20", func(t *testing.T) {
-		t.Run("no test image", func(t *testing.T) {
-			assert.Equal(t, "e20license", plugin.getLicenseValue(licenseOptionE20, imageEE))
-		})
-		t.Run("test image", func(t *testing.T) {
-			assert.Equal(t, "e20license", plugin.getLicenseValue(licenseOptionE20, imageEETest))
+		t.Run("license", func(t *testing.T) {
+			assert.Equal(t, "e20license", plugin.getLicenseValue(licenseOptionE20))
 		})
 	})
 
 	t.Run("e10", func(t *testing.T) {
-		t.Run("no test image", func(t *testing.T) {
-			assert.Equal(t, "e10license", plugin.getLicenseValue(licenseOptionE10, imageEE))
-		})
-		t.Run("test image", func(t *testing.T) {
-			assert.Equal(t, "e10license", plugin.getLicenseValue(licenseOptionE10, imageEETest))
+		t.Run("license", func(t *testing.T) {
+			assert.Equal(t, "e10license", plugin.getLicenseValue(licenseOptionE10))
 		})
 	})
 
 	t.Run("enterprise", func(t *testing.T) {
-		t.Run("no test image", func(t *testing.T) {
-			assert.Equal(t, "enterpriselicense", plugin.getLicenseValue(licenseOptionEnterprise, imageEE))
-		})
-		t.Run("test image", func(t *testing.T) {
-			assert.Equal(t, "testenterpriselicense", plugin.getLicenseValue(licenseOptionEnterprise, imageEETest))
+		t.Run("license", func(t *testing.T) {
+			assert.Equal(t, "enterpriselicense", plugin.getLicenseValue(licenseOptionEnterprise))
 		})
 	})
 
 	t.Run("professional", func(t *testing.T) {
-		t.Run("no test image", func(t *testing.T) {
-			assert.Equal(t, "professionallicense", plugin.getLicenseValue(licenseOptionProfessional, imageEE))
+		t.Run("license", func(t *testing.T) {
+			assert.Equal(t, "professionallicense", plugin.getLicenseValue(licenseOptionProfessional))
 		})
-		t.Run("test image", func(t *testing.T) {
-			assert.Equal(t, "testprofessionallicense", plugin.getLicenseValue(licenseOptionProfessional, imageEETest))
-		})
+	})
+
+	t.Run("no matching", func(t *testing.T) {
+		assert.Equal(t, "", plugin.getLicenseValue("nope"))
 	})
 }
