@@ -96,13 +96,13 @@ func TestGetLicenseValue(t *testing.T) {
 
 	t.Run("enterprise", func(t *testing.T) {
 		t.Run("license", func(t *testing.T) {
-			assert.Equal(t, "testenterpriselicense", plugin.getLicenseValue(licenseOptionEnterprise))
+			assert.Equal(t, "enterpriselicense", plugin.getLicenseValue(licenseOptionEnterprise))
 		})
 	})
 
 	t.Run("professional", func(t *testing.T) {
 		t.Run("license", func(t *testing.T) {
-			assert.Equal(t, "testprofessionallicense", plugin.getLicenseValue(licenseOptionProfessional))
+			assert.Equal(t, "professionallicense", plugin.getLicenseValue(licenseOptionProfessional))
 		})
 	})
 
