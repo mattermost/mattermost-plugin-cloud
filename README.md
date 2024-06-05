@@ -44,32 +44,41 @@ To release a new version of the `cloud plugin` please do the following steps:
 
 - Create a PR with the changes, see [example](https://github.com/mattermost/mattermost-plugin-cloud/pull/52)
 
-- After the PR is merged, generate the release notes. Here will show the commands but if need more information please refer to the [internal docs](https://app.gitbook.com/@mattermost-private/s/internal-documentation/cloud/cloud/releases/rel-notes)
+To trigger a release, follow these steps:
 
-```bash
-$ GO111MODULE=on go get k8s.io/release/cmd/release-notes
-$ export GITHUB_TOKEN=<personal_github_api_token>
-$ release-notes --github-org mattermost \
-  --github-repo mattermost-plugin-cloud \
-  --start-sha START_SHA \ # the GIT SHA from the previous release
-  --end-sha END_SHA \ # the GIT SHA from the current release
-  --debug \
-  --output ./relnote.md \
-  --required-author ""
-```
+1. **For Patch Release:** Run the following command:
+    ```
+    make patch
+    ```
+   This will release a patch change.
 
-This generates the release notes in the `relnote.md` you can apply any changes.
+2. **For Minor Release:** Run the following command:
+    ```
+    make minor
+    ```
+   This will release a minor change.
 
-- Update your local repository and create a tag with the same version that you used in the previous step and add the `v` as prefix, for example:
+3. **For Major Release:** Run the following command:
+    ```
+    make major
+    ```
+   This will release a major change.
 
-```bash
-$ git fetch origin --prune
-$ git pull origin master
-$ git tag vX.Y.Z
-$ git push origin vX.Y.Z
-```
+4. **For Patch Release Candidate (RC):** Run the following command:
+    ```
+    make patch-rc
+    ```
+   This will release a patch release candidate.
 
-This will kick the CI job to build/package and release the plugin in GitHub.
+5. **For Minor Release Candidate (RC):** Run the following command:
+    ```
+    make minor-rc
+    ```
+   This will release a minor release candidate.
 
-- Create a new Release by clicking and editing the Tag that is created in GitHub and paste the release notes that was generated in the step before.
-- After the CI job is complete the package will be available in the Release as well.
+6. **For Major Release Candidate (RC):** Run the following command:
+    ```
+    make major-rc
+    ```
+   This will release a major release candidate.
+
