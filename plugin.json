@@ -31,6 +31,24 @@
                 "help_text": "The token required for authenticating with the AWS API Gateway."
             },
             {
+                "key": "ProvisioningServerClientID",
+                "display_name": "Provisioning Server Client ID",
+                "type": "text",
+                "help_text": "The client ID used to authenticate with the provisioning server."
+            },
+            {
+                "key": "ProvisioningServerClientSecret",
+                "display_name": "Provisioning Server Client Secret",
+                "type": "text",
+                "help_text": "The client secret used to authenticate with the provisioning server"
+            },
+            {
+                "key": "ProvisioningServerTokenEndpoint",
+                "display_name": "Provisioning Server Token Endpoint",
+                "type": "text",
+                "help_text": "The token endpoint used to authenticate with the provisioning server."
+            },
+            {
                 "key": "ProvisioningServerWebhookSecret",
                 "display_name": "Webhook secret sent by the provisioning server",
                 "type": "text",
