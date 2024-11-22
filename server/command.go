@@ -87,7 +87,6 @@ func getCommand() *model.Command {
 		AutoCompleteHint: "[command]",
 		AutocompleteData: &model.AutocompleteData{
 			Trigger: "cloud",
-			RoleID: "system_user",
 			SubCommands: []*model.AutocompleteData{
 				{
 					Trigger: "create",
