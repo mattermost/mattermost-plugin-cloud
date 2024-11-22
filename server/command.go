@@ -127,6 +127,11 @@ func getCommand() *model.Command {
 							HelpText: "Environment variables in form: ENV1=test,ENV2=test",
 							Required: false,
 						},
+						{
+							Name: "filestore",
+							HelpText: "Specify the backing file store. Can be 'bifrost' (S3 Shared Bucket), 'aws-multitenant-s3' (S3 Shared Bucket), 'aws-s3' (S3 Bucket). (default \"bifrost\")",
+							Required: false,
+						},
 					},
 				},
 				{
