@@ -347,7 +347,10 @@ func getCommand() *model.Command {
 					HelpText: "Import an existing installation",
 					Arguments: []*model.AutocompleteArg{
 						{
-							Name: "DNS",
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "DNS",
+							},
 							HelpText: "DNS value of the installation to import",
 							Required: true,
 						},
