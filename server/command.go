@@ -142,6 +142,11 @@ func getCommand() *model.Command {
 							HelpText: "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA' (default \"miniSingleton\")",
 							Required: false,
 						},
+						{
+							Name: "version",
+							HelpText: "Mattermost version to run, e.g. '9.1.0' (default \"latest\")",
+							Required: false,
+						},
 					},
 				},
 				{
