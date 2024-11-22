@@ -376,6 +376,29 @@ func getCommand() *model.Command {
 						},
 					},
 				},
+				{
+					Trigger: "mmctl",
+					HelpText: "Runs mmctl commands on an installation",
+					Arguments: []*model.AutocompleteArg{
+						{
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "name",
+								Pattern: "^[a-zA-Z0-9-]+$",
+							},
+							HelpText: "Name of the installation to run mmctl commands on",
+							Required: true,
+						},
+						{
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "mmctl-subcommand",
+							},
+							HelpText: "The mmctl subcommand to run",
+							Required: true,
+						},
+					},
+				},
 			},
 		},
 	}
