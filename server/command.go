@@ -104,7 +104,7 @@ func getCommand() *model.Command {
 						},
 						{
 							Name: "license",
-							HelpText: "License type (e.g. 'e10', 'enterprise')",
+							HelpText: "The Mattermost license to use. Can be 'enterprise', 'professional', 'e20', 'e10', or 'te' (default \"enterprise\")",
 							Required: false,
 						},
 						{
