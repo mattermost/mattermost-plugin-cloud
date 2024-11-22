@@ -82,9 +82,160 @@ func getCommand() *model.Command {
 		Trigger:          "cloud",
 		DisplayName:      "Mattermost Private Cloud",
 		Description:      "This command allows spinning up and down Mattermost installations using Mattermost Private Cloud.",
-		AutoComplete:     false,
-		AutoCompleteDesc: "Available commands: create, list, update, mmcli, mmctl, delete",
+		AutoComplete:     true,
+		AutoCompleteDesc: "Available commands: create, list, update, mmcli, mmctl, delete, share, unshare, restart, hibernate, wake-up, info, import",
 		AutoCompleteHint: "[command]",
+		AutocompleteData: &model.AutocompleteData{
+			Trigger: "cloud",
+			RoleID: "system_user",
+			SubCommands: []*model.AutocompleteData{
+				{
+					Trigger: "create",
+					HelpText: "Creates a Mattermost installation",
+					Arguments: []*model.AutocompleteArg{
+						{
+							Name: "name",
+							HelpText: "Name of the installation",
+							Required: true,
+						},
+					},
+					Flags: []*model.AutocompleteFlag{
+						{
+							Name: "license",
+							Type: model.AutocompleteFlagTypeString,
+							HelpText: "License type (e.g. 'e10', 'enterprise')",
+						},
+						{
+							Name: "test-data",
+							Type: model.AutocompleteFlagTypeBoolean,
+							HelpText: "Include test data in installation",
+						},
+					},
+				},
+				{
+					Trigger: "list",
+					HelpText: "Lists your Mattermost installations",
+					Flags: []*model.AutocompleteFlag{
+						{
+							Name: "shared-installations",
+							Type: model.AutocompleteFlagTypeBoolean,
+							HelpText: "Lists shared installations instead of personal ones",
+						},
+					},
+				},
+				{
+					Trigger: "update",
+					HelpText: "Update a Mattermost installation",
+					Arguments: []*model.AutocompleteArg{
+						{
+							Name: "name",
+							HelpText: "Name of the installation to update",
+							Required: true,
+						},
+					},
+					Flags: []*model.AutocompleteFlag{
+						{
+							Name: "version",
+							Type: model.AutocompleteFlagTypeString,
+							HelpText: "Mattermost version to run",
+						},
+						{
+							Name: "license",
+							Type: model.AutocompleteFlagTypeString,
+							HelpText: "Enterprise license to use",
+						},
+					},
+				},
+				{
+					Trigger: "share",
+					HelpText: "Share a Mattermost installation",
+					Arguments: []*model.AutocompleteArg{
+						{
+							Name: "name",
+							HelpText: "Name of the installation to share",
+							Required: true,
+						},
+					},
+					Flags: []*model.AutocompleteFlag{
+						{
+							Name: "allow-updates",
+							Type: model.AutocompleteFlagTypeBoolean,
+							HelpText: "Allow other users to update the installation",
+						},
+					},
+				},
+				{
+					Trigger: "unshare",
+					HelpText: "Remove sharing from an installation",
+					Arguments: []*model.AutocompleteArg{
+						{
+							Name: "name",
+							HelpText: "Name of the installation to unshare",
+							Required: true,
+						},
+					},
+				},
+				{
+					Trigger: "restart",
+					HelpText: "Restart a Mattermost installation",
+					Arguments: []*model.AutocompleteArg{
+						{
+							Name: "name",
+							HelpText: "Name of the installation to restart",
+							Required: true,
+						},
+					},
+				},
+				{
+					Trigger: "hibernate",
+					HelpText: "Hibernate a Mattermost installation",
+					Arguments: []*model.AutocompleteArg{
+						{
+							Name: "name",
+							HelpText: "Name of the installation to hibernate",
+							Required: true,
+						},
+					},
+				},
+				{
+					Trigger: "wake-up",
+					HelpText: "Wake up a hibernated installation",
+					Arguments: []*model.AutocompleteArg{
+						{
+							Name: "name",
+							HelpText: "Name of the installation to wake up",
+							Required: true,
+						},
+					},
+				},
+				{
+					Trigger: "delete",
+					HelpText: "Delete a Mattermost installation",
+					Arguments: []*model.AutocompleteArg{
+						{
+							Name: "name",
+							HelpText: "Name of the installation to delete",
+							Required: true,
+						},
+					},
+				},
+				{
+					Trigger: "info",
+					HelpText: "Show cloud plugin information",
+				},
+				{
+					Trigger: "import",
+					HelpText: "Import an existing installation",
+					Arguments: []*model.AutocompleteArg{
+						{
+							Name: "DNS",
+							HelpText: "DNS value of the installation to import",
+							Required: true,
+						},
+					},
+				},
+			},
+		},
 	}
 }
 
