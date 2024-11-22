@@ -183,6 +183,11 @@ func getCommand() *model.Command {
 							HelpText: "Enterprise license to use",
 							Required: false,
 						},
+						{
+							Name: "clear-env",
+							HelpText: "List of custom environment variables to erase, for example: ENV1,ENV2",
+							Required: false,
+						},
 					},
 				},
 				{
