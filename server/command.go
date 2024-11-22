@@ -128,6 +128,11 @@ func getCommand() *model.Command {
 							Required: false,
 						},
 						{
+							Name: "image",
+							HelpText: "Docker image repository, can be mattermost/mattermost-enterprise-edition, mattermost/mm-ee-cloud, mattermost/mm-te, mattermost/mattermost-team-edition, mattermostdevelopment/mm-ee-test, mattermostdevelopment/mm-te-test, mattermostdevelopment/mattermost-enterprise-edition, mattermostdevelopment/mattermost-team-edition",
+							Required: false,
+						},
+						{
 							Name: "filestore",
 							HelpText: "Specify the backing file store. Can be 'bifrost' (S3 Shared Bucket), 'aws-multitenant-s3' (S3 Shared Bucket), 'aws-s3' (S3 Bucket). (default \"bifrost\")",
 							Required: false,
