@@ -180,7 +180,7 @@ func getCommand() *model.Command {
 						},
 						{
 							Name: "version",
-							HelpText: "Mattermost version to run",
+							HelpText: "Mattermost version to run, e.g. '9.1.0'",
 							Required: false,
 						},
 						{
