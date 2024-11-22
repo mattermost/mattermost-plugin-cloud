@@ -112,6 +112,11 @@ func getCommand() *model.Command {
 							HelpText: "Include test data in installation",
 							Required: false,
 						},
+						{
+							Name: "affinity",
+							HelpText: "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant' (default \"multitenant\")",
+							Required: false,
+						},
 					},
 				},
 				{
