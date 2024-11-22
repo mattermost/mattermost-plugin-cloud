@@ -188,6 +188,11 @@ func getCommand() *model.Command {
 							HelpText: "List of custom environment variables to erase, for example: ENV1,ENV2",
 							Required: false,
 						},
+						{
+							Name: "env",
+							HelpText: "Environment variables in form: ENV1=test,ENV2=test",
+							Required: false,
+						},
 					},
 				},
 				{
