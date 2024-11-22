@@ -203,6 +203,11 @@ func getCommand() *model.Command {
 							HelpText: "Set this to true when attempting to update a shared installation",
 							Required: false,
 						},
+						{
+							Name: "size",
+							HelpText: "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'",
+							Required: false,
+						},
 					},
 				},
 				{
