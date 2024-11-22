@@ -353,6 +353,29 @@ func getCommand() *model.Command {
 						},
 					},
 				},
+				{
+					Trigger: "mmcli",
+					HelpText: "Runs Mattermost CLI commands on an installation",
+					Arguments: []*model.AutocompleteArg{
+						{
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "name",
+								Pattern: "^[a-zA-Z0-9-]+$",
+							},
+							HelpText: "Name of the installation to run CLI commands on",
+							Required: true,
+						},
+						{
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "mattermost-subcommand",
+							},
+							HelpText: "The Mattermost CLI subcommand to run",
+							Required: true,
+						},
+					},
+				},
 			},
 		},
 	}
