@@ -113,6 +113,11 @@ func getCommand() *model.Command {
 							Required: false,
 						},
 						{
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "affinity",
+								Pattern: "^(isolated|multitenant)$",
+							},
 							Name: "affinity",
 							HelpText: "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant' (default \"multitenant\")",
 							Required: false,
