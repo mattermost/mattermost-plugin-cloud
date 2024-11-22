@@ -106,7 +106,7 @@ func getCommand() *model.Command {
 						{
 							Name: "test-data",
 							HelpText: "Include test data in installation",
-							Optional: true,
+							Required: false,
 						},
 					},
 				},
