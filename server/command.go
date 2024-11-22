@@ -101,7 +101,7 @@ func getCommand() *model.Command {
 						{
 							Name: "license",
 							HelpText: "License type (e.g. 'e10', 'enterprise')",
-							Optional: true,
+							Required: false,
 						},
 						{
 							Name: "test-data",
@@ -117,7 +117,7 @@ func getCommand() *model.Command {
 						{
 							Name: "shared-installations",
 							HelpText: "Lists shared installations instead of personal ones",
-							Optional: true,
+							Required: false,
 						},
 					},
 				},
@@ -133,12 +133,12 @@ func getCommand() *model.Command {
 						{
 							Name: "version",
 							HelpText: "Mattermost version to run",
-							Optional: true,
+							Required: false,
 						},
 						{
 							Name: "license",
 							HelpText: "Enterprise license to use",
-							Optional: true,
+							Required: false,
 						},
 					},
 				},
@@ -154,7 +154,7 @@ func getCommand() *model.Command {
 						{
 							Name: "allow-updates",
 							HelpText: "Allow other users to update the installation",
-							Optional: true,
+							Required: false,
 						},
 					},
 				},
