@@ -109,7 +109,7 @@ func getCommand() *model.Command {
 						},
 						{
 							Name: "test-data",
-							HelpText: "Include test data in installation",
+							HelpText: "Set to pre-load the server with test data",
 							Required: false,
 						},
 						{
