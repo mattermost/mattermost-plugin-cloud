@@ -185,7 +185,7 @@ func getCommand() *model.Command {
 						},
 						{
 							Name: "license",
-							HelpText: "Enterprise license to use",
+							HelpText: "The enterprise license to use. Can be 'enterprise', 'professional', 'e20', 'e10', or 'te'",
 							Required: false,
 						},
 						{
