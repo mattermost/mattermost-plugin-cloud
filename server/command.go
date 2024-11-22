@@ -98,28 +98,26 @@ func getCommand() *model.Command {
 							HelpText: "Name of the installation",
 							Required: true,
 						},
-					},
-					Flags: []*model.AutocompleteFlag{
 						{
 							Name: "license",
-							Type: model.AutocompleteFlagTypeString,
 							HelpText: "License type (e.g. 'e10', 'enterprise')",
+							Optional: true,
 						},
 						{
 							Name: "test-data",
-							Type: model.AutocompleteFlagTypeBoolean,
 							HelpText: "Include test data in installation",
+							Optional: true,
 						},
 					},
 				},
 				{
 					Trigger: "list",
 					HelpText: "Lists your Mattermost installations",
-					Flags: []*model.AutocompleteFlag{
+					Arguments: []*model.AutocompleteArg{
 						{
 							Name: "shared-installations",
-							Type: model.AutocompleteFlagTypeBoolean,
 							HelpText: "Lists shared installations instead of personal ones",
+							Optional: true,
 						},
 					},
 				},
@@ -132,17 +130,15 @@ func getCommand() *model.Command {
 							HelpText: "Name of the installation to update",
 							Required: true,
 						},
-					},
-					Flags: []*model.AutocompleteFlag{
 						{
 							Name: "version",
-							Type: model.AutocompleteFlagTypeString,
 							HelpText: "Mattermost version to run",
+							Optional: true,
 						},
 						{
 							Name: "license",
-							Type: model.AutocompleteFlagTypeString,
 							HelpText: "Enterprise license to use",
+							Optional: true,
 						},
 					},
 				},
@@ -155,12 +151,10 @@ func getCommand() *model.Command {
 							HelpText: "Name of the installation to share",
 							Required: true,
 						},
-					},
-					Flags: []*model.AutocompleteFlag{
 						{
 							Name: "allow-updates",
-							Type: model.AutocompleteFlagTypeBoolean,
 							HelpText: "Allow other users to update the installation",
+							Optional: true,
 						},
 					},
 				},
