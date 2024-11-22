@@ -122,6 +122,11 @@ func getCommand() *model.Command {
 							HelpText: "Specify the backing database. Can be 'aws-multitenant-rds-postgres-pgbouncer' (RDS Postgres with pgbouncer proxy connections), 'aws-rds' (RDS MySQL). (default \"aws-multitenant-rds-postgres-pgbouncer\")",
 							Required: false,
 						},
+						{
+							Name: "env",
+							HelpText: "Environment variables in form: ENV1=test,ENV2=test",
+							Required: false,
+						},
 					},
 				},
 				{
