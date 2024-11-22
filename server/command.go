@@ -225,7 +225,7 @@ func getCommand() *model.Command {
 						},
 						{
 							Name: "allow-updates",
-							HelpText: "Allow other users to update the installation",
+							HelpText: "Allow other plugin users to update the installation configuration",
 							Required: false,
 						},
 					},
