@@ -103,6 +103,10 @@ func getCommand() *model.Command {
 							Required: true,
 						},
 						{
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "license",
+							},
 							Name: "license",
 							HelpText: "The Mattermost license to use. Can be 'enterprise', 'professional', 'e20', 'e10', or 'te' (default \"enterprise\")",
 							Required: false,
@@ -123,11 +127,19 @@ func getCommand() *model.Command {
 							Required: false,
 						},
 						{
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "database",
+							},
 							Name: "database",
 							HelpText: "Specify the backing database. Can be 'aws-multitenant-rds-postgres-pgbouncer' (RDS Postgres with pgbouncer proxy connections), 'aws-rds' (RDS MySQL). (default \"aws-multitenant-rds-postgres-pgbouncer\")",
 							Required: false,
 						},
 						{
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "env",
+							},
 							Name: "env",
 							HelpText: "Environment variables in form: ENV1=test,ENV2=test",
 							Required: false,
@@ -138,21 +150,37 @@ func getCommand() *model.Command {
 							Required: false,
 						},
 						{
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "filestore",
+							},
 							Name: "filestore",
 							HelpText: "Specify the backing file store. Can be 'bifrost' (S3 Shared Bucket), 'aws-multitenant-s3' (S3 Shared Bucket), 'aws-s3' (S3 Bucket). (default \"bifrost\")",
 							Required: false,
 						},
 						{
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "image",
+							},
 							Name: "image",
 							HelpText: "Docker image repository. Can be mattermost/mattermost-enterprise-edition, mattermost/mm-ee-cloud, mattermost/mm-te, mattermost/mattermost-team-edition, mattermostdevelopment/mm-ee-test, mattermostdevelopment/mm-te-test, mattermostdevelopment/mattermost-enterprise-edition, mattermostdevelopment/mattermost-team-edition (default \"mattermost/mattermost-enterprise-edition\")",
 							Required: false,
 						},
 						{
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "size",
+							},
 							Name: "size",
 							HelpText: "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA' (default \"miniSingleton\")",
 							Required: false,
 						},
 						{
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "version",
+							},
 							Name: "version",
 							HelpText: "Mattermost version to run, e.g. '9.1.0' (default \"latest\")",
 							Required: false,
