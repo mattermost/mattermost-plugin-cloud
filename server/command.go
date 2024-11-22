@@ -137,6 +137,11 @@ func getCommand() *model.Command {
 							HelpText: "Docker image repository. Can be mattermost/mattermost-enterprise-edition, mattermost/mm-ee-cloud, mattermost/mm-te, mattermost/mattermost-team-edition, mattermostdevelopment/mm-ee-test, mattermostdevelopment/mm-te-test, mattermostdevelopment/mattermost-enterprise-edition, mattermostdevelopment/mattermost-team-edition (default \"mattermost/mattermost-enterprise-edition\")",
 							Required: false,
 						},
+						{
+							Name: "size",
+							HelpText: "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA' (default \"miniSingleton\")",
+							Required: false,
+						},
 					},
 				},
 				{
