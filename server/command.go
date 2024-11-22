@@ -117,6 +117,11 @@ func getCommand() *model.Command {
 							HelpText: "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant' (default \"multitenant\")",
 							Required: false,
 						},
+						{
+							Name: "database",
+							HelpText: "Specify the backing database. Can be 'aws-multitenant-rds-postgres-pgbouncer' (RDS Postgres with pgbouncer proxy connections), 'aws-rds' (RDS MySQL). (default \"aws-multitenant-rds-postgres-pgbouncer\")",
+							Required: false,
+						},
 					},
 				},
 				{
