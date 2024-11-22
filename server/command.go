@@ -198,6 +198,11 @@ func getCommand() *model.Command {
 							HelpText: "Environment variables in form: ENV1=test,ENV2=test",
 							Required: false,
 						},
+						{
+							Name: "shared-installation",
+							HelpText: "Set this to true when attempting to update a shared installation",
+							Required: false,
+						},
 					},
 				},
 				{
