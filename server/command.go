@@ -94,7 +94,11 @@ func getCommand() *model.Command {
 					HelpText: "Creates a Mattermost installation",
 					Arguments: []*model.AutocompleteArg{
 						{
-							Name: "name",
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "name",
+								Pattern: "^[a-zA-Z0-9-]+$",
+							},
 							HelpText: "Name of the installation",
 							Required: true,
 						},
@@ -126,7 +130,11 @@ func getCommand() *model.Command {
 					HelpText: "Update a Mattermost installation",
 					Arguments: []*model.AutocompleteArg{
 						{
-							Name: "name",
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "name",
+								Pattern: "^[a-zA-Z0-9-]+$",
+							},
 							HelpText: "Name of the installation to update",
 							Required: true,
 						},
@@ -147,7 +155,11 @@ func getCommand() *model.Command {
 					HelpText: "Share a Mattermost installation",
 					Arguments: []*model.AutocompleteArg{
 						{
-							Name: "name",
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "name",
+								Pattern: "^[a-zA-Z0-9-]+$",
+							},
 							HelpText: "Name of the installation to share",
 							Required: true,
 						},
@@ -163,7 +175,11 @@ func getCommand() *model.Command {
 					HelpText: "Remove sharing from an installation",
 					Arguments: []*model.AutocompleteArg{
 						{
-							Name: "name",
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "name",
+								Pattern: "^[a-zA-Z0-9-]+$",
+							},
 							HelpText: "Name of the installation to unshare",
 							Required: true,
 						},
@@ -174,7 +190,11 @@ func getCommand() *model.Command {
 					HelpText: "Restart a Mattermost installation",
 					Arguments: []*model.AutocompleteArg{
 						{
-							Name: "name",
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "name",
+								Pattern: "^[a-zA-Z0-9-]+$",
+							},
 							HelpText: "Name of the installation to restart",
 							Required: true,
 						},
@@ -185,7 +205,11 @@ func getCommand() *model.Command {
 					HelpText: "Hibernate a Mattermost installation",
 					Arguments: []*model.AutocompleteArg{
 						{
-							Name: "name",
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "name",
+								Pattern: "^[a-zA-Z0-9-]+$",
+							},
 							HelpText: "Name of the installation to hibernate",
 							Required: true,
 						},
@@ -196,7 +220,11 @@ func getCommand() *model.Command {
 					HelpText: "Wake up a hibernated installation",
 					Arguments: []*model.AutocompleteArg{
 						{
-							Name: "name",
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "name",
+								Pattern: "^[a-zA-Z0-9-]+$",
+							},
 							HelpText: "Name of the installation to wake up",
 							Required: true,
 						},
@@ -207,7 +235,11 @@ func getCommand() *model.Command {
 					HelpText: "Delete a Mattermost installation",
 					Arguments: []*model.AutocompleteArg{
 						{
-							Name: "name",
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "name",
+								Pattern: "^[a-zA-Z0-9-]+$",
+							},
 							HelpText: "Name of the installation to delete",
 							Required: true,
 						},
