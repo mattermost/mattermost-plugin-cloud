@@ -97,6 +97,9 @@ type configuration struct {
 
 	DefaultDatabase  string
 	DefaultFilestore string
+
+	// EnableCommandAutocompletion determines if the slash command should support autocompletion
+	EnableCommandAutocompletion bool
 }
 
 // ConfigResponse is a struct representing a sanitized configuration object, intended to be passed to the front-end for usage

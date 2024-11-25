@@ -82,7 +82,7 @@ func getCommand() *model.Command {
 		Trigger:          "cloud",
 		DisplayName:      "Mattermost Private Cloud",
 		Description:      "This command allows spinning up and down Mattermost installations using Mattermost Private Cloud.",
-		AutoComplete:     true,
+		AutoComplete:     p.getConfiguration().EnableCommandAutocompletion,
 		AutoCompleteDesc: "Available commands: create, list, update, mmcli, mmctl, delete, share, unshare, restart, hibernate, wake-up, info, import",
 		AutoCompleteHint: "[command]",
 		AutocompleteData: &model.AutocompleteData{
