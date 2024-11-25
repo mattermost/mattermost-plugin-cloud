@@ -77,7 +77,7 @@ info
 	))
 }
 
-func getCommand() *model.Command {
+func (p *Plugin) getCommand() *model.Command {
 	return &model.Command{
 		Trigger:          "cloud",
 		DisplayName:      "Mattermost Private Cloud",

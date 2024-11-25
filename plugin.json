@@ -162,6 +162,13 @@
                         "value": "minio-operator"
                     }
                 ]
+            },
+            {
+                "key": "EnableCommandAutocompletion",
+                "display_name": "Enable Command Autocompletion",
+                "type": "bool",
+                "help_text": "Enable or disable autocompletion for the /cloud slash command",
+                "default": true
             }
         ]
     }
