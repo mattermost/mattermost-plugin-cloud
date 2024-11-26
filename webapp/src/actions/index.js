@@ -193,6 +193,10 @@ export function restartInstallation(name) {
     return executeCommand(`/cloud restart ${name}`);
 }
 
+export function getDebugPacket(name) {
+    return executeCommand(`/cloud debug-packet ${name}`);
+}
+
 export const telemetry = (event, properties) => async (dispatch, getState) => {
     await fetch(getPluginServerRoute(getState()) + '/telemetry', Client4.getOptions({
         method: 'post',

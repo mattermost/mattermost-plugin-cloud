@@ -105,6 +105,10 @@ func (mc *MockClient) RunMmctlCommandOnClusterInstallation(clusterInstallationID
 	return []byte("mocked mmctl command output"), nil
 }
 
+func (mc *MockClient) ExecClusterInstallationPPROF(clusterInstallationID string) ([]byte, error) {
+	return []byte("mocked debug packet output"), nil
+}
+
 func (mc *MockClient) GetGroup(groupID string) (*cloud.GroupDTO, error) {
 	return &cloud.GroupDTO{Group: &cloud.Group{ID: groupID, Name: "test-group"}}, nil
 }
