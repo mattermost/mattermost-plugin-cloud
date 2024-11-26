@@ -70,6 +70,9 @@ var dockerRepoTestImages = []string{
 type configuration struct {
 	ProvisioningServerURL                     string
 	ProvisioningServerAuthToken               string
+	ProvisioningServerClientID                string
+	ProvisioningServerClientSecret            string
+	ProvisioningServerTokenEndpoint           string
 	InstallationDNS                           string
 	AllowedEmailDomain                        string
 	DeletionLockInstallationsAllowedPerPerson string
@@ -100,6 +103,10 @@ type configuration struct {
 
 	// EnableCommandAutocompletion determines if the slash command should support autocompletion
 	EnableCommandAutocompletion bool
+}
+
+func (c *configuration) ProvisioningServerAuthIsValid() bool {
+	return len(c.ProvisioningServerClientID) > 0 && len(c.ProvisioningServerClientSecret) > 0 && len(c.ProvisioningServerTokenEndpoint) > 0
 }
 
 // ConfigResponse is a struct representing a sanitized configuration object, intended to be passed to the front-end for usage
@@ -213,6 +220,11 @@ func (p *Plugin) OnConfigurationChange() error {
 
 func (p *Plugin) setCloudClient() {
 	configuration := p.getConfiguration()
+
+	if configuration.ProvisioningServerAuthIsValid() {
+		p.cloudClient = cloud.NewClientWithOAuth(configuration.ProvisioningServerURL, map[string]string{}, configuration.ProvisioningServerClientID, configuration.ProvisioningServerClientSecret, configuration.ProvisioningServerTokenEndpoint)
+		return
+	}
 
 	if configuration.ProvisioningServerAuthToken == "" {
 		p.cloudClient = cloud.NewClient(configuration.ProvisioningServerURL)
