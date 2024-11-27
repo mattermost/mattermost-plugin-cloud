@@ -29,6 +29,7 @@ type Plugin struct {
 	// setConfiguration for usage.
 	configuration *configuration
 
+	appBarIconData string
 	latestMattermostVersion *latestMattermostVersionCache
 }
 
@@ -124,6 +125,13 @@ func (p *Plugin) OnActivate() error {
 	if appErr != nil {
 		return errors.Wrap(appErr, "couldn't set profile image")
 	}
+
+	// Read the app bar icon for command autocomplete
+	appBarIcon, err := ioutil.ReadFile(filepath.Join(bundlePath, "public", "app-bar-icon.png"))
+	if err != nil {
+		return errors.Wrap(err, "couldn't read app bar icon")
+	}
+	p.appBarIconData = "data:image/png;base64," + base64.StdEncoding.EncodeToString(appBarIcon)
 
 	p.setCloudClient()
 	p.dockerClient = NewDockerClient()
