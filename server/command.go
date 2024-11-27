@@ -85,6 +85,7 @@ func (p *Plugin) getCommand() *model.Command {
 		AutoComplete:     p.getConfiguration().EnableCommandAutocompletion,
 		AutoCompleteDesc: "Available commands: create, list, update, mmcli, mmctl, delete, share, unshare, restart, hibernate, wake-up, info, import",
 		AutoCompleteHint: "[command]",
+		AutocompleteIconData: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEAAAABACAYAAACqaXHeAAAABmJLR0QA/wD/AP+gvaeTAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAB3RJTUUH4wkZCRMZ1+O3jQAAAB1pVFh0Q29tbWVudAAAAAAAQ3JlYXRlZCB3aXRoIEdJTVBkLmUHAAAA7ElEQVR42u3aQQqDMBCF4T/qwp0n8v6n8EaC4M6FWrDQgFjT+mYS5n0gO8nAzzgJMQAAAAAAAGhNlFLK+YVz7vD9tm2H77uuO3zfti2cc7/NL6Xk/Zr3fd/3/TDG5GVZPsbMOedhGPK6rvk+Z875Ps/zPOd5zn3f52ma7vfXdc0xxlzXdY4x5mEYcl3XeRzHHEL4+wQAAAAAAADgGzE8fQP8y0YoxvixEfp8b4yx6Py/bYQ+zW+tfXv+qhuhs/Nba4v2AQAAAAAAAMBfqPkR9Gw+H0EAAAAAAAAAAAAAAAAAAAAAAAAAAAAA4OW8APUwHEuJHpVrAAAAAElFTkSuQmCC",
 		AutocompleteData: &model.AutocompleteData{
 			Trigger: "cloud",
 			SubCommands: []*model.AutocompleteData{
