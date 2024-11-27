@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/base64"
 	"io/ioutil"
 	"path/filepath"
 	"strings"
@@ -29,7 +30,7 @@ type Plugin struct {
 	// setConfiguration for usage.
 	configuration *configuration
 
-	appBarIconData string
+	appBarIconData          string
 	latestMattermostVersion *latestMattermostVersionCache
 }
 
