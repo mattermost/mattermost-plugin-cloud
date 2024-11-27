@@ -83,8 +83,9 @@ func (p *Plugin) getCommand() *model.Command {
 		DisplayName:      "Mattermost Private Cloud",
 		Description:      "This command allows spinning up and down Mattermost installations using Mattermost Private Cloud.",
 		AutoComplete:     p.getConfiguration().EnableCommandAutocompletion,
-		AutoCompleteDesc: "Available commands: create, list, update, mmcli, mmctl, delete, share, unshare, restart, hibernate, wake-up, info, import",
+		AutoCompleteDesc: "Available commands: create, list, update, mmcli, mmctl, delete, share, unshare, restart, hibernate, wake-up, info, import", 
 		AutoCompleteHint: "[command]",
+		IconURL:         "/public/app-bar-icon.png",
 		AutocompleteData: &model.AutocompleteData{
 			Trigger: "cloud",
 			SubCommands: []*model.AutocompleteData{
