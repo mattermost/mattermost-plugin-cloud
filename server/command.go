@@ -95,7 +95,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation",
@@ -204,7 +204,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation to update",
@@ -249,7 +249,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation to share",
@@ -269,7 +269,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation to unshare",
@@ -284,7 +284,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation to restart",
@@ -299,7 +299,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation to hibernate",
@@ -314,7 +314,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation to wake up",
@@ -329,7 +329,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation to delete",
@@ -348,7 +348,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint: "DNS",
+								Hint: "[DNS]",
 							},
 							HelpText: "DNS value of the installation to import",
 							Required: true,
@@ -362,7 +362,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation to run CLI commands on",
@@ -371,7 +371,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint: "mattermost-subcommand",
+								Hint: "[mattermost-subcommand]",
 							},
 							HelpText: "The Mattermost CLI subcommand to run",
 							Required: true,
@@ -385,7 +385,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation to run mmctl commands on",
@@ -394,7 +394,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint: "mmctl-subcommand",
+								Hint: "[mmctl-subcommand]",
 							},
 							HelpText: "The mmctl subcommand to run",
 							Required: true,
