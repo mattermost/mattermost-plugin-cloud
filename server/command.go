@@ -193,7 +193,7 @@ func (p *Plugin) getCommand() *model.Command {
 								PossibleArguments: []model.AutocompleteListItem{
 									{
 										Item:     "bifrost",
-										HelpText: "RDS Postgres with pgbouncer proxy connections",
+										HelpText: "Shared S3 bucket with access via bifrost",
 									},
 									{
 										Item:     "aws-multitenant-s3",
@@ -228,7 +228,7 @@ func (p *Plugin) getCommand() *model.Command {
 									},
 									{
 										Item:     "miniHA",
-										HelpText: "Mini Singleton cluster",
+										HelpText: "Mini cluster made of two servers",
 									},
 								},
 							},
@@ -331,7 +331,7 @@ func (p *Plugin) getCommand() *model.Command {
 									},
 									{
 										Item:     "miniHA",
-										HelpText: "Mini Singleton cluster",
+										HelpText: "Mini cluster made of two servers",
 									},
 								},
 							},
