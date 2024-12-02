@@ -429,7 +429,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation to get the packet from",
