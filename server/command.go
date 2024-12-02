@@ -79,12 +79,13 @@ info
 
 func (p *Plugin) getCommand() *model.Command {
 	return &model.Command{
-		Trigger:          "cloud",
-		DisplayName:      "Mattermost Private Cloud",
-		Description:      "This command allows spinning up and down Mattermost installations using Mattermost Private Cloud.",
-		AutoComplete:     p.getConfiguration().EnableCommandAutocompletion,
-		AutoCompleteDesc: "Available commands: create, list, update, mmcli, mmctl, delete, share, unshare, restart, hibernate, wake-up, info, import",
-		AutoCompleteHint: "[command]",
+		Trigger:              "cloud",
+		DisplayName:          "Mattermost Private Cloud",
+		Description:          "This command allows spinning up and down Mattermost installations using Mattermost Private Cloud.",
+		AutoComplete:         p.getConfiguration().EnableCommandAutocompletion,
+		AutoCompleteDesc:     "Available commands: create, list, update, mmcli, mmctl, delete, share, unshare, restart, hibernate, wake-up, info, import",
+		AutoCompleteHint:     "[command]",
+		AutocompleteIconData: p.appBarIconData,
 		AutocompleteData: &model.AutocompleteData{
 			Trigger: "cloud",
 			SubCommands: []*model.AutocompleteData{
@@ -95,16 +96,37 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation",
 							Required: true,
 						},
 						{
-							Type: model.AutocompleteArgTypeText,
-							Data: &model.AutocompleteTextArg{
-								Hint: "license",
+							Type: model.AutocompleteArgTypeStaticList,
+							Data: &model.AutocompleteStaticListArg{
+								PossibleArguments: []model.AutocompleteListItem{
+									{
+										Item:     "e20",
+										HelpText: "E20 License",
+									},
+									{
+										Item:     "e10",
+										HelpText: "E10 License",
+									},
+									{
+										Item:     "te",
+										HelpText: "Team Edition License",
+									},
+									{
+										Item:     "enterprise",
+										HelpText: "Enterprise Edition License",
+									},
+									{
+										Item:     "professional",
+										HelpText: "Professional Edition License",
+									},
+								},
 							},
 							Name:     "license",
 							HelpText: "The Mattermost license to use. Can be 'enterprise', 'professional', 'e20', 'e10', or 'te' (default \"enterprise\")",
@@ -116,19 +138,36 @@ func (p *Plugin) getCommand() *model.Command {
 							Required: false,
 						},
 						{
-							Type: model.AutocompleteArgTypeText,
-							Data: &model.AutocompleteTextArg{
-								Hint:    "affinity",
-								Pattern: "^(isolated|multitenant)$",
+							Type: model.AutocompleteArgTypeStaticList,
+							Data: &model.AutocompleteStaticListArg{
+								PossibleArguments: []model.AutocompleteListItem{
+									{
+										Item:     "isolated",
+										HelpText: "Isolated",
+									},
+									{
+										Item:     "multitenant",
+										HelpText: "Multi-tenant",
+									},
+								},
 							},
 							Name:     "affinity",
 							HelpText: "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant' (default \"multitenant\")",
 							Required: false,
 						},
 						{
-							Type: model.AutocompleteArgTypeText,
-							Data: &model.AutocompleteTextArg{
-								Hint: "database",
+							Type: model.AutocompleteArgTypeStaticList,
+							Data: &model.AutocompleteStaticListArg{
+								PossibleArguments: []model.AutocompleteListItem{
+									{
+										Item:     "aws-multitenant-rds-postgres-pgbouncer",
+										HelpText: "RDS Postgres with pgbouncer proxy connections",
+									},
+									{
+										Item:     "aws-rds",
+										HelpText: "RDS MySQL",
+									},
+								},
 							},
 							Name:     "database",
 							HelpText: "Specify the backing database. Can be 'aws-multitenant-rds-postgres-pgbouncer' (RDS Postgres with pgbouncer proxy connections), 'aws-rds' (RDS MySQL). (default \"aws-multitenant-rds-postgres-pgbouncer\")",
@@ -149,9 +188,22 @@ func (p *Plugin) getCommand() *model.Command {
 							Required: false,
 						},
 						{
-							Type: model.AutocompleteArgTypeText,
-							Data: &model.AutocompleteTextArg{
-								Hint: "filestore",
+							Type: model.AutocompleteArgTypeStaticList,
+							Data: &model.AutocompleteStaticListArg{
+								PossibleArguments: []model.AutocompleteListItem{
+									{
+										Item:     "bifrost",
+										HelpText: "Shared S3 bucket with access via bifrost",
+									},
+									{
+										Item:     "aws-multitenant-s3",
+										HelpText: "S3 Shared Bucket",
+									},
+									{
+										Item:     "aws-s3",
+										HelpText: "S3 Bucket",
+									},
+								},
 							},
 							Name:     "filestore",
 							HelpText: "Specify the backing file store. Can be 'bifrost' (S3 Shared Bucket), 'aws-multitenant-s3' (S3 Shared Bucket), 'aws-s3' (S3 Bucket). (default \"bifrost\")",
@@ -167,9 +219,18 @@ func (p *Plugin) getCommand() *model.Command {
 							Required: false,
 						},
 						{
-							Type: model.AutocompleteArgTypeText,
-							Data: &model.AutocompleteTextArg{
-								Hint: "size",
+							Type: model.AutocompleteArgTypeStaticList,
+							Data: &model.AutocompleteStaticListArg{
+								PossibleArguments: []model.AutocompleteListItem{
+									{
+										Item:     "miniSingleton",
+										HelpText: "Mini Singleton instance",
+									},
+									{
+										Item:     "miniHA",
+										HelpText: "Mini cluster made of two servers",
+									},
+								},
 							},
 							Name:     "size",
 							HelpText: "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA' (default \"miniSingleton\")",
@@ -204,7 +265,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation to update",
@@ -216,6 +277,31 @@ func (p *Plugin) getCommand() *model.Command {
 							Required: false,
 						},
 						{
+							Type: model.AutocompleteArgTypeStaticList,
+							Data: &model.AutocompleteStaticListArg{
+								PossibleArguments: []model.AutocompleteListItem{
+									{
+										Item:     "e20",
+										HelpText: "E20 License",
+									},
+									{
+										Item:     "e10",
+										HelpText: "E10 License",
+									},
+									{
+										Item:     "te",
+										HelpText: "Team Edition License",
+									},
+									{
+										Item:     "enterprise",
+										HelpText: "Enterprise Edition License",
+									},
+									{
+										Item:     "professional",
+										HelpText: "Professional Edition License",
+									},
+								},
+							},
 							Name:     "license",
 							HelpText: "The enterprise license to use. Can be 'enterprise', 'professional', 'e20', 'e10', or 'te'",
 							Required: false,
@@ -236,6 +322,19 @@ func (p *Plugin) getCommand() *model.Command {
 							Required: false,
 						},
 						{
+							Type: model.AutocompleteArgTypeStaticList,
+							Data: &model.AutocompleteStaticListArg{
+								PossibleArguments: []model.AutocompleteListItem{
+									{
+										Item:     "miniSingleton",
+										HelpText: "Mini Singleton instance",
+									},
+									{
+										Item:     "miniHA",
+										HelpText: "Mini cluster made of two servers",
+									},
+								},
+							},
 							Name:     "size",
 							HelpText: "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'",
 							Required: false,
@@ -249,7 +348,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation to share",
@@ -269,7 +368,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation to unshare",
@@ -284,7 +383,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation to run CLI commands on",
@@ -293,7 +392,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint: "mattermost-subcommand",
+								Hint: "[mattermost-subcommand]",
 							},
 							HelpText: "The Mattermost CLI subcommand to run",
 							Required: true,
@@ -307,7 +406,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation to run mmctl commands on",
@@ -316,7 +415,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint: "mmctl-subcommand",
+								Hint: "[mmctl-subcommand]",
 							},
 							HelpText: "The mmctl subcommand to run",
 							Required: true,
@@ -345,7 +444,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation to restart",
@@ -360,7 +459,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation to hibernate",
@@ -375,7 +474,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation to wake up",
@@ -390,7 +489,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint:    "name",
+								Hint:    "[name]",
 								Pattern: "^[a-zA-Z0-9-]+$",
 							},
 							HelpText: "Name of the installation to delete",
@@ -409,7 +508,7 @@ func (p *Plugin) getCommand() *model.Command {
 						{
 							Type: model.AutocompleteArgTypeText,
 							Data: &model.AutocompleteTextArg{
-								Hint: "DNS",
+								Hint: "[DNS]",
 							},
 							HelpText: "DNS value of the installation to import",
 							Required: true,
