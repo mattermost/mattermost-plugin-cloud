@@ -47,6 +47,7 @@ export default class SidebarRight extends React.PureComponent {
             getCloudUserData: PropTypes.func.isRequired,
             getSharedInstalls: PropTypes.func.isRequired,
             restartInstallation: PropTypes.func.isRequired,
+            getDebugPacket: PropTypes.func.isRequired,
             deletionLockInstallation: PropTypes.func.isRequired,
             deletionUnlockInstallation: PropTypes.func.isRequired,
             getPluginConfiguration: PropTypes.func.isRequired,
@@ -82,10 +83,11 @@ export default class SidebarRight extends React.PureComponent {
         const dropdownButtonItems = [
             {onClick: () => window.open(installation.InstallationLogsURL, '_blank'), buttonText: 'Installation Logs'},
             {onClick: () => window.open(installation.ProvisionerLogsURL, '_blank'), buttonText: 'Provisioner Logs'},
+            {onClick: () => this.handleGetDebugPacket(installation.Name), buttonText: 'Get Debug Packet'},
         ];
         const menuItems = dropdownButtonItems.map((menuItem, index) => (
             <MenuItem
-                key={'log-menu-' + installation.ID + '-' + index}
+                key={'debug-menu-' + installation.ID + '-' + index}
                 onClick={menuItem.onClick}
             >{menuItem.buttonText}
             </MenuItem>
@@ -114,7 +116,7 @@ export default class SidebarRight extends React.PureComponent {
                 <DropdownButton
                     style={style.dropdownButton}
                     className='btn btn-tertiary btn-sm'
-                    title='Logs'
+                    title='Debug'
                 >
                     {menuItems}
                 </DropdownButton>
@@ -138,6 +140,10 @@ export default class SidebarRight extends React.PureComponent {
             onCancel: () => this.setState({confirmationModal: {visible: false}}),
         }});
     }
+
+    handleGetDebugPacket = async (name) => {
+        await this.props.actions.getDebugPacket(name);
+    };
 
     async handleDeletionUnlock(installation) {
         await this.props.actions.deletionUnlockInstallation(installation.ID);

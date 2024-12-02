@@ -377,6 +377,67 @@ func (p *Plugin) getCommand() *model.Command {
 					},
 				},
 				{
+					Trigger:  "mmcli",
+					HelpText: "Runs Mattermost CLI commands on an installation",
+					Arguments: []*model.AutocompleteArg{
+						{
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint:    "[name]",
+								Pattern: "^[a-zA-Z0-9-]+$",
+							},
+							HelpText: "Name of the installation to run CLI commands on",
+							Required: true,
+						},
+						{
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "[mattermost-subcommand]",
+							},
+							HelpText: "The Mattermost CLI subcommand to run",
+							Required: true,
+						},
+					},
+				},
+				{
+					Trigger:  "mmctl",
+					HelpText: "Runs mmctl commands on an installation",
+					Arguments: []*model.AutocompleteArg{
+						{
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint:    "[name]",
+								Pattern: "^[a-zA-Z0-9-]+$",
+							},
+							HelpText: "Name of the installation to run mmctl commands on",
+							Required: true,
+						},
+						{
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint: "[mmctl-subcommand]",
+							},
+							HelpText: "The mmctl subcommand to run",
+							Required: true,
+						},
+					},
+				},
+				{
+					Trigger:  "debug-packet",
+					HelpText: "Get a debug packet containing performance data",
+					Arguments: []*model.AutocompleteArg{
+						{
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint:    "[name]",
+								Pattern: "^[a-zA-Z0-9-]+$",
+							},
+							HelpText: "Name of the installation to get the packet from",
+							Required: true,
+						},
+					},
+				},
+				{
 					Trigger:  "restart",
 					HelpText: "Restart a Mattermost installation",
 					Arguments: []*model.AutocompleteArg{
@@ -454,52 +515,6 @@ func (p *Plugin) getCommand() *model.Command {
 						},
 					},
 				},
-				{
-					Trigger:  "mmcli",
-					HelpText: "Runs Mattermost CLI commands on an installation",
-					Arguments: []*model.AutocompleteArg{
-						{
-							Type: model.AutocompleteArgTypeText,
-							Data: &model.AutocompleteTextArg{
-								Hint:    "[name]",
-								Pattern: "^[a-zA-Z0-9-]+$",
-							},
-							HelpText: "Name of the installation to run CLI commands on",
-							Required: true,
-						},
-						{
-							Type: model.AutocompleteArgTypeText,
-							Data: &model.AutocompleteTextArg{
-								Hint: "[mattermost-subcommand]",
-							},
-							HelpText: "The Mattermost CLI subcommand to run",
-							Required: true,
-						},
-					},
-				},
-				{
-					Trigger:  "mmctl",
-					HelpText: "Runs mmctl commands on an installation",
-					Arguments: []*model.AutocompleteArg{
-						{
-							Type: model.AutocompleteArgTypeText,
-							Data: &model.AutocompleteTextArg{
-								Hint:    "[name]",
-								Pattern: "^[a-zA-Z0-9-]+$",
-							},
-							HelpText: "Name of the installation to run mmctl commands on",
-							Required: true,
-						},
-						{
-							Type: model.AutocompleteArgTypeText,
-							Data: &model.AutocompleteTextArg{
-								Hint: "[mmctl-subcommand]",
-							},
-							HelpText: "The mmctl subcommand to run",
-							Required: true,
-						},
-					},
-				},
 			},
 		},
 	}
@@ -543,6 +558,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		handler = p.runUpgradeHelperCommand
 	case "update":
 		handler = p.runUpdateCommand
+	case "debug-packet":
+		handler = p.runGetDebugPacketCommand
 	case "restart":
 		handler = p.runRestartCommand
 	case "hibernate":
