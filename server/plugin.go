@@ -52,6 +52,7 @@ type CloudClient interface {
 	GetClusterInstallations(request *cloud.GetClusterInstallationsRequest) ([]*cloud.ClusterInstallation, error)
 	RunMattermostCLICommandOnClusterInstallation(clusterInstallationID string, subcommand []string) ([]byte, error)
 	ExecClusterInstallationCLI(clusterInstallationID, command string, subcommand []string) ([]byte, error)
+	ExecClusterInstallationPPROF(clusterInstallationID string) ([]byte, error)
 
 	GetGroup(groupID string) (*cloud.GroupDTO, error)
 }
