@@ -103,7 +103,6 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string, hideSensitive bool) ([
 		if deleted {
 			// Notify the user and also show the deleted installation in their
 			// list one last time with a DELETED tag.
-			p.PostBotDM(userID, fmt.Sprintf("Cloud installation %s has been manually deleted and is now removed from the cloud plugin.\n\n%s", pluginInstall.Name, jsonCodeBlock(pluginInstall.ToPrettyJSON())))
 			pluginInstalls[i] = &Installation{
 				Name: fmt.Sprintf("%s [ DELETED ]", pluginInstall.Name),
 			}

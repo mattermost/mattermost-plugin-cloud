@@ -127,6 +127,19 @@ func (p *Plugin) processWebhookEvent(payload *cloud.WebhookPayload) {
 		return
 	}
 
+	if payload.NewState == cloud.InstallationStateDeletionPending {
+		if payload.ExtraData["actor_id"] == p.configuration.ProvisioningServerClientID {
+			p.PostBotDM(install.OwnerID, fmt.Sprintf("Installation %s is pending final deletion. If this was a mistake, please contact the Cloud Platform team within 24 hours of this message, or your data will be lost forever.", install.Name))
+		}
+		p.PostBotDM(install.OwnerID, fmt.Sprintf("Installation %s is pending deletion. If you believe this to be a mistake, please contact the Cloud Platform team for restoration. You have 24 hours to initiate before your data is lost forever.", install.Name))
+		return
+	}
+
+	if payload.NewState == cloud.InstallationStateDeleted {
+		p.PostBotDM(install.OwnerID, fmt.Sprintf("Installation %s has been deleted", install.Name))
+		return
+	}
+
 	var dnsRecord string
 	if len(install.DNSRecords) > 0 {
 		dnsRecord = install.DNSRecords[0].DomainName

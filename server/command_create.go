@@ -237,6 +237,9 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 
 	cloudInstallation, err := p.cloudClient.CreateInstallation(req)
 	if err != nil {
+		if strings.Contains(err.Error(), "409") {
+			return nil, true, errors.Errorf("Installation name %s already exists. **NOTE**: installation names are reserved for 24 hours after deletion in order to support restoration. Please try a new name, wait 24 hours, or contact the Cloud Platform team for support.", install.Name)
+		}
 		return nil, false, errors.Wrap(err, "failed to create installation")
 	}
 
