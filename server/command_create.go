@@ -189,7 +189,7 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, false, errors.Wrap(err, "unable to determine if installation name is already taken")
 	}
 	if exists {
-		return nil, true, errors.Errorf("Installation name %s already exists. Names are case insensitive and must be unique so you must choose a new name and try again", install.Name)
+		return nil, true, errors.Errorf("Installation name %s already exists. **NOTE**: installation names are reserved for 24 hours after deletion in order to support restoration. Please try a new name, wait 24 hours, or contact the Cloud Platform team for support.", install.Name)
 	}
 
 	err = p.parseCreateArgs(args, install)

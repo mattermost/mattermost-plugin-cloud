@@ -94,7 +94,9 @@ func (p *Plugin) processWebhookEvent(payload *cloud.WebhookPayload) {
 	}
 
 	if payload.NewState != cloud.InstallationStateStable &&
-		payload.NewState != cloud.InstallationStateHibernating {
+		payload.NewState != cloud.InstallationStateHibernating &&
+		payload.NewState != cloud.InstallationStateDeletionPending &&
+		payload.NewState != cloud.InstallationStateDeleted {
 		return
 	}
 
