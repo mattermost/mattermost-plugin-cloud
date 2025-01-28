@@ -123,6 +123,7 @@ func (p *Plugin) processWebhookEvent(payload *cloud.WebhookPayload) {
 		return
 	}
 	install.Installation = installation.Installation
+	install.HideSensitiveFields()
 
 	if payload.NewState == cloud.InstallationStateHibernating {
 		p.PostBotDM(install.OwnerID, fmt.Sprintf("Installation %s has been hibernated", install.Name))

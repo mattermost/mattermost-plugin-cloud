@@ -152,11 +152,43 @@ func TestListCommand(t *testing.T) {
 	})
 
 	t.Run("no shared installations", func(t *testing.T) {
+		api.On("KVGet").Unset()
 		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\"}]"), nil)
 
 		resp, isUserError, err := plugin.runListCommand([]string{"--shared-installations"}, &model.CommandArgs{UserId: "gabeid"})
 		require.Nil(t, err)
 		assert.False(t, isUserError)
 		assert.True(t, strings.Contains(resp.Text, "No installations found."))
+	})
+
+	t.Run("shared installations", func(t *testing.T) {
+		api.On("KVGet").Unset()
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"joramid\", \"Shared\": true}]"), nil)
+
+		resp, isUserError, err := plugin.runListCommand([]string{"--shared-installations"}, &model.CommandArgs{UserId: "gabeid"})
+		require.Nil(t, err)
+		assert.False(t, isUserError)
+		assert.True(t, strings.Contains(resp.Text, "someid"))
+	})
+
+	t.Run("shared installations, hidden env", func(t *testing.T) {
+		api.On("KVGet").Unset()
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"sharedid\", \"Shared\": true}]"), nil)
+		plugin.cloudClient = &MockClient{overrideGetInstallationDTO: &cloud.InstallationDTO{
+			Installation: &cloud.Installation{
+				ID:      "someid",
+				OwnerID: "sharedid",
+				MattermostEnv: cloud.EnvVarMap{
+					"testkey": cloud.EnvVar{Value: "testval"},
+				},
+			},
+		}}
+
+		resp, isUserError, err := plugin.runListCommand([]string{"--shared-installations"}, &model.CommandArgs{UserId: "gabeid"})
+		require.Nil(t, err)
+		assert.False(t, isUserError)
+		assert.True(t, strings.Contains(resp.Text, "someid"))
+		assert.False(t, strings.Contains(resp.Text, "testkey"))
+		assert.False(t, strings.Contains(resp.Text, "testval"))
 	})
 }
