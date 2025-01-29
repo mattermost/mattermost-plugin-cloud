@@ -45,7 +45,7 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 
 	var installs []*Installation
 	if config.Shared {
-		installs, err = p.getUpdatedSharedInstallations()
+		installs, err = p.getUpdatedSharedInstallations(true)
 		if err != nil {
 			return nil, false, err
 		}

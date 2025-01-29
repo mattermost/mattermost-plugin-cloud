@@ -146,7 +146,7 @@ func (p *Plugin) handleSharedInstalls(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sharedInstalls, err := p.getUpdatedSharedInstallations()
+	sharedInstalls, err := p.getUpdatedSharedInstallations(false)
 	if err != nil {
 		p.API.LogError(errors.Wrap(err, "Unable to getUpdatedSharedInstallations").Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)

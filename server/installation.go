@@ -250,7 +250,7 @@ func (p *Plugin) getUpdatableInstallationsForUser(userID string, includeShared b
 	return updatableInstallsForUser, nil
 }
 
-func (p *Plugin) getUpdatedSharedInstallations() ([]*Installation, error) {
+func (p *Plugin) getUpdatedSharedInstallations(hideSensitive bool) ([]*Installation, error) {
 	sharedInstalls, err := p.getSharedInstallations()
 	if err != nil {
 		return nil, err
@@ -268,6 +268,9 @@ func (p *Plugin) getUpdatedSharedInstallations() ([]*Installation, error) {
 			return nil, fmt.Errorf("could not find installation %s", install.ID)
 		}
 		install.InstallationDTO = *updatedInstall
+		if hideSensitive {
+			install.HideSensitiveFields()
+		}
 	}
 
 	return sharedInstalls, nil
