@@ -17,6 +17,7 @@ const (
 
 	imageEE          = "mattermost/mattermost-enterprise-edition"
 	imageEECloud     = "mattermost/mm-ee-cloud"
+	imageEEFips      = "mattermost/mattermost-enterprise-edition-fips"
 	imageTE          = "mattermost/mm-te"
 	imageTeamEdition = "mattermost/mattermost-team-edition"
 	imageEETest      = "mattermostdevelopment/mm-ee-test"
@@ -40,6 +41,7 @@ var validLicenseOptions = []string{
 var dockerRepoWhitelist = []string{
 	imageEE,
 	imageEECloud,
+	imageEEFips,
 	imageTE,
 	imageTeamEdition,
 	imageEETest,
