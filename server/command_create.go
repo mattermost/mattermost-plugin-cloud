@@ -142,8 +142,8 @@ func (p *Plugin) parseCreateArgs(args []string, install *Installation) error {
 		)
 	}
 
-	if install.Filestore == cloud.InstallationFilestoreMultiTenantAwsS3 && install.License != licenseOptionEnterprise && install.License != licenseOptionE20 {
-		return errors.Errorf("filestore option %s requires license option %s or %s", cloud.InstallationFilestoreMultiTenantAwsS3, licenseOptionEnterprise, licenseOptionE20)
+	if install.Filestore == cloud.InstallationFilestoreMultiTenantAwsS3 && install.License != licenseOptionEnterprise && install.License != licenseOptionE20 && install.License != licenseOptionEnterpriseAdvanced {
+		return errors.Errorf("filestore option %s requires license option %s or %s or %s", cloud.InstallationFilestoreMultiTenantAwsS3, licenseOptionEnterprise, licenseOptionE20, licenseOptionEnterpriseAdvanced)
 	}
 
 	install.TestData, err = createFlagSet.GetBool("test-data")

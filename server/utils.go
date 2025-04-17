@@ -40,7 +40,8 @@ func validLicenseOption(license string) bool {
 		license == licenseOptionProfessional ||
 		license == licenseOptionE20 ||
 		license == licenseOptionE10 ||
-		license == licenseOptionTE
+		license == licenseOptionTE ||
+		license == licenseOptionEnterpriseAdvanced
 }
 
 func validVersionOption(version string) error {
