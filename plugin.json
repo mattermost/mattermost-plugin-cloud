@@ -92,6 +92,12 @@
                 "help_text": "The contents of an Enterpise license."
             },
             {
+                "key": "EnterpriseAdvancedLicense",
+                "display_name": "Mattermost Enterprise Advanced License",
+                "type": "longtext",
+                "help_text": "The contents of an Enterprise Advanced license."
+            },
+            {
                 "key": "ProfessionalLicense",
                 "display_name": "Mattermost Professional License",
                 "type": "longtext",
