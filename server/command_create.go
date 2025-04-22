@@ -45,7 +45,7 @@ func (p *Plugin) getCreateFlagSet() *flag.FlagSet {
 	createFlagSet.String("size", "miniSingleton", "Size of the Mattermost installation e.g. 'miniSingleton' or 'miniHA'")
 	createFlagSet.String("version", "latest", "Mattermost version to run, e.g. '9.1.0'")
 	createFlagSet.String("affinity", cloud.InstallationAffinityMultiTenant, "Whether the installation is isolated in it's own cluster or shares ones. Can be 'isolated' or 'multitenant'")
-	createFlagSet.String("license", licenseOptionEnterpriseAdvanced, "The Mattermost license to use. Can be 'enterprise', 'enterprise-advanced', 'professional', 'e20', 'e10', or 'te'")
+	createFlagSet.String("license", licenseOptionEnterprise, "The Mattermost license to use. Can be 'enterprise', 'enterprise-advanced', 'professional', 'e20', 'e10', or 'te'")
 	createFlagSet.String("filestore", defaultFileStore, "Specify the backing file store. Can be 'bifrost' (S3 Shared Bucket), 'aws-multitenant-s3' (S3 Shared Bucket), 'aws-s3' (S3 Bucket).")
 	createFlagSet.String("database", defaultDatabase, "Specify the backing database. Can be 'aws-multitenant-rds-postgres-pgbouncer' (RDS Postgres with pgbouncer proxy connections), 'aws-rds' (RDS MySQL).")
 	createFlagSet.Bool("test-data", false, "Set to pre-load the server with test data")
