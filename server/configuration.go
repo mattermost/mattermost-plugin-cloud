@@ -9,11 +9,12 @@ import (
 )
 
 const (
-	licenseOptionEnterprise   = "enterprise"
-	licenseOptionProfessional = "professional"
-	licenseOptionE20          = "e20"
-	licenseOptionE10          = "e10"
-	licenseOptionTE           = "te"
+	licenseOptionEnterprise         = "enterprise"
+	licenseOptionEnterpriseAdvanced = "enterprise-advanced"
+	licenseOptionProfessional       = "professional"
+	licenseOptionE20                = "e20"
+	licenseOptionE10                = "e10"
+	licenseOptionTE                 = "te"
 
 	imageEE          = "mattermost/mattermost-enterprise-edition"
 	imageEECloud     = "mattermost/mm-ee-cloud"
@@ -29,6 +30,7 @@ const (
 
 var validLicenseOptions = []string{
 	licenseOptionEnterprise,
+	licenseOptionEnterpriseAdvanced,
 	licenseOptionProfessional,
 	licenseOptionE20,
 	licenseOptionE10,
@@ -79,10 +81,11 @@ type configuration struct {
 	ProvisioningServerWebhookSecret           string
 
 	// License
-	E10License          string
-	E20License          string
-	EnterpriseLicense   string
-	ProfessionalLicense string
+	E10License                string
+	E20License                string
+	EnterpriseLicense         string
+	EnterpriseAdvancedLicense string
+	ProfessionalLicense       string
 
 	// Groups
 	GroupID string
@@ -241,6 +244,8 @@ func (p *Plugin) getLicenseValue(licenseOption string) string {
 	switch licenseOption {
 	case licenseOptionEnterprise:
 		return config.EnterpriseLicense
+	case licenseOptionEnterpriseAdvanced:
+		return config.EnterpriseAdvancedLicense
 	case licenseOptionProfessional:
 		return config.ProfessionalLicense
 	case licenseOptionE20:
