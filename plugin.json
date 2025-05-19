@@ -74,6 +74,13 @@
                 "default": "1"
             },
             {
+                "key": "ScheduledDeletionHours",
+                "display_name": "Scheduled Deletion Hours",
+                "type": "text",
+                "help_text": "The number of hours after which new installations will be automatically deleted. Set to 0 to disable automatic deletion.",
+                "default": "0"
+            },
+            {
                 "key": "E10License",
                 "display_name": "Mattermost E10 License",
                 "type": "longtext",

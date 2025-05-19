@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -233,6 +234,16 @@ func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*mod
 		Version:     install.Version,
 		Image:       install.Image,
 		Annotations: []string{defaultMultiTenantAnnotation},
+	}
+
+	var hours int
+	if config.ScheduledDeletionHours != "" && config.ScheduledDeletionHours != "0" {
+		hours, err = strconv.Atoi(config.ScheduledDeletionHours)
+		if err == nil && hours > 0 {
+			// Convert hours to milliseconds and add to current time
+			deletionTime := time.Now().Add(time.Duration(hours) * time.Hour).UnixMilli()
+			req.ScheduledDeletionTime = deletionTime
+		}
 	}
 
 	cloudInstallation, err := p.cloudClient.CreateInstallation(req)

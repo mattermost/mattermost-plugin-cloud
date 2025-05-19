@@ -79,6 +79,7 @@ type configuration struct {
 	AllowedEmailDomain                        string
 	DeletionLockInstallationsAllowedPerPerson string
 	ProvisioningServerWebhookSecret           string
+	ScheduledDeletionHours                    string
 
 	// License
 	E10License                string
