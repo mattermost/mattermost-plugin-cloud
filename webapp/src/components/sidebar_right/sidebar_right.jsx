@@ -272,6 +272,21 @@ export default class SidebarRight extends React.PureComponent {
                         <span style={style.col1}>Created:</span>
                         <span>{installation.CreateAtDate}</span>
                     </div>
+                    {installation.ScheduledDeletionTime > 0 && !installation.DeletionLocked && (
+                        <div>
+                            <span style={style.col1}>Deleting:</span>
+                            <span
+                                style={this.getTimeRemainingStyle(installation.ScheduledDeletionTime)}
+                                title={new Date(installation.ScheduledDeletionTime).toLocaleString()}
+                            >
+                                {this.formatDeletionTime(installation.ScheduledDeletionTime)}
+                                <i
+                                    className='fa fa-clock-o'
+                                    style={{marginLeft: '4px'}}
+                                />
+                            </span>
+                        </div>
+                    )}
                 </div>
                 {this.installationButtons(installation, shared)}
             </li>
@@ -376,6 +391,43 @@ export default class SidebarRight extends React.PureComponent {
             </React.Fragment>
         );
     }
+
+    formatDeletionTime(timestamp) {
+        const now = new Date();
+        const deletionTime = new Date(timestamp);
+        const diffInMs = deletionTime - now;
+        const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        const diffInDays = Math.floor(diffInHours / 24);
+        const remainingHours = diffInHours % 24;
+
+        if (diffInDays > 0) {
+            if (remainingHours > 0) {
+                return `${diffInDays} day${diffInDays > 1 ? 's' : ''} and ${remainingHours} hour${remainingHours > 1 ? 's' : ''}`;
+            }
+            return `${diffInDays} day${diffInDays > 1 ? 's' : ''}`;
+        } else if (diffInHours > 0) {
+            return `${diffInHours} hour${diffInHours > 1 ? 's' : ''}`;
+        } else if (diffInMinutes > 0) {
+            return `${diffInMinutes} minute${diffInMinutes > 1 ? 's' : ''}`;
+        }
+        return 'less than a minute';
+    }
+
+    getTimeRemainingStyle(timestamp) {
+        const now = new Date();
+        const deletionTime = new Date(timestamp);
+        const diffInMs = deletionTime - now;
+        const diffInMinutes = Math.floor(diffInMs / (1000 * 60));
+        const diffInHours = Math.floor(diffInMinutes / 60);
+        const diffInDays = Math.floor(diffInHours / 24);
+
+        // Apply urgent styling (red) only when less than a day remains
+        if (diffInDays > 0) {
+            return style.normalDeletionTime;
+        }
+        return style.urgentDeletionTime;
+    }
 }
 const style = {
     container: {
@@ -436,6 +488,14 @@ const style = {
     },
     badgeIcon: {
         marginLeft: '4px',
+    },
+    normalDeletionTime: {
+        color: 'var(--center-channel-color)',
+        fontWeight: 'normal',
+    },
+    urgentDeletionTime: {
+        color: 'var(--error-text)',
+        fontWeight: 'bold',
     },
 };
 

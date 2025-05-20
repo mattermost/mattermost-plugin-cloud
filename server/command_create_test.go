@@ -326,4 +326,32 @@ func TestCreateCommand(t *testing.T) {
 			assert.Contains(t, resp.Text, "Installation being created.")
 		})
 	})
+
+	t.Run("scheduled deletion is set when ScheduledDeletionHours is configured", func(t *testing.T) {
+		// Configure a 24-hour scheduled deletion
+		plugin.configuration = &configuration{
+			ScheduledDeletionHours: "24",
+		}
+
+		_, _, err := plugin.runCreateCommand([]string{"testinstall"}, &model.CommandArgs{})
+		require.NoError(t, err)
+		require.NotNil(t, mockCloudClient.creationRequest)
+		require.NotZero(t, mockCloudClient.creationRequest.ScheduledDeletionTime)
+	})
+
+	t.Run("scheduled deletion is not set when ScheduledDeletionHours is 0", func(t *testing.T) {
+		// Reset mock client
+		mockCloudClient = &MockClient{}
+		plugin.cloudClient = mockCloudClient
+
+		// Configure with 0 hours (disabled)
+		plugin.configuration = &configuration{
+			ScheduledDeletionHours: "0",
+		}
+
+		_, _, err := plugin.runCreateCommand([]string{"testinstall"}, &model.CommandArgs{})
+		require.NoError(t, err)
+		require.NotNil(t, mockCloudClient.creationRequest)
+		require.Zero(t, mockCloudClient.creationRequest.ScheduledDeletionTime)
+	})
 }
