@@ -184,7 +184,7 @@ func (p *Plugin) getCommand() *model.Command {
 						},
 						{
 							Name:     "image",
-							HelpText: "Docker image repository, can be mattermost/mattermost-enterprise-edition, mattermost/mm-ee-cloud, mattermost/mm-te, mattermost/mattermost-team-edition, mattermostdevelopment/mm-ee-test, mattermostdevelopment/mm-te-test, mattermostdevelopment/mattermost-enterprise-edition, mattermostdevelopment/mattermost-team-edition",
+							HelpText: "Docker image repository, can be mattermost/mattermost-enterprise-edition, mattermost/mm-ee-cloud, mattermost/mm-te, mattermost/mattermost-team-edition, mattermostdevelopment/mm-ee-test, mattermostdevelopment/mm-te-test, mattermostdevelopment/mattermost-enterprise-edition, mattermostdevelopment/mattermost-team-edition, mattermost/mattermost-enterprise-edition-fips",
 							Required: false,
 						},
 						{
@@ -215,7 +215,7 @@ func (p *Plugin) getCommand() *model.Command {
 								Hint: "image",
 							},
 							Name:     "image",
-							HelpText: "Docker image repository. Can be mattermost/mattermost-enterprise-edition, mattermost/mm-ee-cloud, mattermost/mm-te, mattermost/mattermost-team-edition, mattermostdevelopment/mm-ee-test, mattermostdevelopment/mm-te-test, mattermostdevelopment/mattermost-enterprise-edition, mattermostdevelopment/mattermost-team-edition (default \"mattermost/mattermost-enterprise-edition\")",
+							HelpText: "Docker image repository. Can be mattermost/mattermost-enterprise-edition, mattermost/mm-ee-cloud, mattermost/mm-te, mattermost/mattermost-team-edition, mattermostdevelopment/mm-ee-test, mattermostdevelopment/mm-te-test, mattermostdevelopment/mattermost-enterprise-edition, mattermostdevelopment/mattermost-team-edition, mattermost/mattermost-enterprise-edition-fips (default \"mattermost/mattermost-enterprise-edition\")",
 							Required: false,
 						},
 						{
