@@ -215,6 +215,9 @@ func (p *Plugin) OnConfigurationChange() error {
 		return errors.Wrap(err, "failed to load plugin configuration")
 	}
 
+	// Always reinitialize dockerClient to ensure it's properly set even if called before OnActivate
+	p.dockerClient = NewDockerClient()
+
 	if p.configuration != nil {
 		p.setCloudClient()
 	}
