@@ -4,7 +4,7 @@ import (
 	"testing"
 )
 
-// TestValidTagIntegration tests the actual Docker Hub API
+// TestValidTagIntegration tests the actual Docker Hub API.
 // This is an integration test that requires network access
 func TestValidTagIntegration(t *testing.T) {
 	if testing.Short() {
