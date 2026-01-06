@@ -77,7 +77,8 @@ func (dc *DockerClient) ValidTag(desiredTag, repository string) (bool, error) {
 		if resp.StatusCode == http.StatusUnauthorized {
 			// Try to get an auth token for public repositories
 			resp.Body.Close()
-			token, err := dc.getAuthToken(repository)
+			var token string
+			token, err = dc.getAuthToken(repository)
 			if err != nil {
 				return false, errors.Wrap(err, "failed to get auth token")
 			}
