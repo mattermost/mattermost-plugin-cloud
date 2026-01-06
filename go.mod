@@ -7,7 +7,6 @@ toolchain go1.22.8
 require (
 	github.com/blang/semver/v4 v4.0.0
 	github.com/docker/distribution v2.8.3+incompatible
-	github.com/heroku/docker-registry-client v0.0.0-20211012143308-9463674c8930
 	github.com/mattermost/mattermost-cloud v0.89.2-0.20250512140757-52f9b3635604
 	github.com/mattermost/mattermost-server/v6 v6.7.2
 	github.com/pkg/errors v0.9.1
@@ -21,7 +20,6 @@ require (
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/distribution/reference v0.5.0 // indirect
-	github.com/docker/libtrust v0.0.0-20160708172513-aabc10ec26b7 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/dyatlov/go-opengraph v0.0.0-20210112100619-dae8665a5b09 // indirect
 	github.com/emicklei/go-restful/v3 v3.12.1 // indirect
