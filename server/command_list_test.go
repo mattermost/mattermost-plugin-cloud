@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -62,7 +62,7 @@ func TestGetUpdatedInstallsForUser(t *testing.T) {
 		api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
 		api.On("GetDirectChannel", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.Channel{}, nil)
 		api.On("CreatePost", mock.Anything).Return(nil, nil)
-		api.On("LogWarn", mock.AnythingOfTypeArgument("string")).Return(nil)
+		api.On("LogWarn", mock.AnythingOfType("string")).Return(nil)
 
 		t.Run("with sensitive", func(t *testing.T) {
 			installations, err := plugin.getUpdatedInstallsForUserWithSensitive("owner 1")
@@ -89,7 +89,7 @@ func TestGetUpdatedInstallsForUser(t *testing.T) {
 		api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
 		api.On("GetDirectChannel", mock.AnythingOfType("string"), mock.AnythingOfType("string")).Return(&model.Channel{}, nil)
 		api.On("CreatePost", mock.Anything).Return(nil, nil)
-		api.On("LogWarn", mock.AnythingOfTypeArgument("string")).Return(nil)
+		api.On("LogWarn", mock.AnythingOfType("string")).Return(nil)
 
 		installations, err := plugin.getUpdatedInstallsForUserWithoutSensitive("owner 1")
 		require.NoError(t, err)
@@ -121,7 +121,7 @@ func TestListCommand(t *testing.T) {
 	plugin.cloudClient = &MockClient{}
 
 	api := &plugintest.API{}
-	api.On("LogWarn", mock.AnythingOfTypeArgument("string")).Return(nil)
+	api.On("LogWarn", mock.AnythingOfType("string")).Return(nil)
 	plugin.SetAPI(api)
 
 	t.Run("list installations successfully", func(t *testing.T) {

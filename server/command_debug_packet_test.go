@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -75,5 +75,61 @@ func TestGetDebugPacketCommand(t *testing.T) {
 		assert.Contains(t, err.Error(), "no cluster installations found for installation")
 		assert.False(t, isUserError)
 		assert.Nil(t, resp)
+	})
+}
+
+func TestExecGetDebugPacketErrors(t *testing.T) {
+	clusterInstallation := &cloud.ClusterInstallation{
+		ID: cloud.NewID(),
+	}
+
+	t.Run("returns error when debug data is nil", func(t *testing.T) {
+		mockedCloudClient := &MockClient{
+			mockedCloudClusterInstallations: []*cloud.ClusterInstallation{clusterInstallation},
+			execDebugPacket: func(clusterInstallationID string) ([]byte, error) {
+				return nil, nil
+			},
+		}
+		plugin := Plugin{cloudClient: mockedCloudClient}
+
+		err := plugin.execGetDebugPacket("installation-id", "user-id", "installation-name")
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "no debug data returned")
+	})
+
+	t.Run("returns direct channel app error", func(t *testing.T) {
+		mockedCloudClient := &MockClient{
+			mockedCloudClusterInstallations: []*cloud.ClusterInstallation{clusterInstallation},
+		}
+		plugin := Plugin{cloudClient: mockedCloudClient, BotUserID: "bot-id"}
+
+		api := &plugintest.API{}
+		api.On("GetDirectChannel", "user-id", "bot-id").Return(nil, model.NewAppError("test", "get_direct_channel_failed", nil, "direct channel failed", 500))
+		plugin.SetAPI(api)
+
+		err := plugin.execGetDebugPacket("installation-id", "user-id", "installation-name")
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "unable to get direct channel")
+		assert.Contains(t, err.Error(), "direct channel failed")
+	})
+
+	t.Run("returns upload file app error", func(t *testing.T) {
+		mockedCloudClient := &MockClient{
+			mockedCloudClusterInstallations: []*cloud.ClusterInstallation{clusterInstallation},
+		}
+		plugin := Plugin{cloudClient: mockedCloudClient, BotUserID: "bot-id"}
+
+		api := &plugintest.API{}
+		api.On("GetDirectChannel", "user-id", "bot-id").Return(&model.Channel{Id: "dm-channel-id"}, nil)
+		api.On("UploadFile", []byte("mocked debug packet output"), "dm-channel-id", mock.AnythingOfType("string")).Return(nil, model.NewAppError("test", "upload_file_failed", nil, "upload failed", 500))
+		plugin.SetAPI(api)
+
+		err := plugin.execGetDebugPacket("installation-id", "user-id", "installation-name")
+
+		require.Error(t, err)
+		assert.Contains(t, err.Error(), "unable to upload debug file")
+		assert.Contains(t, err.Error(), "upload failed")
 	})
 }

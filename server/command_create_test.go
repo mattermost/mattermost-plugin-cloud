@@ -5,8 +5,8 @@ import (
 
 	"github.com/blang/semver/v4"
 	cloud "github.com/mattermost/mattermost-cloud/model"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -70,7 +70,6 @@ func TestCreateCommand(t *testing.T) {
 	})
 
 	t.Run("docker tag", func(t *testing.T) {
-
 		t.Run("valid", func(t *testing.T) {
 			resp, isUserError, err := plugin.runCreateCommand([]string{"joramtest", "--version", "totallyisreal"}, &model.CommandArgs{})
 			require.NoError(t, err)

@@ -12,7 +12,7 @@ import (
 
 	"github.com/blang/semver/v4"
 	cloud "github.com/mattermost/mattermost-cloud/model"
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 
 	flag "github.com/spf13/pflag"
@@ -160,7 +160,7 @@ func (p *Plugin) parseCreateArgs(args []string, install *Installation) error {
 	if err != nil {
 		return err
 	}
-	install.Installation.PriorityEnv = envVarMap
+	install.PriorityEnv = envVarMap
 
 	return nil
 }
@@ -301,7 +301,6 @@ func (p *Plugin) githubLatestVersion() (string, error) {
 	if p.latestMattermostVersion != nil &&
 		p.latestMattermostVersion.version != "" &&
 		p.latestMattermostVersion.timestamp.After(time.Now().Add(time.Minute*time.Duration(-5))) {
-
 		return p.latestMattermostVersion.version, nil
 	}
 

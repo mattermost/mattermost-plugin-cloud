@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/base64"
-	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -10,8 +10,8 @@ import (
 	"github.com/pkg/errors"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
 )
 
 // Plugin implements the interface expected by the Mattermost server to communicate between the server and plugin processes.
@@ -118,7 +118,7 @@ func (p *Plugin) OnActivate() error {
 		return errors.Wrap(err, "couldn't get bundle path")
 	}
 
-	profileImage, err := ioutil.ReadFile(filepath.Join(bundlePath, "assets", "profile.png"))
+	profileImage, err := os.ReadFile(filepath.Join(bundlePath, "assets", "profile.png"))
 	if err != nil {
 		return errors.Wrap(err, "couldn't read profile image")
 	}
@@ -129,7 +129,7 @@ func (p *Plugin) OnActivate() error {
 	}
 
 	// Read the app bar icon for command autocomplete
-	appBarIcon, err := ioutil.ReadFile(filepath.Join(bundlePath, "public", "app-bar-icon.png"))
+	appBarIcon, err := os.ReadFile(filepath.Join(bundlePath, "public", "app-bar-icon.png"))
 	if err != nil {
 		return errors.Wrap(err, "couldn't read app bar icon")
 	}

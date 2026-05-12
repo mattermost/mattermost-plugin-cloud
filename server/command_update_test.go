@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -91,7 +91,6 @@ func TestUpdateCommand(t *testing.T) {
 	})
 
 	t.Run("licenses", func(t *testing.T) {
-
 		t.Run("invalid", func(t *testing.T) {
 			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
 
@@ -146,7 +145,6 @@ func TestUpdateCommand(t *testing.T) {
 			assert.False(t, isUserError)
 			assert.Contains(t, resp.Text, "Update of installation")
 		})
-
 	})
 
 	t.Run("version is equal to current version", func(t *testing.T) {
@@ -178,7 +176,6 @@ func TestUpdateCommand(t *testing.T) {
 			assert.True(t, isUserError)
 			assert.Nil(t, resp)
 		})
-
 	})
 
 	t.Run("no installations", func(t *testing.T) {
@@ -206,7 +203,6 @@ func TestUpdateCommand(t *testing.T) {
 	})
 
 	t.Run("image", func(t *testing.T) {
-
 		t.Run("invalid image", func(t *testing.T) {
 			api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"gabeid\", \"Name\": \"gabesinstall\"}]"), nil)
 			resp, isUserError, err := plugin.runUpdateCommand([]string{"gabesinstall", "--image", "mattermost/randomimage"}, &model.CommandArgs{UserId: "gabeid"})
@@ -233,7 +229,6 @@ func TestUpdateCommand(t *testing.T) {
 	})
 
 	t.Run("env vars", func(t *testing.T) {
-
 		t.Run("valid env vars", func(t *testing.T) {
 			expectedEnv := cloud.EnvVarMap{"ENV1": cloud.EnvVar{Value: "test"}, "ENV2": cloud.EnvVar{Value: "test2"}}
 

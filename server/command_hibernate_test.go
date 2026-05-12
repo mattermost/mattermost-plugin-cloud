@@ -4,8 +4,8 @@ import (
 	"testing"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -19,7 +19,7 @@ func TestHibernateCommand(t *testing.T) {
 
 	api := &plugintest.API{}
 	api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
-	api.On("LogWarn", mock.AnythingOfTypeArgument("string")).Return(nil)
+	api.On("LogWarn", mock.AnythingOfType("string")).Return(nil)
 	plugin.SetAPI(api)
 
 	t.Run("hibernate installation successfully", func(t *testing.T) {
