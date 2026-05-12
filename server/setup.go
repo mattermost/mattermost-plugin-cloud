@@ -57,7 +57,7 @@ func (p *Plugin) setupInstallation(install *Installation, adminPassword, userPas
 func (p *Plugin) waitForDNS(client *model.Client4) error {
 	for i := 0; i < 60; i++ {
 		_, resp, err := client.GetPing(context.Background())
-		if resp.StatusCode == http.StatusOK {
+		if err == nil && resp != nil && resp.StatusCode == http.StatusOK {
 			return nil
 		}
 		if err != nil {
