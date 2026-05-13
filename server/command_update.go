@@ -176,7 +176,7 @@ func (p *Plugin) runUpdateCommand(args []string, extra *model.CommandArgs) (*mod
 
 	if shared {
 		// Send a message to the installation owner to let them know an update
-		// occurred. Only log an error if there is an issue getting the update
+		// occurred. Only log an error if there is an issue getting the update.
 		// requester details, but still try to send the message.
 		username := "A user"
 		updateRquester, err := p.API.GetUser(extra.UserId)
