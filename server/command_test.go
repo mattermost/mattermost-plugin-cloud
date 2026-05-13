@@ -25,9 +25,24 @@ type MockClient struct {
 	// Stores latest CreateInstallationRequest passed to mock
 	creationRequest *cloud.CreateInstallationRequest
 	// Stores latest PatchInstallationRequest passed to mock
-	patchRequest *cloud.PatchInstallationRequest
+	patchRequest             *cloud.PatchInstallationRequest
+	patchInstallationID      string
+	deletedInstallationID    string
+	lockedInstallationID     string
+	unlockedInstallationID   string
+	hibernatedInstallationID string
+	wokenInstallationID      string
 
-	err error
+	createErr    error
+	updateErr    error
+	deleteErr    error
+	lockErr      error
+	unlockErr    error
+	hibernateErr error
+	wakeErr      error
+	listErr      error
+	clusterErr   error
+	err          error
 }
 
 func (mc *MockClient) ExecClusterInstallationCLI(clusterInstallationID, command string, subcommand []string) ([]byte, error) {
@@ -35,11 +50,17 @@ func (mc *MockClient) ExecClusterInstallationCLI(clusterInstallationID, command 
 }
 
 func (mc *MockClient) GetClusters(request *cloud.GetClustersRequest) ([]*cloud.ClusterDTO, error) {
+	if mc.clusterErr != nil {
+		return nil, mc.clusterErr
+	}
 	return mc.mockedCloudClustersDTO, mc.err
 }
 
 func (mc *MockClient) CreateInstallation(request *cloud.CreateInstallationRequest) (*cloud.InstallationDTO, error) {
 	mc.creationRequest = request
+	if mc.createErr != nil {
+		return nil, mc.createErr
+	}
 	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid"}}, nil
 }
 
@@ -66,31 +87,58 @@ func (mc *MockClient) GetInstallationByDNS(DNS string, request *cloud.GetInstall
 }
 
 func (mc *MockClient) GetInstallations(request *cloud.GetInstallationsRequest) ([]*cloud.InstallationDTO, error) {
+	if mc.listErr != nil {
+		return nil, mc.listErr
+	}
 	return mc.mockedCloudInstallationsDTO, mc.err
 }
 
 func (mc *MockClient) UpdateInstallation(installationID string, request *cloud.PatchInstallationRequest) (*cloud.InstallationDTO, error) {
+	mc.patchInstallationID = installationID
 	mc.patchRequest = request
+	if mc.updateErr != nil {
+		return nil, mc.updateErr
+	}
 	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid", OwnerID: "joramid"}}, nil
 }
 
 func (mc *MockClient) HibernateInstallation(installationID string) (*cloud.InstallationDTO, error) {
+	mc.hibernatedInstallationID = installationID
+	if mc.hibernateErr != nil {
+		return nil, mc.hibernateErr
+	}
 	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid", OwnerID: "joramid"}}, nil
 }
 
 func (mc *MockClient) WakeupInstallation(installationID string, request *cloud.PatchInstallationRequest) (*cloud.InstallationDTO, error) {
+	mc.wokenInstallationID = installationID
+	if mc.wakeErr != nil {
+		return nil, mc.wakeErr
+	}
 	return &cloud.InstallationDTO{Installation: &cloud.Installation{ID: "someid", OwnerID: "joramid"}}, nil
 }
 
 func (mc *MockClient) LockDeletionLockForInstallation(installationID string) error {
+	mc.lockedInstallationID = installationID
+	if mc.lockErr != nil {
+		return mc.lockErr
+	}
 	return nil
 }
 
 func (mc *MockClient) UnlockDeletionLockForInstallation(installationID string) error {
+	mc.unlockedInstallationID = installationID
+	if mc.unlockErr != nil {
+		return mc.unlockErr
+	}
 	return nil
 }
 
 func (mc *MockClient) DeleteInstallation(installationID string) error {
+	mc.deletedInstallationID = installationID
+	if mc.deleteErr != nil {
+		return mc.deleteErr
+	}
 	return nil
 }
 

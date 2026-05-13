@@ -1,9 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"strconv"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 )
@@ -12,41 +9,7 @@ func (p *Plugin) lockForDeletion(installationID string, userID string) error {
 	if installationID == "" {
 		return errors.New("installationID must not be empty")
 	}
-	installations, err := p.getUpdatedInstallsForUserWithoutSensitive(userID)
-	if err != nil {
-		return err
-	}
-
-	if len(installations) == 0 {
-		return errors.New("no installations found for the given User ID")
-	}
-
-	maxLockedInstallations, err := strconv.Atoi(p.getConfiguration().DeletionLockInstallationsAllowedPerPerson)
-	if err != nil {
-		return errors.New("invalid value for DeletionLockInstallationsAllowedPerPerson")
-	}
-
-	numExistingLockedInstallations := 0
-	var installationToLock *Installation
-	for _, install := range installations {
-		if install.OwnerID == userID && install.ID == installationID {
-			installationToLock = install
-			break
-		}
-		if install.OwnerID == userID && install.DeletionLocked {
-			numExistingLockedInstallations++
-		}
-	}
-
-	if maxLockedInstallations <= numExistingLockedInstallations {
-		return fmt.Errorf("you may only have at most %d installations locked for deletion at a time", maxLockedInstallations)
-	}
-
-	if installationToLock == nil {
-		return errors.New("installation to be locked not found")
-	}
-
-	err = p.cloudClient.LockDeletionLockForInstallation(installationToLock.ID)
+	_, err := p.setDeletionLockForUser(userID, InstallationRef{ID: installationID}, true)
 	return err
 }
 
@@ -55,28 +18,7 @@ func (p *Plugin) unlockForDeletion(installationID string, userID string) error {
 		return errors.New("installationID must not be empty")
 	}
 
-	installations, err := p.getUpdatedInstallsForUserWithoutSensitive(userID)
-	if err != nil {
-		return err
-	}
-
-	if len(installations) == 0 {
-		return errors.New("no installations found for the given User ID")
-	}
-
-	var installationToLock *Installation
-	for _, install := range installations {
-		if install.OwnerID == userID && install.ID == installationID {
-			installationToLock = install
-			break
-		}
-	}
-
-	if installationToLock == nil {
-		return errors.New("installation to be unlocked not found")
-	}
-
-	err = p.cloudClient.UnlockDeletionLockForInstallation(installationToLock.ID)
+	_, err := p.setDeletionLockForUser(userID, InstallationRef{ID: installationID}, false)
 	return err
 }
 
@@ -87,24 +29,11 @@ func (p *Plugin) runDeletionLockCommand(args []string, extra *model.CommandArgs)
 
 	name := standardizeName(args[0])
 
-	installations, err := p.getUpdatedInstallsForUserWithoutSensitive(extra.UserId)
+	_, err := p.setDeletionLockForUser(extra.UserId, InstallationRef{Name: name}, true)
 	if err != nil {
-		return nil, true, err
-	}
-	var installationIDToLock string
-	for _, installation := range installations {
-		if installation.OwnerID == extra.UserId && installation.Name == name {
-			installationIDToLock = installation.ID
-			break
+		if isDeletionLockMissingTargetError(err) {
+			return nil, true, errors.Errorf("no installation with the name %s found", name)
 		}
-	}
-
-	if installationIDToLock == "" {
-		return nil, true, errors.Errorf("no installation with the name %s found", name)
-	}
-
-	err = p.lockForDeletion(installationIDToLock, extra.UserId)
-	if err != nil {
 		return getCommandResponse(model.CommandResponseTypeEphemeral, err.Error(), extra), false, err
 	}
 
@@ -118,27 +47,23 @@ func (p *Plugin) runDeletionUnlockCommand(args []string, extra *model.CommandArg
 
 	name := standardizeName(args[0])
 
-	installs, err := p.getUpdatedInstallsForUserWithoutSensitive(extra.UserId)
+	_, err := p.setDeletionLockForUser(extra.UserId, InstallationRef{Name: name}, false)
 	if err != nil {
-		return nil, false, err
-	}
-
-	var installationIDToUnlock string
-	for _, install := range installs {
-		if install.OwnerID == extra.UserId && install.Name == name {
-			installationIDToUnlock = install.ID
-			break
+		if isDeletionLockMissingTargetError(err) {
+			return nil, true, errors.Errorf("no installation with the name %s found", name)
 		}
-	}
-
-	if installationIDToUnlock == "" {
-		return nil, true, errors.Errorf("no installation with the name %s found", name)
-	}
-
-	err = p.unlockForDeletion(installationIDToUnlock, extra.UserId)
-	if err != nil {
 		return getCommandResponse(model.CommandResponseTypeEphemeral, err.Error(), extra), false, err
 	}
 
 	return getCommandResponse(model.CommandResponseTypeEphemeral, "Deletion lock has been removed, your workspace can now be deleted", extra), false, nil
+}
+
+func isDeletionLockMissingTargetError(err error) bool {
+	if err == nil {
+		return false
+	}
+	message := err.Error()
+	return message == "no installations found for the given User ID" ||
+		message == "installation to be locked not found" ||
+		message == "installation to be unlocked not found"
 }

@@ -35,11 +35,11 @@ func CreateInstallationWebWrapper(i *Installation) (*InstallationWebWrapper, err
 	}
 
 	serviceEnvironment := getInstallationServiceEnvironment(i)
-	i.HideSensitiveFields()
+	sanitizedInstall := sanitizeInstallationCopy(i)
 
 	return &InstallationWebWrapper{
-		Installation:        i,
-		CreateAtDate:        cloud.DateStringFromMillis(i.CreateAt),
+		Installation:        sanitizedInstall,
+		CreateAtDate:        cloud.DateStringFromMillis(sanitizedInstall.CreateAt),
 		ServiceEnvironment:  serviceEnvironment,
 		InstallationLogsURL: installationLogsURL,
 		ProvisionerLogsURL:  provisionerLogsURL,
@@ -191,9 +191,7 @@ func (p *Plugin) handleDeletionLock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Lock for deletion needs to fetch all installations and ensure ownership to validate
-	// users aren't locking more than one, so there's no need to check ownership here.
-	err = p.lockForDeletion(req.InstallationID, userID)
+	_, err = p.setDeletionLockForUser(userID, InstallationRef{ID: req.InstallationID}, true)
 	if err != nil {
 		p.API.LogError(errors.Wrap(err, "Unable to lock for deletion").Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -228,9 +226,7 @@ func (p *Plugin) handleDeletionUnlock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Unlock for deletion needs to fetch all installations and ensure ownership to validate
-	// users aren't unlocking more than one, so there's no need to check ownership here.
-	err = p.unlockForDeletion(req.InstallationID, userID)
+	_, err = p.setDeletionLockForUser(userID, InstallationRef{ID: req.InstallationID}, false)
 	if err != nil {
 		p.API.LogError(errors.Wrap(err, "Unable to unlock for deletion").Error())
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
@@ -266,6 +262,9 @@ func (p *Plugin) handleGetConfig(w http.ResponseWriter, r *http.Request) {
 }
 
 func getInstallationServiceEnvironment(installation *Installation) string {
+	if installation == nil || installation.Installation == nil {
+		return "production"
+	}
 	if v, ok := installation.PriorityEnv[serviceEnvironmentEnvVarKey]; ok {
 		return v.Value
 	}

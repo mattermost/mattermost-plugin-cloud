@@ -40,6 +40,7 @@ func (i *Installation) ToPrettyJSON() string {
 func (i *Installation) HideSensitiveFields() {
 	i.License = "hidden"
 	i.MattermostEnv = nil
+	i.PriorityEnv = nil
 }
 
 func (p *Plugin) storeInstallation(install *Installation) error {
@@ -143,7 +144,11 @@ func (p *Plugin) deleteInstallation(installationID string) error {
 		for index, install := range installs {
 			if install.ID == installationID {
 				indexToDelete = index
+				break
 			}
+		}
+		if indexToDelete == -1 {
+			return errors.New("installation does not exist")
 		}
 
 		installs = append(installs[:indexToDelete], installs[indexToDelete+1:]...)
@@ -232,24 +237,6 @@ func (p *Plugin) getInstallationsForUser(userID string) ([]*Installation, error)
 	return installsForUser, nil
 }
 
-// getUpdatableInstallationsForUser returns installations the given user can update. Unless
-// includeShared is set, this is equivalent to calling getInstallationsForUser.
-func (p *Plugin) getUpdatableInstallationsForUser(userID string, includeShared bool) ([]*Installation, error) {
-	installs, _, err := p.getInstallations()
-	if err != nil {
-		return nil, err
-	}
-
-	updatableInstallsForUser := []*Installation{}
-	for _, install := range installs {
-		if install.OwnerID == userID || (includeShared && install.Shared && install.AllowSharedUpdates) {
-			updatableInstallsForUser = append(updatableInstallsForUser, install)
-		}
-	}
-
-	return updatableInstallsForUser, nil
-}
-
 func (p *Plugin) getUpdatedSharedInstallations(hideSensitive bool) ([]*Installation, error) {
 	sharedInstalls, err := p.getSharedInstallations()
 	if err != nil {
@@ -268,9 +255,10 @@ func (p *Plugin) getUpdatedSharedInstallations(hideSensitive bool) ([]*Installat
 			return nil, fmt.Errorf("could not find installation %s", install.ID)
 		}
 		install.InstallationDTO = *updatedInstall
-		if hideSensitive {
-			install.HideSensitiveFields()
-		}
+	}
+
+	if hideSensitive {
+		return sanitizeInstallationCopies(sharedInstalls), nil
 	}
 
 	return sharedInstalls, nil

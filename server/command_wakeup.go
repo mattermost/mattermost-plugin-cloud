@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -16,28 +17,12 @@ func (p *Plugin) runWakeUpCommand(args []string, extra *model.CommandArgs) (*mod
 
 	name := standardizeName(args[0])
 
-	installs, err := p.getUpdatedInstallsForUserWithoutSensitive(extra.UserId)
+	_, err := p.wakeInstallationForUser(extra.UserId, InstallationRef{Name: name})
 	if err != nil {
-		return nil, false, err
-	}
-
-	var installToWakeUp *Installation
-	for _, install := range installs {
-		if install.OwnerID == extra.UserId && install.Name == name {
-			installToWakeUp = install
-			break
+		if strings.Contains(err.Error(), "no installation with the name") ||
+			strings.Contains(err.Error(), fmt.Sprintf("must be %s to wake up", cloud.InstallationStateHibernating)) {
+			return nil, true, err
 		}
-	}
-
-	if installToWakeUp == nil {
-		return nil, true, errors.Errorf("no installation with the name %s found", name)
-	}
-	if installToWakeUp.State != cloud.InstallationStateHibernating {
-		return nil, true, errors.Errorf("installation state is currently %s and must be %s to wake up", installToWakeUp.State, cloud.InstallationStateHibernating)
-	}
-
-	_, err = p.cloudClient.WakeupInstallation(installToWakeUp.ID, &cloud.PatchInstallationRequest{})
-	if err != nil {
 		return nil, false, err
 	}
 

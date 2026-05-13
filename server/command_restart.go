@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
-	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 	flag "github.com/spf13/pflag"
@@ -34,30 +34,15 @@ func (p *Plugin) runRestartCommand(args []string, extra *model.CommandArgs) (*mo
 
 	name := standardizeName(args[0])
 
-	installs, err := p.getUpdatableInstallationsForUser(extra.UserId, includeShared)
-	if err != nil {
-		return nil, false, err
+	scope := InstallationScopeMine
+	if includeShared {
+		scope = InstallationScopeUpdatable
 	}
-
-	var installToRestart *Installation
-	for _, install := range installs {
-		if standardizeName(install.Name) == name {
-			installToRestart = install
-			break
+	_, err = p.restartInstallationForUser(extra.UserId, InstallationRef{Name: name}, scope)
+	if err != nil {
+		if strings.Contains(err.Error(), "no installation with the name") {
+			return nil, true, err
 		}
-	}
-
-	if installToRestart == nil {
-		return nil, true, errors.Errorf("no installation with the name %s found", name)
-	}
-
-	// We can force a restart by changing any environment variable, so we will
-	// set something arbitrary with the current date and time.
-	patch := &cloud.PatchInstallationRequest{MattermostEnv: cloud.EnvVarMap{
-		"CLOUD_PLUGIN_RESTART": cloud.EnvVar{Value: cloud.DateTimeStringFromMillis(cloud.GetMillis())},
-	}}
-	_, err = p.cloudClient.UpdateInstallation(installToRestart.ID, patch)
-	if err != nil {
 		return nil, false, err
 	}
 

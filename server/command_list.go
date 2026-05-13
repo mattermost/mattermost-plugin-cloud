@@ -14,6 +14,11 @@ type listConfig struct {
 	Shared bool
 }
 
+type installationRefreshOptions struct {
+	hideSensitive  bool
+	cleanupDeleted bool
+}
+
 func getListFlagSet() *flag.FlagSet {
 	flagSet := flag.NewFlagSet("list", flag.ContinueOnError)
 	flagSet.Bool("shared-installations", false, "Lists shared installations instead of personal ones")
@@ -43,24 +48,28 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 		return nil, true, err
 	}
 
-	var installs []*Installation
 	if config.Shared {
-		installs, err = p.getUpdatedSharedInstallations(true)
-		if err != nil {
-			return nil, false, err
+		installs, sharedErr := p.getUpdatedSharedInstallations(false)
+		if sharedErr != nil {
+			return nil, false, sharedErr
 		}
-	} else {
-		installs, err = p.getUpdatedInstallsForUserWithoutSensitive(extra.UserId)
-		if err != nil {
-			return nil, false, err
-		}
+		return renderInstallationsList(installs, extra)
 	}
 
+	installs, err := p.getUpdatedInstallsForUserWithSensitive(extra.UserId)
+	if err != nil {
+		return nil, false, err
+	}
+
+	return renderInstallationsList(installs, extra)
+}
+
+func renderInstallationsList(installs []*Installation, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
 	if len(installs) == 0 {
 		return getCommandResponse(model.CommandResponseTypeEphemeral, "No installations found.", extra), false, nil
 	}
 
-	data, err := json.Marshal(installs)
+	data, err := marshalInstallationsList(sanitizeInstallationCopies(installs))
 	if err != nil {
 		return nil, false, err
 	}
@@ -68,15 +77,38 @@ func (p *Plugin) runListCommand(args []string, extra *model.CommandArgs) (*model
 	return getCommandResponse(model.CommandResponseTypeEphemeral, jsonCodeBlock(prettyPrintJSON(string(data))), extra), false, nil
 }
 
+func marshalInstallationsList(installs []*Installation) ([]byte, error) {
+	data, err := json.Marshal(installs)
+	if err != nil {
+		return nil, err
+	}
+
+	var rawInstalls []map[string]interface{}
+	if err = json.Unmarshal(data, &rawInstalls); err != nil {
+		return nil, err
+	}
+	for _, install := range rawInstalls {
+		delete(install, "License")
+		delete(install, "MattermostEnv")
+		delete(install, "PriorityEnv")
+	}
+
+	return json.Marshal(rawInstalls)
+}
+
 func (p *Plugin) getUpdatedInstallsForUserWithSensitive(userID string) ([]*Installation, error) {
-	return p.getUpdatedInstallsForUser(userID, false)
+	return p.getUpdatedInstallsForUser(userID, installationRefreshOptions{cleanupDeleted: true})
 }
 
 func (p *Plugin) getUpdatedInstallsForUserWithoutSensitive(userID string) ([]*Installation, error) {
-	return p.getUpdatedInstallsForUser(userID, true)
+	return p.getUpdatedInstallsForUser(userID, installationRefreshOptions{hideSensitive: true, cleanupDeleted: true})
 }
 
-func (p *Plugin) getUpdatedInstallsForUser(userID string, hideSensitive bool) ([]*Installation, error) {
+func (p *Plugin) getRefreshedInstallsForUser(userID string, cleanupDeleted bool) ([]*Installation, error) {
+	return p.getUpdatedInstallsForUser(userID, installationRefreshOptions{cleanupDeleted: cleanupDeleted})
+}
+
+func (p *Plugin) getUpdatedInstallsForUser(userID string, options installationRefreshOptions) ([]*Installation, error) {
 	pluginInstalls, err := p.getInstallationsForUser(userID)
 	if err != nil {
 		return nil, err
@@ -96,29 +128,62 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string, hideSensitive bool) ([
 
 	var deleted bool
 	for i, pluginInstall := range pluginInstalls {
-		deleted, err = p.processInstallationUpdate(pluginInstall, cloudInstalls, hideSensitive)
+		originalID := pluginInstall.ID
+		originalOwnerID := pluginInstall.OwnerID
+		originalCreateAt := pluginInstall.CreateAt
+		deleted, err = p.processInstallationUpdate(pluginInstall, cloudInstalls, options.cleanupDeleted)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to process installation")
 		}
 		if deleted {
 			// Notify the user and also show the deleted installation in their
 			// list one last time with a DELETED tag.
-			pluginInstalls[i] = &Installation{
-				Name: fmt.Sprintf("%s [ DELETED ]", pluginInstall.Name),
-			}
+			pluginInstalls[i] = deletedInstallationPlaceholder(pluginInstall, originalID, originalOwnerID, originalCreateAt)
 		}
+	}
+
+	if options.hideSensitive {
+		return sanitizeInstallationCopies(pluginInstalls), nil
 	}
 
 	return pluginInstalls, nil
 }
 
-func (p *Plugin) processInstallationUpdate(pluginInstall *Installation, cloudInstalls []*cloud.InstallationDTO, hideSensitive bool) (bool, error) {
+func deletedInstallationPlaceholder(source *Installation, id, ownerID string, createAt int64) *Installation {
+	if source == nil {
+		return nil
+	}
+	if id == "" {
+		id = source.ID
+	}
+	if ownerID == "" {
+		ownerID = source.OwnerID
+	}
+	if createAt == 0 {
+		createAt = source.CreateAt
+	}
+
+	return &Installation{
+		Name: fmt.Sprintf("%s [ DELETED ]", source.Name),
+		InstallationDTO: cloud.InstallationDTO{
+			Installation: &cloud.Installation{
+				ID:       id,
+				OwnerID:  ownerID,
+				State:    cloud.InstallationStateDeleted,
+				CreateAt: createAt,
+			},
+		},
+		Tag:                source.Tag,
+		TestData:           source.TestData,
+		Shared:             source.Shared,
+		AllowSharedUpdates: source.AllowSharedUpdates,
+	}
+}
+
+func (p *Plugin) processInstallationUpdate(pluginInstall *Installation, cloudInstalls []*cloud.InstallationDTO, cleanupDeleted bool) (bool, error) {
 	for _, cloudInstall := range cloudInstalls {
 		if pluginInstall.ID == cloudInstall.ID {
 			pluginInstall.InstallationDTO = *cloudInstall
-			if hideSensitive {
-				pluginInstall.HideSensitiveFields()
-			}
 			return false, nil
 		}
 	}
@@ -136,10 +201,7 @@ func (p *Plugin) processInstallationUpdate(pluginInstall *Installation, cloudIns
 		return false, fmt.Errorf("could not find installation %s", pluginInstall.ID)
 	}
 
-	pluginInstall.Installation = updatedInstall.Installation
-	if hideSensitive {
-		pluginInstall.HideSensitiveFields()
-	}
+	pluginInstall.InstallationDTO = *updatedInstall
 
 	if updatedInstall.State != cloud.InstallationStateDeleted {
 		// This is strange as the installation should have been retrieved in the
@@ -149,11 +211,14 @@ func (p *Plugin) processInstallationUpdate(pluginInstall *Installation, cloudIns
 		return false, nil
 	}
 
+	if !cleanupDeleted {
+		return true, nil
+	}
+
 	// The installation was deleted on the cloud server so remove it from the KV
 	// store to sync state and notify the user.
 	p.API.LogWarn(fmt.Sprintf("Removing deleted installation %s with name %s from the KV store", pluginInstall.ID, pluginInstall.Name))
-	err = p.deleteInstallation(pluginInstall.ID)
-	if err != nil {
+	if err = p.deleteInstallation(pluginInstall.ID); err != nil {
 		return true, errors.Wrapf(err, "unable to delete installation %s in the KV store", pluginInstall.ID)
 	}
 
