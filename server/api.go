@@ -48,6 +48,10 @@ func CreateInstallationWebWrapper(i *Installation) (*InstallationWebWrapper, err
 
 // ServeHTTP handles HTTP requests to the plugin.
 func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+	if p.serveMCPIfMatch(w, r) {
+		return
+	}
+
 	config := p.getConfiguration()
 
 	if err := config.IsValid(); err != nil {
