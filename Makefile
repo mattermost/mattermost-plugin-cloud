@@ -5,6 +5,9 @@ MANIFEST_FILE ?= plugin.json
 GO_TEST_FLAGS ?= -race
 GO_BUILD_FLAGS ?=
 MM_UTILITIES_DIR ?= ../mattermost-utilities
+export GOBIN ?= $(CURDIR)/build/bin
+GOLANGCI_LINT_VERSION ?= v2.12.2
+GOLANGCI_LINT ?= $(GOBIN)/golangci-lint
 
 BUILD_DATE = $(shell date -u)
 BUILD_HASH = $(shell git rev-parse HEAD)
@@ -146,11 +149,19 @@ apply:
 
 ## Runs govet and gofmt against all packages.
 .PHONY: check-style
-check-style: webapp/.npminstall gofmt govet golint
+check-style: webapp/.npminstall install-go-tools gofmt govet golangci-lint
 	@echo Checking for style guide compliance
 
 ifneq ($(HAS_WEBAPP),)
 	cd webapp && npm run lint
+endif
+
+## Installs pinned Go tools used by style checks.
+.PHONY: install-go-tools
+install-go-tools:
+ifneq ($(HAS_SERVER),)
+	@mkdir -p $(GOBIN)
+	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION)
 endif
 
 ## Runs gofmt against all packages.
@@ -178,19 +189,22 @@ endif
 govet:
 ifneq ($(HAS_SERVER),)
 	@echo Running govet
-	$(GO) install golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow@latest
 	$(GO) vet ./...
-	$(GO) vet -vettool=$(shell go env GOPATH)/bin/shadow ./...
 	@echo Govet success
 endif
 
-## Runs golint against all packages.
+## Runs golangci-lint against all packages.
+.PHONY: golangci-lint
+golangci-lint:
+ifneq ($(HAS_SERVER),)
+	@echo Running golangci-lint
+	$(GOLANGCI_LINT) run ./...
+	@echo golangci-lint success
+endif
+
+## Backwards-compatible lint alias.
 .PHONY: golint
-golint:
-	@echo Running lint
-	$(GO) install golang.org/x/lint/golint@latest
-	golint -set_exit_status ./...
-	@echo lint success
+golint: golangci-lint
 
 ## Builds the server, if it exists, including support for multiple architectures.
 .PHONY: server

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 )
 
@@ -80,5 +80,4 @@ func (p *Plugin) runImportCommand(args []string, extra *model.CommandArgs) (*mod
 	}
 
 	return getCommandResponse(model.CommandResponseTypeEphemeral, "Installation imported:\n\n"+jsonCodeBlock(prettyPrintJSON(string(dataInstall))), extra), false, nil
-
 }

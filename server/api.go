@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
-	"github.com/mattermost/mattermost-server/v6/plugin"
+	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/pkg/errors"
 )
 

@@ -5,7 +5,7 @@ import (
 	"time"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 )
 
@@ -70,12 +70,12 @@ func (p *Plugin) execGetDebugPacket(installationID, userID, installationName str
 		return errors.Wrap(err, "failed to gather debug packet data")
 	}
 	if fileBytes == nil {
-		return errors.Wrap(err, "no debug data returned")
+		return errors.New("no debug data returned")
 	}
 
 	botDMChannel, appErr := p.API.GetDirectChannel(userID, p.BotUserID)
 	if appErr != nil {
-		return err
+		return errors.Wrap(appErr, "unable to get direct channel")
 	}
 	if botDMChannel == nil {
 		return fmt.Errorf("could not get direct channel for bot and user_id=%s", userID)
@@ -84,15 +84,18 @@ func (p *Plugin) execGetDebugPacket(installationID, userID, installationName str
 	filename := fmt.Sprintf("%s.%d.debug.zip", installationName, time.Now().UnixMilli())
 	fileInfo, appErr := p.API.UploadFile(fileBytes, botDMChannel.Id, filename)
 	if appErr != nil {
-		return errors.Wrap(err, "unable to upload debug file")
+		return errors.Wrap(appErr, "unable to upload debug file")
 	}
 
-	_, err = p.API.CreatePost(&model.Post{
+	_, appErr = p.API.CreatePost(&model.Post{
 		UserId:    p.BotUserID,
 		ChannelId: botDMChannel.Id,
 		Message:   fmt.Sprintf("Here is a debug packet for installation %s", installationName),
 		FileIds:   []string{fileInfo.Id},
 	})
+	if appErr != nil {
+		return errors.Wrap(appErr, "unable to create debug packet post")
+	}
 
 	return nil
 }

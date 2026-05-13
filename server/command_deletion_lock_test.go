@@ -3,8 +3,8 @@ package main
 import (
 	"testing"
 
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -18,7 +18,7 @@ func TestRunDeletionLockCommand(t *testing.T) {
 
 	api := &plugintest.API{}
 	api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
-	api.On("LogWarn", mock.AnythingOfTypeArgument("string")).Return(nil)
+	api.On("LogWarn", mock.AnythingOfType("string")).Return(nil)
 	plugin.SetAPI(api)
 	t.Run("no installation name provided", func(t *testing.T) {
 		response, _, err := plugin.runDeletionLockCommand([]string{}, &model.CommandArgs{UserId: "test_user_id"})
@@ -68,7 +68,6 @@ func TestRunDeletionLockCommand(t *testing.T) {
 		require.EqualError(t, err, "no installation with the name test_installation_name found")
 		require.Nil(t, response)
 	})
-
 }
 
 func TestLockForDeletion(t *testing.T) {
@@ -79,7 +78,7 @@ func TestLockForDeletion(t *testing.T) {
 
 	api := &plugintest.API{}
 	api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
-	api.On("LogWarn", mock.AnythingOfTypeArgument("string")).Return(nil)
+	api.On("LogWarn", mock.AnythingOfType("string")).Return(nil)
 	plugin.SetAPI(api)
 
 	t.Run("No installation ID provided", func(t *testing.T) {
@@ -113,7 +112,6 @@ func TestLockForDeletion(t *testing.T) {
 	})
 
 	t.Run("No error", func(t *testing.T) {
-
 		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"joramid\", \"Name\": \"joramsinstall\"}]"), nil)
 
 		err := plugin.lockForDeletion("someid", "joramid")
@@ -136,7 +134,6 @@ func TestLockForDeletion(t *testing.T) {
 
 		require.EqualError(t, err, "no installations found for the given User ID")
 	})
-
 }
 
 func TestRunDeletionUnlockCommand(t *testing.T) {
@@ -147,7 +144,7 @@ func TestRunDeletionUnlockCommand(t *testing.T) {
 
 	api := &plugintest.API{}
 	api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
-	api.On("LogWarn", mock.AnythingOfTypeArgument("string")).Return(nil)
+	api.On("LogWarn", mock.AnythingOfType("string")).Return(nil)
 	plugin.SetAPI(api)
 	t.Run("no installation name provided", func(t *testing.T) {
 		response, _, err := plugin.runDeletionUnlockCommand([]string{}, &model.CommandArgs{UserId: "test_user_id"})
@@ -186,7 +183,7 @@ func TestUnlockForDeletion(t *testing.T) {
 
 	api := &plugintest.API{}
 	api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
-	api.On("LogWarn", mock.AnythingOfTypeArgument("string")).Return(nil)
+	api.On("LogWarn", mock.AnythingOfType("string")).Return(nil)
 	plugin.SetAPI(api)
 
 	t.Run("No installation ID provided", func(t *testing.T) {
@@ -196,7 +193,6 @@ func TestUnlockForDeletion(t *testing.T) {
 	})
 
 	t.Run("No error", func(t *testing.T) {
-
 		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"joramid\", \"Name\": \"joramsinstall\"}]"), nil)
 
 		err := plugin.unlockForDeletion("someid", "joramid")
@@ -219,5 +215,4 @@ func TestUnlockForDeletion(t *testing.T) {
 
 		require.EqualError(t, err, "no installations found for the given User ID")
 	})
-
 }

@@ -1,13 +1,14 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"time"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
-	"github.com/mattermost/mattermost-server/v6/model"
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
 )
 
@@ -55,8 +56,8 @@ func (p *Plugin) setupInstallation(install *Installation, adminPassword, userPas
 
 func (p *Plugin) waitForDNS(client *model.Client4) error {
 	for i := 0; i < 60; i++ {
-		_, resp, err := client.GetPing()
-		if resp.StatusCode == http.StatusOK {
+		_, resp, err := client.GetPing(context.Background())
+		if err == nil && resp != nil && resp.StatusCode == http.StatusOK {
 			return nil
 		}
 		if err != nil {
@@ -70,6 +71,7 @@ func (p *Plugin) waitForDNS(client *model.Client4) error {
 
 func (p *Plugin) createUser(client *model.Client4, username, password, email string) error {
 	_, _, err := client.CreateUser(
+		context.Background(),
 		&model.User{
 			Username: username,
 			Password: password,
@@ -85,7 +87,7 @@ func (p *Plugin) createAndLoginAdminUser(client *model.Client4, password string)
 		return err
 	}
 
-	_, _, err = client.Login(defaultAdminUsername, password)
+	_, _, err = client.Login(context.Background(), defaultAdminUsername, password)
 	if err != nil {
 		return err
 	}
@@ -94,7 +96,7 @@ func (p *Plugin) createAndLoginAdminUser(client *model.Client4, password string)
 }
 
 func (p *Plugin) setupInstallationConfiguration(client *model.Client4, install *Installation) error {
-	config, resp, err := client.GetConfig()
+	config, resp, err := client.GetConfig(context.Background())
 	if err != nil {
 		return errors.Wrap(err, "failed to get Mattermost config")
 	}
@@ -112,7 +114,7 @@ func (p *Plugin) setupInstallationConfiguration(client *model.Client4, install *
 		config.TeamSettings.EnableOpenServer = NewBool(true)
 		config.PluginSettings.EnableUploads = NewBool(true)
 
-		_, _, err = client.UpdateConfig(config)
+		_, _, err = client.UpdateConfig(context.Background(), config)
 		if err != nil {
 			return errors.Wrap(err, "unable to update installation config")
 		}

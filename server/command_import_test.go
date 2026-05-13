@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
-	"github.com/mattermost/mattermost-server/v6/model"
-	"github.com/mattermost/mattermost-server/v6/plugin/plugintest"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -64,7 +64,6 @@ func TestImport(t *testing.T) {
 			assert.Contains(t, err.Error(), "no installation for the DNS provided")
 			assert.True(t, isUserError)
 			assert.Nil(t, resp)
-
 		})
 
 		t.Run("cloud installation not found based on DNS", func(t *testing.T) {
@@ -78,7 +77,6 @@ func TestImport(t *testing.T) {
 			assert.Contains(t, err.Error(), "failed to get installation by DNS")
 			assert.False(t, isUserError)
 			assert.Nil(t, resp)
-
 		})
 	})
 	t.Run("URL with https/https and queries", func(t *testing.T) {
@@ -145,7 +143,6 @@ func TestInstallExist(t *testing.T) {
 		assert.True(t, isUserError)
 		assert.Nil(t, resp)
 	})
-
 }
 
 func getFakePluginInstallationsWithDNS() ([]*Installation, []byte, error) {
