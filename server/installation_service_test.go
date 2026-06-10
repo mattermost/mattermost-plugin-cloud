@@ -238,6 +238,22 @@ func TestInstallationServiceUpdate(t *testing.T) {
 		assert.NotContains(t, string(resultJSON), "secret-value")
 	})
 
+	t.Run("clear-env only without set-env", func(t *testing.T) {
+		installs := []*Installation{serviceTestInstall("install-id", "Install", "owner")}
+		plugin, cloudClient, _ := newServiceTestPlugin(t, installs)
+
+		result, err := plugin.updateInstallationForUser("owner", InstallationRef{Name: "install"}, UpdateInstallationInput{
+			ClearEnv: []string{"OLD_ENV"},
+		}, InstallationScopeMine)
+		require.NoError(t, err)
+
+		require.NotNil(t, cloudClient.patchRequest)
+		assert.Equal(t, cloud.EnvVarMap{"OLD_ENV": cloud.EnvVar{}}, cloudClient.patchRequest.PriorityEnv)
+		assert.Equal(t, []string{"env"}, result.ChangedFields)
+		assert.Empty(t, result.ChangedEnvKeys)
+		assert.Equal(t, []string{"OLD_ENV"}, result.ClearedEnvKeys)
+	})
+
 	t.Run("image-only update uses stored tag instead of stored digest", func(t *testing.T) {
 		install := serviceTestInstall("install-id", "Install", "owner")
 		install.Version = "sha256:stored-digest"
