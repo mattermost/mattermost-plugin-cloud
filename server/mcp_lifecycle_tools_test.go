@@ -38,7 +38,7 @@ func TestCreateInstallationMCP(t *testing.T) {
 		plugin, cloudClient, api := newMCPToolsTestPlugin(t, nil)
 		plugin.dockerClient = &MockedDockerClient{tagExists: true, digest: "sha256:digest"}
 		plugin.configuration.E20License = "raw-license-value"
-		api.On("KVCompareAndSet").Unset()
+		unsetKVCompareAndSet(api)
 		api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).
 			Run(func(args mock.Arguments) {
 				require.NotNil(t, cloudClient.creationRequest)
@@ -428,7 +428,7 @@ func TestMCPLifecycleProvisionerErrors(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			plugin, cloudClient, api := newMCPToolsTestPlugin(t, test.installs)
 			test.setup(cloudClient)
-			api.On("KVCompareAndSet").Unset()
+			unsetKVCompareAndSet(api)
 
 			session, cleanup := connectMCPToolsClient(t, plugin, "owner")
 			defer cleanup()
@@ -447,7 +447,7 @@ func TestDeleteInstallationMCP(t *testing.T) {
 	t.Run("requires confirmation and calls provisioner before local delete", func(t *testing.T) {
 		target := serviceTestInstall("delete-id", "DeleteMe", "owner")
 		plugin, cloudClient, api := newMCPToolsTestPlugin(t, []*Installation{target})
-		api.On("KVCompareAndSet").Unset()
+		unsetKVCompareAndSet(api)
 		api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).
 			Run(func(args mock.Arguments) {
 				assert.Equal(t, "delete-id", cloudClient.deletedInstallationID)

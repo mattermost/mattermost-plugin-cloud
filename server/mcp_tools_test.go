@@ -182,7 +182,7 @@ func TestListInstallationsMCP(t *testing.T) {
 			State:   cloud.InstallationStateDeleted,
 		}}
 		cloudClient.mockedCloudInstallationsDTO = nil
-		api.On("KVCompareAndSet").Unset()
+		unsetKVCompareAndSet(api)
 
 		session, cleanup := connectMCPToolsClient(t, plugin, "owner")
 		defer cleanup()
@@ -279,7 +279,7 @@ func TestGetInstallationMCP(t *testing.T) {
 		refreshed := serviceTestInstall("refresh-id", "RefreshMe", "owner")
 		refreshed.State = cloud.InstallationStateUpdateInProgress
 		cloudClient.mockedCloudInstallationsDTO = serviceDTOs(refreshed)
-		api.On("KVCompareAndSet").Unset()
+		unsetKVCompareAndSet(api)
 
 		session, cleanup := connectMCPToolsClient(t, plugin, "owner")
 		defer cleanup()
@@ -300,7 +300,7 @@ func TestGetInstallationMCP(t *testing.T) {
 			State:   cloud.InstallationStateDeleted,
 		}}
 		cloudClient.mockedCloudInstallationsDTO = nil
-		api.On("KVCompareAndSet").Unset()
+		unsetKVCompareAndSet(api)
 
 		session, cleanup := connectMCPToolsClient(t, plugin, "owner")
 		defer cleanup()
