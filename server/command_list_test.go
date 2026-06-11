@@ -25,7 +25,9 @@ func TestGetUpdatedInstallsForUser(t *testing.T) {
 					Installation: &cloud.Installation{
 						ID:            "id1",
 						State:         cloud.InstallationStateStable,
+						License:       "secret-license",
 						MattermostEnv: cloud.EnvVarMap{"secret": cloud.EnvVar{Value: "supersecret"}},
+						PriorityEnv:   cloud.EnvVarMap{"priority": cloud.EnvVar{Value: "prioritysecret"}},
 					},
 				},
 				{
@@ -69,7 +71,9 @@ func TestGetUpdatedInstallsForUser(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, len(pluginInstalls), len(installations))
 			assert.Equal(t, "id1", installations[0].ID)
+			assert.Equal(t, "secret-license", installations[0].License)
 			assert.NotNil(t, installations[0].MattermostEnv)
+			assert.NotNil(t, installations[0].PriorityEnv)
 			t.Log(installations[0].State)
 		})
 
@@ -78,7 +82,9 @@ func TestGetUpdatedInstallsForUser(t *testing.T) {
 			require.NoError(t, err)
 			require.Equal(t, len(pluginInstalls), len(installations))
 			assert.Equal(t, "id1", installations[0].ID)
+			assert.Equal(t, "hidden", installations[0].License)
 			assert.Nil(t, installations[0].MattermostEnv)
+			assert.Nil(t, installations[0].PriorityEnv)
 		})
 	})
 
@@ -101,6 +107,74 @@ func TestGetUpdatedInstallsForUser(t *testing.T) {
 		assert.Contains(t, installations[2].Name, "installation-three")
 		assert.Contains(t, installations[2].Name, "DELETED")
 	})
+}
+
+func TestGetUpdatedInstallsForUserWithoutSensitiveDoesNotMutateRefreshSource(t *testing.T) {
+	cloudInstall := &cloud.InstallationDTO{Installation: &cloud.Installation{
+		ID:            "id1",
+		OwnerID:       "owner 1",
+		State:         cloud.InstallationStateStable,
+		License:       "secret-license",
+		MattermostEnv: cloud.EnvVarMap{"secret": cloud.EnvVar{Value: "supersecret"}},
+		PriorityEnv:   cloud.EnvVarMap{"priority": cloud.EnvVar{Value: "prioritysecret"}},
+	}}
+	plugin := Plugin{
+		cloudClient:  &MockClient{mockedCloudInstallationsDTO: []*cloud.InstallationDTO{cloudInstall}},
+		dockerClient: &MockedDockerClient{tagExists: true},
+	}
+	api := &plugintest.API{}
+	_, installationBytes, err := getFakePluginInstallations()
+	require.NoError(t, err)
+	api.On("KVGet", mock.AnythingOfType("string")).Return(installationBytes, nil)
+	api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
+	api.On("LogWarn", mock.AnythingOfType("string")).Return(nil)
+	plugin.SetAPI(api)
+
+	withoutSensitive, err := plugin.getUpdatedInstallsForUserWithoutSensitive("owner 1")
+	require.NoError(t, err)
+	require.NotEmpty(t, withoutSensitive)
+	assert.Equal(t, "hidden", withoutSensitive[0].License)
+	assert.Nil(t, withoutSensitive[0].MattermostEnv)
+	assert.Nil(t, withoutSensitive[0].PriorityEnv)
+
+	withSensitive, err := plugin.getUpdatedInstallsForUserWithSensitive("owner 1")
+	require.NoError(t, err)
+	require.NotEmpty(t, withSensitive)
+	assert.Equal(t, "secret-license", withSensitive[0].License)
+	assert.Equal(t, "supersecret", withSensitive[0].MattermostEnv["secret"].Value)
+	assert.Equal(t, "prioritysecret", withSensitive[0].PriorityEnv["priority"].Value)
+}
+
+func TestGetUpdatedSharedInstallationsWithoutSensitiveDoesNotMutateRefreshSource(t *testing.T) {
+	plugin := Plugin{
+		cloudClient: &MockClient{overrideGetInstallationDTO: &cloud.InstallationDTO{Installation: &cloud.Installation{
+			ID:            "sharedid",
+			OwnerID:       "owner 1",
+			State:         cloud.InstallationStateStable,
+			License:       "shared-secret-license",
+			MattermostEnv: cloud.EnvVarMap{"sharedsecret": cloud.EnvVar{Value: "sharedsecretvalue"}},
+			PriorityEnv:   cloud.EnvVarMap{"sharedpriority": cloud.EnvVar{Value: "sharedpriorityvalue"}},
+		}}},
+		dockerClient: &MockedDockerClient{tagExists: true},
+	}
+	api := &plugintest.API{}
+	api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"sharedid\", \"OwnerID\": \"owner 1\", \"Name\": \"shared\", \"Shared\": true}]"), nil)
+	api.On("LogWarn", mock.AnythingOfType("string")).Return(nil)
+	plugin.SetAPI(api)
+
+	withoutSensitive, err := plugin.getUpdatedSharedInstallations(true)
+	require.NoError(t, err)
+	require.Len(t, withoutSensitive, 1)
+	assert.Equal(t, "hidden", withoutSensitive[0].License)
+	assert.Nil(t, withoutSensitive[0].MattermostEnv)
+	assert.Nil(t, withoutSensitive[0].PriorityEnv)
+
+	withSensitive, err := plugin.getUpdatedSharedInstallations(false)
+	require.NoError(t, err)
+	require.Len(t, withSensitive, 1)
+	assert.Equal(t, "shared-secret-license", withSensitive[0].License)
+	assert.Equal(t, "sharedsecretvalue", withSensitive[0].MattermostEnv["sharedsecret"].Value)
+	assert.Equal(t, "sharedpriorityvalue", withSensitive[0].PriorityEnv["sharedpriority"].Value)
 }
 
 func getFakePluginInstallations() ([]*Installation, []byte, error) {
@@ -178,8 +252,12 @@ func TestListCommand(t *testing.T) {
 			Installation: &cloud.Installation{
 				ID:      "someid",
 				OwnerID: "sharedid",
+				License: "license-secret",
 				MattermostEnv: cloud.EnvVarMap{
 					"testkey": cloud.EnvVar{Value: "testval"},
+				},
+				PriorityEnv: cloud.EnvVarMap{
+					"prioritykey": cloud.EnvVar{Value: "priorityval"},
 				},
 			},
 		}}
@@ -188,7 +266,37 @@ func TestListCommand(t *testing.T) {
 		require.Nil(t, err)
 		assert.False(t, isUserError)
 		assert.True(t, strings.Contains(resp.Text, "someid"))
+		assert.False(t, strings.Contains(resp.Text, "\"License\""))
+		assert.False(t, strings.Contains(resp.Text, "license-secret"))
+		assert.False(t, strings.Contains(resp.Text, "\"MattermostEnv\""))
 		assert.False(t, strings.Contains(resp.Text, "testkey"))
 		assert.False(t, strings.Contains(resp.Text, "testval"))
+		assert.False(t, strings.Contains(resp.Text, "\"PriorityEnv\""))
+		assert.False(t, strings.Contains(resp.Text, "prioritykey"))
+		assert.False(t, strings.Contains(resp.Text, "priorityval"))
 	})
+}
+
+func TestListCommandCleansUpDeletedInstallations(t *testing.T) {
+	plugin := Plugin{
+		cloudClient: &MockClient{
+			overrideGetInstallationDTO: &cloud.InstallationDTO{Installation: &cloud.Installation{
+				ID:      "deletedid",
+				OwnerID: "ownerid",
+				State:   cloud.InstallationStateDeleted,
+			}},
+		},
+		dockerClient: &MockedDockerClient{tagExists: true},
+	}
+	api := &plugintest.API{}
+	api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"deletedid\", \"OwnerID\": \"ownerid\", \"Name\": \"deletedinstall\"}]"), nil)
+	api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil).Once()
+	api.On("LogWarn", mock.AnythingOfType("string")).Return(nil)
+	plugin.SetAPI(api)
+
+	resp, isUserError, err := plugin.runListCommand([]string{}, &model.CommandArgs{UserId: "ownerid"})
+	require.NoError(t, err)
+	assert.False(t, isUserError)
+	assert.Contains(t, resp.Text, "deletedinstall [ DELETED ]")
+	api.AssertExpectations(t)
 }

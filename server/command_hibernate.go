@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -16,28 +17,12 @@ func (p *Plugin) runHibernateCommand(args []string, extra *model.CommandArgs) (*
 
 	name := standardizeName(args[0])
 
-	installs, err := p.getUpdatedInstallsForUserWithoutSensitive(extra.UserId)
+	_, err := p.hibernateInstallationForUser(extra.UserId, InstallationRef{Name: name})
 	if err != nil {
-		return nil, false, err
-	}
-
-	var installToHibernate *Installation
-	for _, install := range installs {
-		if install.OwnerID == extra.UserId && install.Name == name {
-			installToHibernate = install
-			break
+		if strings.Contains(err.Error(), "no installation with the name") ||
+			strings.Contains(err.Error(), fmt.Sprintf("must be %s to hibernate", cloud.InstallationStateStable)) {
+			return nil, true, err
 		}
-	}
-
-	if installToHibernate == nil {
-		return nil, true, errors.Errorf("no installation with the name %s found", name)
-	}
-	if installToHibernate.State != cloud.InstallationStateStable {
-		return nil, true, errors.Errorf("installation state is currently %s and must be %s to hibernate", installToHibernate.State, cloud.InstallationStateStable)
-	}
-
-	_, err = p.cloudClient.HibernateInstallation(installToHibernate.ID)
-	if err != nil {
 		return nil, false, err
 	}
 

@@ -52,12 +52,14 @@ func TestRunDeletionLockCommand(t *testing.T) {
 		plugin.configuration = &configuration{
 			DeletionLockInstallationsAllowedPerPerson: "1",
 		}
+		mockedCloudClient.lockedInstallationID = ""
 		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"joramid\", \"Name\": \"joramsinstall\"}]"), nil)
 
 		commandResponse, _, err := plugin.runDeletionLockCommand([]string{"joramsinstall"}, &model.CommandArgs{UserId: "joramid"})
 
 		require.NoError(t, err)
 		assert.Contains(t, commandResponse.Text, "Deletion lock has been applied, your workspace will be preserved.")
+		assert.Equal(t, "someid", mockedCloudClient.lockedInstallationID)
 	})
 
 	t.Run("no installation found with the given name", func(t *testing.T) {
@@ -90,7 +92,7 @@ func TestLockForDeletion(t *testing.T) {
 	t.Run("Invalid config value", func(t *testing.T) {
 		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"joramid\", \"Name\": \"joramsinstall\"}]"), nil)
 
-		err := plugin.lockForDeletion("joramsinstall", "joramid")
+		err := plugin.lockForDeletion("someid", "joramid")
 
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "invalid value for DeletionLockInstallationsAllowedPerPerson")
@@ -102,7 +104,7 @@ func TestLockForDeletion(t *testing.T) {
 		}
 		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"joramid\", \"Name\": \"joramsinstall\"}]"), nil)
 
-		err := plugin.lockForDeletion("joramsinstall", "joramid")
+		err := plugin.lockForDeletion("someid", "joramid")
 
 		require.Error(t, err)
 		require.Contains(t, err.Error(), "you may only have at most 0 installations locked for deletion at a time")
@@ -120,9 +122,9 @@ func TestLockForDeletion(t *testing.T) {
 	})
 
 	t.Run("No installations to be locked", func(t *testing.T) {
-		api.On("KVGet", mock.AnythingOfType("string")).Return(nil, nil)
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"joramid\", \"Name\": \"joramsinstall\"}]"), nil)
 
-		err := plugin.lockForDeletion("joramsinstall", "joramid")
+		err := plugin.lockForDeletion("missingid", "joramid")
 
 		require.EqualError(t, err, "installation to be locked not found")
 	})
@@ -157,12 +159,14 @@ func TestRunDeletionUnlockCommand(t *testing.T) {
 		plugin.configuration = &configuration{
 			DeletionLockInstallationsAllowedPerPerson: "1",
 		}
+		mockedCloudClient.unlockedInstallationID = ""
 		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"joramid\", \"Name\": \"joramsinstall\"}]"), nil)
 
 		commandResponse, _, err := plugin.runDeletionUnlockCommand([]string{"joramsinstall"}, &model.CommandArgs{UserId: "joramid"})
 
 		require.NoError(t, err)
 		assert.Contains(t, commandResponse.Text, "Deletion lock has been removed, your workspace can now be deleted")
+		assert.Equal(t, "someid", mockedCloudClient.unlockedInstallationID)
 	})
 
 	t.Run("no installation found with the given name", func(t *testing.T) {
@@ -201,9 +205,9 @@ func TestUnlockForDeletion(t *testing.T) {
 	})
 
 	t.Run("No installations to be unlocked", func(t *testing.T) {
-		api.On("KVGet", mock.AnythingOfType("string")).Return(nil, nil)
+		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("[{\"ID\": \"someid\", \"OwnerID\": \"joramid\", \"Name\": \"joramsinstall\"}]"), nil)
 
-		err := plugin.unlockForDeletion("joramsinstall", "joramid")
+		err := plugin.unlockForDeletion("missingid", "joramid")
 
 		require.EqualError(t, err, "installation to be unlocked not found")
 	})

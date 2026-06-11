@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
@@ -47,26 +48,11 @@ func (p *Plugin) runShareInstallationCommand(args []string, extra *model.Command
 		return nil, true, err
 	}
 
-	installations, err := p.getUpdatedInstallsForUserWithoutSensitive(extra.UserId)
+	_, err = p.setInstallationSharingForUser(extra.UserId, InstallationRef{Name: name}, true, config.AllowUpdates)
 	if err != nil {
-		return nil, true, err
-	}
-	var installationToShare *Installation
-	for _, installation := range installations {
-		if installation.OwnerID == extra.UserId && installation.Name == name {
-			installationToShare = installation
-			break
+		if strings.Contains(err.Error(), "no installation with the name") {
+			return nil, true, err
 		}
-	}
-
-	if installationToShare == nil {
-		return nil, true, errors.Errorf("no installation with the name %s found", name)
-	}
-
-	installationToShare.Shared = true
-	installationToShare.AllowSharedUpdates = config.AllowUpdates
-	err = p.updateInstallation(installationToShare)
-	if err != nil {
 		return getCommandResponse(model.CommandResponseTypeEphemeral, err.Error(), extra), false, err
 	}
 
@@ -84,26 +70,11 @@ func (p *Plugin) runUnshareInstallationCommand(args []string, extra *model.Comma
 
 	name := standardizeName(args[0])
 
-	installations, err := p.getUpdatedInstallsForUserWithoutSensitive(extra.UserId)
+	_, err := p.setInstallationSharingForUser(extra.UserId, InstallationRef{Name: name}, false, false)
 	if err != nil {
-		return nil, true, err
-	}
-	var installationToShare *Installation
-	for _, installation := range installations {
-		if installation.OwnerID == extra.UserId && installation.Name == name {
-			installationToShare = installation
-			break
+		if strings.Contains(err.Error(), "no installation with the name") {
+			return nil, true, err
 		}
-	}
-
-	if installationToShare == nil {
-		return nil, true, errors.Errorf("no installation with the name %s found", name)
-	}
-
-	installationToShare.Shared = false
-	installationToShare.AllowSharedUpdates = false
-	err = p.updateInstallation(installationToShare)
-	if err != nil {
 		return getCommandResponse(model.CommandResponseTypeEphemeral, err.Error(), extra), false, err
 	}
 

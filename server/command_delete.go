@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
@@ -13,32 +14,11 @@ func (p *Plugin) runDeleteCommand(args []string, extra *model.CommandArgs) (*mod
 
 	name := standardizeName(args[0])
 
-	installs, _, err := p.getInstallations()
+	_, err := p.deleteInstallationForUser(extra.UserId, InstallationRef{Name: name}, name)
 	if err != nil {
-		return nil, false, err
-	}
-
-	var installToDelete *Installation
-	for _, install := range installs {
-		if install.OwnerID == extra.UserId && standardizeName(install.Name) == name {
-			installToDelete = install
-			break
+		if strings.Contains(err.Error(), "no installation with the name") {
+			return nil, true, err
 		}
-	}
-
-	if installToDelete == nil {
-		return nil, true, fmt.Errorf("no installation with the name %s found", name)
-	}
-
-	// Delete the installation before removing it from the database in case we
-	// encounter an error.
-	err = p.cloudClient.DeleteInstallation(installToDelete.ID)
-	if err != nil {
-		return nil, false, err
-	}
-
-	err = p.deleteInstallation(installToDelete.ID)
-	if err != nil {
 		return nil, false, err
 	}
 

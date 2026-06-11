@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"regexp"
-	"strconv"
 	"strings"
 	"time"
 
@@ -55,215 +54,104 @@ func (p *Plugin) getCreateFlagSet() *flag.FlagSet {
 	return createFlagSet
 }
 
-// parseCreateArgs is responsible for reading in arguments and basic input validation
-func (p *Plugin) parseCreateArgs(args []string, install *Installation) error {
-	createFlagSet := p.getCreateFlagSet()
-	err := createFlagSet.Parse(args)
-	if err != nil {
-		return err
-	}
-
-	install.Size, err = createFlagSet.GetString("size")
-	if err != nil {
-		return err
-	}
-	if install.Size != "" && !Contains(validInstallationSizes, install.Size) {
-		return fmt.Errorf("Invalid size: %s", install.Size)
-	}
-
-	install.Version, err = createFlagSet.GetString("version")
-	if err != nil {
-		return err
-	}
-
-	if install.Version == "latest" {
-		install.Version, err = p.githubLatestVersion()
-		if err != nil {
-			return errors.Wrap(err, "failed to determine latest tag for requested version 'latest'")
-		}
-		if install.Version == "" {
-			return errors.New("failed to determine latest tag for requested version 'latest': got empty version")
-		}
-	}
-	install.Tag = install.Version
-
-	install.Affinity, err = createFlagSet.GetString("affinity")
-	if err != nil {
-		return err
-	}
-
-	if !cloud.IsSupportedAffinity(install.Affinity) {
-		return errors.Errorf("invalid affinity option %s, must be %s or %s", install.Affinity, cloud.InstallationAffinityIsolated, cloud.InstallationAffinityMultiTenant)
-	}
-
-	install.License, err = createFlagSet.GetString("license")
-	if err != nil {
-		return err
-	}
-
-	if !validLicenseOption(install.License) {
-		return errors.Errorf("invalid license option %s, valid options are %s", install.License, strings.Join(validLicenseOptions, ", "))
-	}
-
-	install.Image, err = createFlagSet.GetString("image")
-	if err != nil {
-		return err
-	}
-
-	if !validImageName(install.Image) {
-		return errors.Errorf("invalid image name %s, valid options are %s", install.Image, strings.Join(dockerRepoWhitelist, ", "))
-	}
-
-	install.Database, err = createFlagSet.GetString("database")
-	if err != nil {
-		return err
-	}
-
-	if !cloud.IsSupportedDatabase(install.Database) {
-		return errors.Errorf("invalid database option %s; valid options are: %s, %s, %s",
-			install.Database,
-			cloud.InstallationDatabasePerseus,
-			cloud.InstallationDatabaseMultiTenantRDSPostgresPGBouncer,
-			cloud.InstallationDatabaseMysqlOperator,
-		)
-	}
-
-	install.Filestore, err = createFlagSet.GetString("filestore")
-	if err != nil {
-		return err
-	}
-
-	if !cloud.IsSupportedFilestore(install.Filestore) {
-		return errors.Errorf("invalid filestore option %s; must be %s, %s, %s, or %s",
-			install.Filestore,
-			cloud.InstallationFilestoreBifrost,
-			cloud.InstallationFilestoreMinioOperator,
-			cloud.InstallationFilestoreAwsS3,
-			cloud.InstallationFilestoreMultiTenantAwsS3,
-		)
-	}
-
-	if install.Filestore == cloud.InstallationFilestoreMultiTenantAwsS3 && install.License != licenseOptionEnterprise && install.License != licenseOptionE20 && install.License != licenseOptionEnterpriseAdvanced {
-		return errors.Errorf("filestore option %s requires license option %s or %s or %s", cloud.InstallationFilestoreMultiTenantAwsS3, licenseOptionEnterprise, licenseOptionE20, licenseOptionEnterpriseAdvanced)
-	}
-
-	install.TestData, err = createFlagSet.GetBool("test-data")
-	if err != nil {
-		return err
-	}
-
-	envVars, err := createFlagSet.GetStringSlice("env")
-	if err != nil {
-		return err
-	}
-	envVarMap, err := parseEnvVarInput(envVars, nil)
-	if err != nil {
-		return err
-	}
-	install.PriorityEnv = envVarMap
-
-	return nil
-}
-
 func (p *Plugin) runCreateCommand(args []string, extra *model.CommandArgs) (*model.CommandResponse, bool, error) {
 	if len(args) == 0 {
 		return nil, true, errors.New("must provide an installation name")
 	}
 
-	install := &Installation{
-		Name: standardizeName(args[0]),
-		InstallationDTO: cloud.InstallationDTO{
-			Installation: &cloud.Installation{},
-		},
-	}
-
-	if install.Name == "" || strings.HasPrefix(install.Name, "--") {
-		return nil, true, errors.New("must provide an installation name")
-	}
-
-	if !validInstallationName(install.Name) {
-		return nil, true, errors.Errorf("installation name %s is invalid: only letters, numbers, and hyphens are permitted", install.Name)
-	}
-
-	exists, err := p.installationWithNameExists(install.Name)
-	if err != nil {
-		return nil, false, errors.Wrap(err, "unable to determine if installation name is already taken")
-	}
-	if exists {
-		return nil, true, errors.Errorf("Installation name %s already exists. **NOTE**: installation names are reserved for 24 hours after deletion in order to support restoration. Please try a new name, wait 24 hours, or contact the Cloud Platform team for support.", install.Name)
-	}
-
-	err = p.parseCreateArgs(args, install)
+	input, err := p.createInstallationInputFromArgs(args)
 	if err != nil {
 		return nil, true, err
 	}
 
-	err = validVersionOption(install.Version)
+	install, err := p.createInstallationForUser(extra.UserId, input)
 	if err != nil {
-		return nil, true, errors.Wrap(err, "Invalid version number")
-	}
-
-	validTag, err := p.dockerClient.ValidTag(install.Version, install.Image)
-	if err != nil {
-		p.API.LogError(errors.Wrapf(err, "unable to check if %s:%s exists", install.Image, install.Version).Error())
-	}
-	if !validTag {
-		return nil, true, errors.Errorf("%s is not a valid docker tag for repository %s", install.Version, install.Image)
-	}
-
-	var digest string
-	digest, err = p.dockerClient.GetDigestForTag(install.Version, install.Image)
-	if err != nil {
-		return nil, false, errors.Wrapf(err, "failed to find a manifest digest for version %s", install.Version)
-	}
-	install.Version = digest
-
-	config := p.getConfiguration()
-
-	req := &cloud.CreateInstallationRequest{
-		Name:        install.Name,
-		OwnerID:     extra.UserId,
-		GroupID:     config.GroupID,
-		Affinity:    install.Affinity,
-		DNSNames:    []string{fmt.Sprintf("%s.%s", install.Name, config.InstallationDNS)},
-		Database:    install.Database,
-		Filestore:   install.Filestore,
-		PriorityEnv: install.PriorityEnv,
-		License:     p.getLicenseValue(install.License),
-		Size:        install.Size,
-		Version:     install.Version,
-		Image:       install.Image,
-		Annotations: []string{defaultMultiTenantAnnotation},
-	}
-
-	var hours int
-	if config.ScheduledDeletionHours != "" && config.ScheduledDeletionHours != "0" {
-		hours, err = strconv.Atoi(config.ScheduledDeletionHours)
-		if err == nil && hours > 0 {
-			// Convert hours to milliseconds and add to current time
-			deletionTime := time.Now().Add(time.Duration(hours) * time.Hour).UnixMilli()
-			req.ScheduledDeletionTime = deletionTime
+		if isCreateUserError(err) {
+			return nil, true, err
 		}
-	}
-
-	cloudInstallation, err := p.cloudClient.CreateInstallation(req)
-	if err != nil {
-		if strings.Contains(err.Error(), "409") {
-			return nil, true, errors.Errorf("Installation name %s already exists. **NOTE**: installation names are reserved for 24 hours after deletion in order to support restoration. Please try a new name, wait 24 hours, or contact the Cloud Platform team for support.", install.Name)
-		}
-		return nil, false, errors.Wrap(err, "failed to create installation")
-	}
-
-	install.Installation = cloudInstallation.Installation
-
-	err = p.storeInstallation(install)
-	if err != nil {
 		return nil, false, err
 	}
 
-	install.HideSensitiveFields()
+	install = sanitizeInstallationCopy(install)
 
 	return getCommandResponse(model.CommandResponseTypeEphemeral, "Installation being created. You will receive a notification when it is ready. Use `/cloud list` to check on the status of your installations.\n\n"+jsonCodeBlock(install.ToPrettyJSON()), extra), false, nil
+}
+
+func (p *Plugin) createInstallationInputFromArgs(args []string) (CreateInstallationInput, error) {
+	if len(args) == 0 || args[0] == "" || strings.HasPrefix(args[0], "--") {
+		return CreateInstallationInput{}, errors.New("must provide an installation name")
+	}
+
+	createFlagSet := p.getCreateFlagSet()
+	if err := createFlagSet.Parse(args); err != nil {
+		return CreateInstallationInput{}, err
+	}
+
+	envVars, err := createFlagSet.GetStringSlice("env")
+	if err != nil {
+		return CreateInstallationInput{}, err
+	}
+	envMap, err := parseEnvVarInput(envVars, nil)
+	if err != nil {
+		return CreateInstallationInput{}, err
+	}
+
+	input := CreateInstallationInput{Name: args[0], Env: map[string]string{}}
+	input.Size, err = createFlagSet.GetString("size")
+	if err != nil {
+		return CreateInstallationInput{}, err
+	}
+	input.Version, err = createFlagSet.GetString("version")
+	if err != nil {
+		return CreateInstallationInput{}, err
+	}
+	input.Affinity, err = createFlagSet.GetString("affinity")
+	if err != nil {
+		return CreateInstallationInput{}, err
+	}
+	input.License, err = createFlagSet.GetString("license")
+	if err != nil {
+		return CreateInstallationInput{}, err
+	}
+	input.Image, err = createFlagSet.GetString("image")
+	if err != nil {
+		return CreateInstallationInput{}, err
+	}
+	input.Database, err = createFlagSet.GetString("database")
+	if err != nil {
+		return CreateInstallationInput{}, err
+	}
+	input.Filestore, err = createFlagSet.GetString("filestore")
+	if err != nil {
+		return CreateInstallationInput{}, err
+	}
+	input.TestData, err = createFlagSet.GetBool("test-data")
+	if err != nil {
+		return CreateInstallationInput{}, err
+	}
+	for key, env := range envMap {
+		input.Env[key] = env.Value
+	}
+
+	return input, nil
+}
+
+func isCreateUserError(err error) bool {
+	errText := err.Error()
+	return strings.Contains(errText, "must provide an installation name") ||
+		strings.Contains(errText, "is invalid: only letters, numbers, and hyphens are permitted") ||
+		strings.Contains(errText, "already exists") ||
+		strings.Contains(errText, "Invalid version number") ||
+		strings.Contains(errText, "is not a valid docker tag") ||
+		strings.Contains(errText, "Invalid size:") ||
+		strings.Contains(errText, "invalid affinity option") ||
+		strings.Contains(errText, "invalid license option") ||
+		strings.Contains(errText, "invalid image name") ||
+		strings.Contains(errText, "invalid database option") ||
+		strings.Contains(errText, "invalid filestore option") ||
+		strings.Contains(errText, "requires license option") ||
+		strings.Contains(errText, "valid env format") ||
+		strings.Contains(errText, "defined more than once")
 }
 
 // installationWithNameExists returns true when there already exists an installation with name "name"

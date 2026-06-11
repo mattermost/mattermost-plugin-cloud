@@ -1,7 +1,9 @@
 package main
 
 import (
+	"net/http"
 	"testing"
+	"time"
 
 	"github.com/blang/semver/v4"
 	cloud "github.com/mattermost/mattermost-cloud/model"
@@ -16,8 +18,9 @@ func TestCreateCommand(t *testing.T) {
 	dockerClient := &MockedDockerClient{tagExists: true}
 	mockCloudClient := &MockClient{}
 	plugin := Plugin{
-		cloudClient:  mockCloudClient,
-		dockerClient: dockerClient,
+		cloudClient:             mockCloudClient,
+		dockerClient:            dockerClient,
+		latestMattermostVersion: &latestMattermostVersionCache{version: "9.5.0", timestamp: time.Now()},
 	}
 
 	api := &plugintest.API{}
@@ -281,14 +284,16 @@ func TestCreateCommand(t *testing.T) {
 
 	t.Run("env vars", func(t *testing.T) {
 		t.Run("valid env vars", func(t *testing.T) {
-			expectedEnv := cloud.EnvVarMap{"ENV1": cloud.EnvVar{Value: "test"}, "ENV2": cloud.EnvVar{Value: "test2"}}
+			expectedEnv := cloud.EnvVarMap{"ENV1": cloud.EnvVar{Value: "priority-secret-value"}, "ENV2": cloud.EnvVar{Value: "another-secret-value"}}
 
-			resp, isUserError, err := plugin.runCreateCommand([]string{"test", "--version", "5.30.0", "--env", "ENV1=test,ENV2=test2"}, &model.CommandArgs{})
+			resp, isUserError, err := plugin.runCreateCommand([]string{"test", "--version", "5.30.0", "--env", "ENV1=priority-secret-value,ENV2=another-secret-value"}, &model.CommandArgs{})
 			require.NoError(t, err)
 			assert.False(t, isUserError)
 			assert.Contains(t, resp.Text, "Installation being created.")
 			require.NotNil(t, mockCloudClient.creationRequest)
 			assert.Equal(t, expectedEnv, mockCloudClient.creationRequest.PriorityEnv)
+			assert.NotContains(t, resp.Text, "priority-secret-value")
+			assert.NotContains(t, resp.Text, "another-secret-value")
 		})
 		t.Run("invalid env vars", func(t *testing.T) {
 			_, isUserError, err := plugin.runCreateCommand([]string{"test", "--version", "5.30.0", "--env", "ENV1:test"}, &model.CommandArgs{})
@@ -296,6 +301,24 @@ func TestCreateCommand(t *testing.T) {
 			assert.True(t, isUserError)
 			assert.Contains(t, err.Error(), "ENV1:test is not in a valid env format")
 		})
+	})
+
+	t.Run("installation lookup failures are internal errors", func(t *testing.T) {
+		lookupFailurePlugin := Plugin{
+			cloudClient:             &MockClient{},
+			dockerClient:            &MockedDockerClient{tagExists: true},
+			latestMattermostVersion: &latestMattermostVersionCache{version: "9.5.0", timestamp: time.Now()},
+		}
+
+		api := &plugintest.API{}
+		api.On("KVGet", mock.AnythingOfType("string")).Return(nil, model.NewAppError("test", "kv_get_failed", nil, "kv lookup failed", http.StatusInternalServerError))
+		lookupFailurePlugin.SetAPI(api)
+
+		resp, isUserError, err := lookupFailurePlugin.runCreateCommand([]string{"test"}, &model.CommandArgs{})
+		require.Error(t, err)
+		assert.False(t, isUserError)
+		assert.Nil(t, resp)
+		assert.Contains(t, err.Error(), "unable to determine if installation name is already taken")
 	})
 
 	t.Run("missing installation name", func(t *testing.T) {
