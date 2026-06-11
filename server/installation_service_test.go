@@ -130,7 +130,7 @@ func TestInstallationServiceRefreshWithoutCleanup(t *testing.T) {
 		OwnerID: "owner",
 		State:   cloud.InstallationStateDeleted,
 	}}
-	api.On("KVCompareAndSet").Unset()
+	unsetKVCompareAndSet(api)
 
 	installs, err := plugin.listInstallationsForUser("owner", ListInstallationsInput{Scope: InstallationScopeMine, Refresh: true})
 	require.NoError(t, err)
@@ -296,7 +296,7 @@ func TestInstallationServiceUpdate(t *testing.T) {
 		assert.Nil(t, redacted[0].PriorityEnv)
 
 		var persisted []*Installation
-		api.On("KVCompareAndSet").Unset()
+		unsetKVCompareAndSet(api)
 		api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).
 			Run(func(args mock.Arguments) {
 				require.NoError(t, json.Unmarshal(args.Get(2).([]byte), &persisted))
@@ -441,7 +441,7 @@ func TestInstallationServiceSharingDeletionLockAndDelete(t *testing.T) {
 	t.Run("delete requires confirmation and calls provisioner before KV delete", func(t *testing.T) {
 		target := serviceTestInstall("delete-id", "DeleteMe", "owner")
 		plugin, cloudClient, api := newServiceTestPlugin(t, []*Installation{target})
-		api.On("KVCompareAndSet").Unset()
+		unsetKVCompareAndSet(api)
 		api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).
 			Run(func(args mock.Arguments) {
 				assert.Equal(t, "delete-id", cloudClient.deletedInstallationID)
@@ -460,6 +460,16 @@ func TestInstallationServiceSharingDeletionLockAndDelete(t *testing.T) {
 		_, err = plugin.deleteInstallationForUser("owner", InstallationRef{ID: "missing-id"}, "deleteme")
 		require.EqualError(t, err, "no installation with the id missing-id found")
 	})
+}
+
+func unsetKVCompareAndSet(api *plugintest.API) {
+	filtered := make([]*mock.Call, 0, len(api.ExpectedCalls))
+	for _, call := range api.ExpectedCalls {
+		if call.Method != "KVCompareAndSet" {
+			filtered = append(filtered, call)
+		}
+	}
+	api.ExpectedCalls = filtered
 }
 
 func newServiceTestPlugin(t *testing.T, installs []*Installation) (*Plugin, *MockClient, *plugintest.API) {
@@ -490,6 +500,7 @@ func newServiceTestPlugin(t *testing.T, installs []*Installation) (*Plugin, *Moc
 	api := &plugintest.API{}
 	api.On("KVGet", mock.AnythingOfType("string")).Return(installBytes, nil)
 	api.On("KVCompareAndSet", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(true, nil)
+	api.On("LogAuditRec", mock.AnythingOfType("*model.AuditRecord")).Return()
 	api.On("LogWarn", mock.AnythingOfType("string")).Return(nil)
 	api.On("LogError", mock.AnythingOfType("string"), mock.Anything, mock.Anything).Return(nil)
 	plugin.SetAPI(api)

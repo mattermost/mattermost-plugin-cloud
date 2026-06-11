@@ -10,6 +10,7 @@ import (
 	"github.com/pkg/errors"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
+	"github.com/mattermost/mattermost-plugin-agents/external/pluginmcp"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 )
@@ -20,6 +21,9 @@ type Plugin struct {
 
 	cloudClient  CloudClient
 	dockerClient DockerClientInterface
+
+	mcpServerLock sync.RWMutex
+	mcpServer     *pluginmcp.Server
 
 	BotUserID string
 
@@ -137,5 +141,19 @@ func (p *Plugin) OnActivate() error {
 
 	p.setCloudClient()
 	p.dockerClient = NewDockerClient()
-	return p.API.RegisterCommand(p.getCommand())
+	if err := p.API.RegisterCommand(p.getCommand()); err != nil {
+		return err
+	}
+
+	if err := p.ensureMCPServer(); err != nil {
+		return errors.Wrap(err, "failed to initialize MCP server")
+	}
+	p.registerMCPServerBestEffort()
+
+	return nil
+}
+
+func (p *Plugin) OnDeactivate() error {
+	p.unregisterMCPServerBestEffort()
+	return nil
 }
