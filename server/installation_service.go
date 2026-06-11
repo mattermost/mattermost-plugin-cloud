@@ -674,6 +674,9 @@ func (p *Plugin) buildUpdateInstallationRequest(install *Installation, input Upd
 	sort.Strings(clearEnvKeys)
 	if len(input.SetEnv) > 0 || len(input.ClearEnv) > 0 {
 		request.PriorityEnv = envMapFromInput(input.SetEnv)
+		if request.PriorityEnv == nil {
+			request.PriorityEnv = make(cloud.EnvVarMap, len(input.ClearEnv))
+		}
 		for _, key := range input.ClearEnv {
 			request.PriorityEnv[key] = cloud.EnvVar{}
 		}

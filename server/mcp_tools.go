@@ -6,6 +6,7 @@ import (
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost-plugin-agents/external/pluginmcp"
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/pkg/errors"
 )
@@ -353,21 +354,31 @@ func (p *Plugin) createInstallationMCPHandler(ctx context.Context, _ *mcp.CallTo
 		return nil, InstallationActionMCPOutput{}, err
 	}
 
+	auditRec := p.newMCPAuditRecord("mcpCreateInstallation", userID)
+	defer p.API.LogAuditRec(auditRec)
+	addMCPCreateInstallationAuditParams(auditRec, input)
+
 	install, err := p.createInstallationForUser(userID, CreateInstallationInput(input))
 	if err != nil {
+		auditRec.AddErrorDesc(err.Error())
 		return nil, InstallationActionMCPOutput{}, err
 	}
 
 	summary, err := installationSummary(install, false)
 	if err != nil {
+		auditRec.AddErrorDesc(err.Error())
 		return nil, InstallationActionMCPOutput{}, err
 	}
 
-	return nil, mcpActionOutput(InstallationActionResult{
+	result := InstallationActionResult{
 		Installation: summary,
 		Status:       "creation_requested",
 		Message:      "Installation creation requested. Use get_installation to poll status.",
-	}), nil
+	}
+	addMCPInstallationActionResultAuditParams(auditRec, result)
+	auditRec.Success()
+
+	return nil, mcpActionOutput(result), nil
 }
 
 func (p *Plugin) updateInstallationMCPHandler(ctx context.Context, _ *mcp.CallToolRequest, input UpdateInstallationMCPInput) (*mcp.CallToolResult, InstallationActionMCPOutput, error) {
@@ -385,6 +396,11 @@ func (p *Plugin) updateInstallationMCPHandler(ctx context.Context, _ *mcp.CallTo
 		return nil, InstallationActionMCPOutput{}, err
 	}
 
+	auditRec := p.newMCPAuditRecord("mcpUpdateInstallation", userID)
+	defer p.API.LogAuditRec(auditRec)
+	addMCPInstallationRefAuditParams(auditRec, ref)
+	addMCPUpdateInstallationAuditParams(auditRec, input, scope)
+
 	result, err := p.updateInstallationForUser(userID, ref, UpdateInstallationInput{
 		Version:  input.Version,
 		License:  input.License,
@@ -394,8 +410,12 @@ func (p *Plugin) updateInstallationMCPHandler(ctx context.Context, _ *mcp.CallTo
 		ClearEnv: input.ClearEnv,
 	}, scope)
 	if err != nil {
+		auditRec.AddErrorDesc(err.Error())
 		return nil, InstallationActionMCPOutput{}, err
 	}
+
+	addMCPInstallationActionResultAuditParams(auditRec, result)
+	auditRec.Success()
 
 	return nil, mcpActionOutput(result), nil
 }
@@ -415,10 +435,19 @@ func (p *Plugin) restartInstallationMCPHandler(ctx context.Context, _ *mcp.CallT
 		return nil, InstallationActionMCPOutput{}, err
 	}
 
+	auditRec := p.newMCPAuditRecord("mcpRestartInstallation", userID)
+	defer p.API.LogAuditRec(auditRec)
+	addMCPInstallationRefAuditParams(auditRec, ref)
+	model.AddEventParameterToAuditRec(auditRec, "scope", string(scope))
+
 	result, err := p.restartInstallationForUser(userID, ref, scope)
 	if err != nil {
+		auditRec.AddErrorDesc(err.Error())
 		return nil, InstallationActionMCPOutput{}, err
 	}
+
+	addMCPInstallationActionResultAuditParams(auditRec, result)
+	auditRec.Success()
 
 	return nil, mcpActionOutput(result), nil
 }
@@ -434,10 +463,18 @@ func (p *Plugin) hibernateInstallationMCPHandler(ctx context.Context, _ *mcp.Cal
 		return nil, InstallationActionMCPOutput{}, err
 	}
 
+	auditRec := p.newMCPAuditRecord("mcpHibernateInstallation", userID)
+	defer p.API.LogAuditRec(auditRec)
+	addMCPInstallationRefAuditParams(auditRec, ref)
+
 	result, err := p.hibernateInstallationForUser(userID, ref)
 	if err != nil {
+		auditRec.AddErrorDesc(err.Error())
 		return nil, InstallationActionMCPOutput{}, err
 	}
+
+	addMCPInstallationActionResultAuditParams(auditRec, result)
+	auditRec.Success()
 
 	return nil, mcpActionOutput(result), nil
 }
@@ -453,10 +490,18 @@ func (p *Plugin) wakeInstallationMCPHandler(ctx context.Context, _ *mcp.CallTool
 		return nil, InstallationActionMCPOutput{}, err
 	}
 
+	auditRec := p.newMCPAuditRecord("mcpWakeInstallation", userID)
+	defer p.API.LogAuditRec(auditRec)
+	addMCPInstallationRefAuditParams(auditRec, ref)
+
 	result, err := p.wakeInstallationForUser(userID, ref)
 	if err != nil {
+		auditRec.AddErrorDesc(err.Error())
 		return nil, InstallationActionMCPOutput{}, err
 	}
+
+	addMCPInstallationActionResultAuditParams(auditRec, result)
+	auditRec.Success()
 
 	return nil, mcpActionOutput(result), nil
 }
@@ -472,10 +517,20 @@ func (p *Plugin) setInstallationSharingMCPHandler(ctx context.Context, _ *mcp.Ca
 		return nil, InstallationActionMCPOutput{}, err
 	}
 
+	auditRec := p.newMCPAuditRecord("mcpSetInstallationSharing", userID)
+	defer p.API.LogAuditRec(auditRec)
+	addMCPInstallationRefAuditParams(auditRec, ref)
+	model.AddEventParameterToAuditRec(auditRec, "shared", input.Shared)
+	model.AddEventParameterToAuditRec(auditRec, "allow_updates", input.AllowUpdates)
+
 	result, err := p.setInstallationSharingForUser(userID, ref, input.Shared, input.AllowUpdates)
 	if err != nil {
+		auditRec.AddErrorDesc(err.Error())
 		return nil, InstallationActionMCPOutput{}, err
 	}
+
+	addMCPInstallationActionResultAuditParams(auditRec, result)
+	auditRec.Success()
 
 	return nil, mcpActionOutput(result), nil
 }
@@ -491,10 +546,19 @@ func (p *Plugin) setDeletionLockMCPHandler(ctx context.Context, _ *mcp.CallToolR
 		return nil, InstallationActionMCPOutput{}, err
 	}
 
+	auditRec := p.newMCPAuditRecord("mcpSetDeletionLock", userID)
+	defer p.API.LogAuditRec(auditRec)
+	addMCPInstallationRefAuditParams(auditRec, ref)
+	model.AddEventParameterToAuditRec(auditRec, "locked", input.Locked)
+
 	result, err := p.setDeletionLockForUser(userID, ref, input.Locked)
 	if err != nil {
+		auditRec.AddErrorDesc(err.Error())
 		return nil, InstallationActionMCPOutput{}, err
 	}
+
+	addMCPInstallationActionResultAuditParams(auditRec, result)
+	auditRec.Success()
 
 	return nil, mcpActionOutput(result), nil
 }
@@ -513,10 +577,19 @@ func (p *Plugin) deleteInstallationMCPHandler(ctx context.Context, _ *mcp.CallTo
 		return nil, InstallationActionMCPOutput{}, errors.New("confirm_name is required")
 	}
 
+	auditRec := p.newMCPAuditRecord("mcpDeleteInstallation", userID)
+	defer p.API.LogAuditRec(auditRec)
+	addMCPInstallationRefAuditParams(auditRec, ref)
+	model.AddEventParameterToAuditRec(auditRec, "confirm_name", input.ConfirmName)
+
 	result, err := p.deleteInstallationForUser(userID, ref, input.ConfirmName)
 	if err != nil {
+		auditRec.AddErrorDesc(err.Error())
 		return nil, InstallationActionMCPOutput{}, err
 	}
+
+	addMCPInstallationActionResultAuditParams(auditRec, result)
+	auditRec.Success()
 
 	return nil, mcpActionOutput(result), nil
 }
@@ -681,4 +754,89 @@ func stringValue(value *string) string {
 		return ""
 	}
 	return *value
+}
+
+func (p *Plugin) newMCPAuditRecord(event, userID string) *model.AuditRecord {
+	rec := plugin.MakeAuditRecord(event, model.AuditStatusFail)
+	rec.Actor.UserId = userID
+	rec.AddMeta("source", "mcp")
+	return rec
+}
+
+func addMCPInstallationRefAuditParams(rec *model.AuditRecord, ref InstallationRef) {
+	if ref.ID != "" {
+		model.AddEventParameterToAuditRec(rec, "installation_id", ref.ID)
+	}
+	if ref.Name != "" {
+		model.AddEventParameterToAuditRec(rec, "installation_name", ref.Name)
+	}
+}
+
+func addMCPCreateInstallationAuditParams(rec *model.AuditRecord, input CreateInstallationMCPInput) {
+	model.AddEventParameterToAuditRec(rec, "name", input.Name)
+	if input.Version != "" {
+		model.AddEventParameterToAuditRec(rec, "version", input.Version)
+	}
+	if input.Size != "" {
+		model.AddEventParameterToAuditRec(rec, "size", input.Size)
+	}
+	if input.License != "" {
+		model.AddEventParameterToAuditRec(rec, "license", input.License)
+	}
+	if input.Affinity != "" {
+		model.AddEventParameterToAuditRec(rec, "affinity", input.Affinity)
+	}
+	if input.Database != "" {
+		model.AddEventParameterToAuditRec(rec, "database", input.Database)
+	}
+	if input.Filestore != "" {
+		model.AddEventParameterToAuditRec(rec, "filestore", input.Filestore)
+	}
+	if input.Image != "" {
+		model.AddEventParameterToAuditRec(rec, "image", input.Image)
+	}
+	if input.TestData {
+		model.AddEventParameterToAuditRec(rec, "test_data", input.TestData)
+	}
+	if len(input.Env) > 0 {
+		model.AddEventParameterToAuditRec(rec, "env_keys", sortedStringMapKeys(input.Env))
+	}
+}
+
+func addMCPUpdateInstallationAuditParams(rec *model.AuditRecord, input UpdateInstallationMCPInput, scope InstallationScope) {
+	model.AddEventParameterToAuditRec(rec, "scope", string(scope))
+	if input.Version != "" {
+		model.AddEventParameterToAuditRec(rec, "version", input.Version)
+	}
+	if input.Image != "" {
+		model.AddEventParameterToAuditRec(rec, "image", input.Image)
+	}
+	if input.License != "" {
+		model.AddEventParameterToAuditRec(rec, "license", input.License)
+	}
+	if input.Size != "" {
+		model.AddEventParameterToAuditRec(rec, "size", input.Size)
+	}
+	if len(input.SetEnv) > 0 {
+		model.AddEventParameterToAuditRec(rec, "set_env_keys", sortedStringMapKeys(input.SetEnv))
+	}
+	if len(input.ClearEnv) > 0 {
+		model.AddEventParameterToAuditRec(rec, "clear_env_keys", append([]string{}, input.ClearEnv...))
+	}
+}
+
+func addMCPInstallationActionResultAuditParams(rec *model.AuditRecord, result InstallationActionResult) {
+	if result.Installation.ID != "" {
+		model.AddEventParameterToAuditRec(rec, "installation_id", result.Installation.ID)
+	}
+	model.AddEventParameterToAuditRec(rec, "status", result.Status)
+	if len(result.ChangedFields) > 0 {
+		model.AddEventParameterToAuditRec(rec, "changed_fields", result.ChangedFields)
+	}
+	if len(result.ChangedEnvKeys) > 0 {
+		model.AddEventParameterToAuditRec(rec, "changed_env_keys", result.ChangedEnvKeys)
+	}
+	if len(result.ClearedEnvKeys) > 0 {
+		model.AddEventParameterToAuditRec(rec, "cleared_env_keys", result.ClearedEnvKeys)
+	}
 }
