@@ -60,3 +60,45 @@ func TestDeletionLockHandlers(t *testing.T) {
 		assert.Contains(t, rec.Body.String(), "Internal server error")
 	})
 }
+
+// Regression: JSON null must not nil the decoded pointer and panic on field access.
+func TestJSONNullBodyDoesNotPanic(t *testing.T) {
+	tests := []struct {
+		name    string
+		path    string
+		handler func(*Plugin, http.ResponseWriter, *http.Request)
+	}{
+		{
+			name:    "userinstalls",
+			path:    "/api/v1/userinstalls",
+			handler: (*Plugin).handleUserInstalls,
+		},
+		{
+			name:    "deletion-lock",
+			path:    "/api/v1/deletion-lock",
+			handler: (*Plugin).handleDeletionLock,
+		},
+		{
+			name:    "deletion-unlock",
+			path:    "/api/v1/deletion-unlock",
+			handler: (*Plugin).handleDeletionUnlock,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			plugin, _, _ := newServiceTestPlugin(t, nil)
+
+			req := httptest.NewRequest(http.MethodPost, tt.path, strings.NewReader("null"))
+			req.Header.Set("Mattermost-User-ID", "user1")
+			req.Header.Set("Content-Type", "application/json")
+			rec := httptest.NewRecorder()
+
+			require.NotPanics(t, func() {
+				tt.handler(plugin, rec, req)
+			})
+			require.Equal(t, http.StatusBadRequest, rec.Code)
+			assert.Contains(t, rec.Body.String(), "Please provide a JSON object")
+		})
+	}
+}

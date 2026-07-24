@@ -98,7 +98,7 @@ func (p *Plugin) handleUserInstalls(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := &CloudUserRequest{}
+	var req CloudUserRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil || req.UserID == "" {
 		if err != nil {
@@ -184,7 +184,7 @@ func (p *Plugin) handleDeletionLock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := &CloudDeletionLockRequest{}
+	var req CloudDeletionLockRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil || req.InstallationID == "" {
 		if err != nil {
@@ -219,7 +219,7 @@ func (p *Plugin) handleDeletionUnlock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	req := &CloudDeletionLockRequest{}
+	var req CloudDeletionLockRequest
 	err := json.NewDecoder(r.Body).Decode(&req)
 	if err != nil || req.InstallationID == "" {
 		if err != nil {
