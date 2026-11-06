@@ -15,8 +15,8 @@ import (
 )
 
 const (
-	installationLogsURLTmpl = `https://grafana.internal.mattermost.com/explore?orgId=1&left={"datasource":"PFB2D5CACEC34D62E","queries":[{"refId":"A","datasource":{"type":"loki","uid":"PFB2D5CACEC34D62E"},"editorMode":"code","expr":"{app=\"mattermost\", namespace=\"{{.ID}}\"}","queryType":"range"}],"range":{"from":"now-1h","to":"now"}}`
-	provisionerLogsURLTmpl  = `https://grafana.internal.mattermost.com/explore?orgId=1&left={"datasource":"PFB2D5CACEC34D62E","queries":[{"refId":"A","datasource":{"type":"loki","uid":"PFB2D5CACEC34D62E"},"editorMode":"code","expr":"{namespace=\"mattermost-cloud-test\", component=\"provisioner\"} |= %60{{.ID}}%60","queryType":"range"}],"range":{"from":"now-3h","to":"now"}}`
+	installationLogsURLTmpl = `https://grafana.mattermost.network/explore?schemaVersion=1&panes={"omk":{"datasource":"loki_saas_staging","queries":[{"refId":"A","expr":"{app=\"mattermost\", namespace=\"{{.ID}}\"}","queryType":"range","datasource":{"type":"loki","uid":"loki_saas_staging"},"editorMode":"code","direction":"backward"}],"range":{"from":"now-1h","to":"now"}}}`
+	provisionerLogsURLTmpl  = `https://grafana.mattermost.network/explore?schemaVersion=1&panes={"omk":{"datasource":"loki_saas_staging","queries":[{"refId":"A","expr":"{namespace=\"provisioner\"} |= %60{{.ID}}%60","queryType":"range","datasource":{"type":"loki","uid":"loki_saas_staging"},"editorMode":"code","direction":"backward"}],"range":{"from":"now-3h","to":"now"}}}`
 
 	authHeaderKey = "X-MM-Cloud-Plugin-Auth-Token"
 )
