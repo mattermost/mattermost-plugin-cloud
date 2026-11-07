@@ -599,7 +599,7 @@ func (p *Plugin) cloudStatusMCPHandler(ctx context.Context, _ *mcp.CallToolReque
 		return nil, CloudStatusMCPOutput{}, err
 	}
 
-	installations, err := p.cloudClient.GetInstallations(&cloud.GetInstallationsRequest{
+	installations, err := p.getCloudClient().GetInstallations(&cloud.GetInstallationsRequest{
 		Paging: cloud.AllPagesNotDeleted(),
 	})
 	if err != nil {
@@ -618,7 +618,7 @@ func (p *Plugin) cloudStatusMCPHandler(ctx context.Context, _ *mcp.CallToolReque
 		return nil, output, nil
 	}
 
-	clusters, err := p.cloudClient.GetClusters(&cloud.GetClustersRequest{
+	clusters, err := p.getCloudClient().GetClusters(&cloud.GetClustersRequest{
 		Paging: cloud.AllPagesNotDeleted(),
 	})
 	if err != nil {

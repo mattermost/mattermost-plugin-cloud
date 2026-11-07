@@ -53,7 +53,7 @@ func (p *Plugin) runGetDebugPacketCommand(args []string, extra *model.CommandArg
 }
 
 func (p *Plugin) execGetDebugPacket(installationID, userID, installationName string) error {
-	clusterInstallations, err := p.cloudClient.GetClusterInstallations(&cloud.GetClusterInstallationsRequest{
+	clusterInstallations, err := p.getCloudClient().GetClusterInstallations(&cloud.GetClusterInstallationsRequest{
 		InstallationID: installationID,
 		Paging:         cloud.AllPagesNotDeleted(),
 	})
@@ -65,7 +65,7 @@ func (p *Plugin) execGetDebugPacket(installationID, userID, installationName str
 		return fmt.Errorf("no cluster installations found for installation %s", installationID)
 	}
 
-	fileBytes, err := p.cloudClient.ExecClusterInstallationPPROF(clusterInstallations[0].ID)
+	fileBytes, err := p.getCloudClient().ExecClusterInstallationPPROF(clusterInstallations[0].ID)
 	if err != nil {
 		return errors.Wrap(err, "failed to gather debug packet data")
 	}
