@@ -102,7 +102,8 @@ func (p *Plugin) processWebhookEvent(payload *cloud.WebhookPayload) {
 
 	install, err := p.getInstallation(payload.ID)
 	if err != nil {
-		p.API.LogError(err.Error(), "installation", install.Name)
+		// install is nil here, so log the payload ID.
+		p.API.LogError(err.Error(), "installation", payload.ID)
 		return
 	}
 	if install == nil {

@@ -210,11 +210,18 @@ func (p *Plugin) OnConfigurationChange() error {
 	// Always reinitialize dockerClient to ensure it's properly set even if called before OnActivate
 	p.dockerClient = NewDockerClient()
 
-	if p.configuration != nil {
-		p.setCloudClient()
-	}
+	// On the first call (before OnActivate) there is no client to rebuild yet;
+	// OnActivate creates it.
+	activated := p.configuration != nil
 
 	p.setConfiguration(configuration)
+
+	// Build the client from the configuration just stored. Building it before
+	// setConfiguration used the previous configuration, so a changed
+	// provisioning server URL or credentials only took effect after a restart.
+	if activated {
+		p.setCloudClient()
+	}
 
 	return nil
 }
