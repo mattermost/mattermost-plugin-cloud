@@ -206,7 +206,7 @@ func (p *Plugin) getInstallation(installationID string) (*Installation, error) {
 		if install.ID == installationID {
 			// Retrieve the information we need from the installation directly from the provisioner
 			if len(install.DNSRecords) == 0 {
-				cloudInstall, err := p.cloudClient.GetInstallation(install.ID, &cloud.GetInstallationRequest{})
+				cloudInstall, err := p.getCloudClient().GetInstallation(install.ID, &cloud.GetInstallationRequest{})
 				if err != nil {
 					return nil, err
 				}
@@ -250,7 +250,7 @@ func (p *Plugin) getUpdatedSharedInstallations(hideSensitive bool) ([]*Installat
 
 	refreshed := make([]*Installation, 0, len(sharedInstalls))
 	for _, install := range sharedInstalls {
-		updatedInstall, err := p.cloudClient.GetInstallation(install.ID,
+		updatedInstall, err := p.getCloudClient().GetInstallation(install.ID,
 			&cloud.GetInstallationRequest{
 				IncludeGroupConfig: true,
 			})

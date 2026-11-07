@@ -226,21 +226,36 @@ func (p *Plugin) OnConfigurationChange() error {
 	return nil
 }
 
-func (p *Plugin) setCloudClient() {
-	configuration := p.getConfiguration()
+// getCloudClient returns the current provisioning server client. The client is
+// replaced on configuration changes, so read it through this getter rather
+// than the field. The lock only guards the field access, not the API calls.
+func (p *Plugin) getCloudClient() CloudClient {
+	p.cloudClientLock.RLock()
+	defer p.cloudClientLock.RUnlock()
 
+	return p.cloudClient
+}
+
+func (p *Plugin) setCloudClient() {
+	client := newCloudClient(p.getConfiguration())
+
+	p.cloudClientLock.Lock()
+	defer p.cloudClientLock.Unlock()
+
+	p.cloudClient = client
+}
+
+func newCloudClient(configuration *configuration) CloudClient {
 	if configuration.ProvisioningServerAuthIsValid() {
-		p.cloudClient = cloud.NewClientWithOAuth(configuration.ProvisioningServerURL, map[string]string{}, configuration.ProvisioningServerClientID, configuration.ProvisioningServerClientSecret, configuration.ProvisioningServerTokenEndpoint)
-		return
+		return cloud.NewClientWithOAuth(configuration.ProvisioningServerURL, map[string]string{}, configuration.ProvisioningServerClientID, configuration.ProvisioningServerClientSecret, configuration.ProvisioningServerTokenEndpoint)
 	}
 
 	if configuration.ProvisioningServerAuthToken == "" {
-		p.cloudClient = cloud.NewClient(configuration.ProvisioningServerURL)
-		return
+		return cloud.NewClient(configuration.ProvisioningServerURL)
 	}
 
 	authHeaders := map[string]string{"x-api-key": configuration.ProvisioningServerAuthToken}
-	p.cloudClient = cloud.NewClientWithHeaders(configuration.ProvisioningServerURL, authHeaders)
+	return cloud.NewClientWithHeaders(configuration.ProvisioningServerURL, authHeaders)
 }
 
 func (p *Plugin) getLicenseValue(licenseOption string) string {

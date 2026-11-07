@@ -121,7 +121,7 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string, options installationRe
 	// Grab the cloud installations belonging to this user. Note that we are not
 	// asking for deleted installations. This is done for performance reasons as
 	// we can ask for deleted installations later if necesssary.
-	cloudInstalls, err := p.cloudClient.GetInstallations(&cloud.GetInstallationsRequest{
+	cloudInstalls, err := p.getCloudClient().GetInstallations(&cloud.GetInstallationsRequest{
 		OwnerID:            userID,
 		IncludeGroupConfig: true,
 		Paging:             cloud.AllPagesNotDeleted(),
@@ -205,7 +205,7 @@ func (p *Plugin) processInstallationUpdate(pluginInstall *Installation, cloudIns
 
 	// No match could be made with the provided slice of cloud installations.
 	// Let's verify that this installation was deleted.
-	updatedInstall, err := p.cloudClient.GetInstallation(pluginInstall.ID,
+	updatedInstall, err := p.getCloudClient().GetInstallation(pluginInstall.ID,
 		&cloud.GetInstallationRequest{
 			IncludeGroupConfig: true,
 		})

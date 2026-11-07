@@ -110,7 +110,7 @@ func (p *Plugin) processWebhookEvent(payload *cloud.WebhookPayload) {
 		return
 	}
 
-	installation, err := p.cloudClient.GetInstallation(payload.ID,
+	installation, err := p.getCloudClient().GetInstallation(payload.ID,
 		&cloud.GetInstallationRequest{
 			IncludeGroupConfig:          true,
 			IncludeGroupConfigOverrides: false,

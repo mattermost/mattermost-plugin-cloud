@@ -62,7 +62,7 @@ func (p *Plugin) runMattermostCLICommand(args []string, extra *model.CommandArgs
 }
 
 func (p *Plugin) execMattermostCLI(installationID string, subcommand []string) ([]byte, error) {
-	clusterInstallations, err := p.cloudClient.GetClusterInstallations(&cloud.GetClusterInstallationsRequest{
+	clusterInstallations, err := p.getCloudClient().GetClusterInstallations(&cloud.GetClusterInstallationsRequest{
 		InstallationID: installationID,
 		Paging:         cloud.AllPagesNotDeleted(),
 	})
@@ -74,7 +74,7 @@ func (p *Plugin) execMattermostCLI(installationID string, subcommand []string) (
 		return nil, fmt.Errorf("no cluster installations found for installation %s", installationID)
 	}
 
-	output, err := p.cloudClient.RunMattermostCLICommandOnClusterInstallation(clusterInstallations[0].ID, subcommand)
+	output, err := p.getCloudClient().RunMattermostCLICommandOnClusterInstallation(clusterInstallations[0].ID, subcommand)
 	if err != nil && err.Error() == "failed with status code 504" {
 		// TODO: make this not gross.
 		// Return an error type that can be checked or allow us to pass in

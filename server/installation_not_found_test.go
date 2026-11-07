@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"sync"
 	"sync/atomic"
 	"testing"
 
@@ -188,8 +189,57 @@ func TestOnConfigurationChangeUsesNewProvisioningServer(t *testing.T) {
 	require.NoError(t, plugin.OnConfigurationChange())
 	assert.Equal(t, newServer.URL, plugin.getConfiguration().ProvisioningServerURL)
 
-	_, err := plugin.cloudClient.GetInstallation("someid", &cloud.GetInstallationRequest{})
+	_, err := plugin.getCloudClient().GetInstallation("someid", &cloud.GetInstallationRequest{})
 	require.NoError(t, err)
 	assert.Equal(t, int32(1), newHits.Load(), "client must use the new provisioning server URL")
 	assert.Equal(t, int32(0), oldHits.Load(), "client must not use the previous provisioning server URL")
+}
+
+func TestCloudClientSwapDuringRequestsIsRaceFree(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+	}))
+	defer server.Close()
+
+	plugin := Plugin{configuration: &configuration{ProvisioningServerURL: server.URL}}
+	plugin.setCloudClient()
+
+	installs, err := json.Marshal([]*Installation{{
+		Name:            "shared",
+		Shared:          true,
+		InstallationDTO: cloud.InstallationDTO{Installation: &cloud.Installation{ID: "id1"}},
+	}})
+	require.NoError(t, err)
+
+	api := &plugintest.API{}
+	api.On("LoadPluginConfiguration", mock.AnythingOfType("*main.configuration")).Run(func(args mock.Arguments) {
+		args.Get(0).(*configuration).ProvisioningServerURL = server.URL
+	}).Return(nil)
+	api.On("KVGet", StoreInstallsKey).Return(installs, nil)
+	api.On("LogWarn", mock.AnythingOfType("string"))
+	plugin.SetAPI(api)
+
+	// A config change swaps the client while list requests use it. Run with
+	// -race to catch unsynchronized access to the client. Only one goroutine
+	// changes the config because the server calls OnConfigurationChange
+	// serially.
+	var wg sync.WaitGroup
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		for range 20 {
+			assert.NoError(t, plugin.OnConfigurationChange())
+		}
+	}()
+	for range 4 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for range 10 {
+				_, listErr := plugin.getUpdatedSharedInstallations(true)
+				assert.NoError(t, listErr)
+			}
+		}()
+	}
+	wg.Wait()
 }
