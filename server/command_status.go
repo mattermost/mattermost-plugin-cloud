@@ -46,7 +46,7 @@ func (p *Plugin) runStatusCommand(args []string, extra *model.CommandArgs) (*mod
 		return nil, true, err
 	}
 
-	installations, err := p.cloudClient.GetInstallations(&cloud.GetInstallationsRequest{
+	installations, err := p.getCloudClient().GetInstallations(&cloud.GetInstallationsRequest{
 		Paging: cloud.AllPagesNotDeleted(),
 	})
 	if err != nil {
@@ -75,7 +75,7 @@ func (p *Plugin) runStatusCommand(args []string, extra *model.CommandArgs) (*mod
 		return getCommandResponse(model.CommandResponseTypeEphemeral, status, extra), false, nil
 	}
 
-	clusters, err := p.cloudClient.GetClusters(&cloud.GetClustersRequest{
+	clusters, err := p.getCloudClient().GetClusters(&cloud.GetClustersRequest{
 		Paging: cloud.AllPagesNotDeleted(),
 	})
 	if err != nil {

@@ -10,6 +10,10 @@ import (
 	flag "github.com/spf13/pflag"
 )
 
+// errInstallationNotFound means the provisioning server has no record of an
+// installation the plugin still tracks in its KV store.
+var errInstallationNotFound = errors.New("installation not found on the provisioning server")
+
 type listConfig struct {
 	Shared bool
 }
@@ -117,7 +121,7 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string, options installationRe
 	// Grab the cloud installations belonging to this user. Note that we are not
 	// asking for deleted installations. This is done for performance reasons as
 	// we can ask for deleted installations later if necesssary.
-	cloudInstalls, err := p.cloudClient.GetInstallations(&cloud.GetInstallationsRequest{
+	cloudInstalls, err := p.getCloudClient().GetInstallations(&cloud.GetInstallationsRequest{
 		OwnerID:            userID,
 		IncludeGroupConfig: true,
 		Paging:             cloud.AllPagesNotDeleted(),
@@ -127,26 +131,37 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string, options installationRe
 	}
 
 	var deleted bool
-	for i, pluginInstall := range pluginInstalls {
+	refreshed := make([]*Installation, 0, len(pluginInstalls))
+	for _, pluginInstall := range pluginInstalls {
 		originalID := pluginInstall.ID
 		originalOwnerID := pluginInstall.OwnerID
 		originalCreateAt := pluginInstall.CreateAt
 		deleted, err = p.processInstallationUpdate(pluginInstall, cloudInstalls, options.cleanupDeleted)
+		if errors.Is(err, errInstallationNotFound) {
+			// The provisioning server has no record of this installation, for
+			// example after it was moved to another provisioning server or
+			// deleted on a previous one. Skip it instead of failing the whole
+			// list. The KV entry is kept so a misconfigured provisioning server
+			// URL can't wipe everyone's installations.
+			p.API.LogWarn(fmt.Sprintf("Skipping installation %s with name %s: not found on the provisioning server", pluginInstall.ID, pluginInstall.Name))
+			continue
+		}
 		if err != nil {
 			return nil, errors.Wrap(err, "unable to process installation")
 		}
 		if deleted {
 			// Notify the user and also show the deleted installation in their
 			// list one last time with a DELETED tag.
-			pluginInstalls[i] = deletedInstallationPlaceholder(pluginInstall, originalID, originalOwnerID, originalCreateAt)
+			pluginInstall = deletedInstallationPlaceholder(pluginInstall, originalID, originalOwnerID, originalCreateAt)
 		}
+		refreshed = append(refreshed, pluginInstall)
 	}
 
 	if options.hideSensitive {
-		return sanitizeInstallationCopies(pluginInstalls), nil
+		return sanitizeInstallationCopies(refreshed), nil
 	}
 
-	return pluginInstalls, nil
+	return refreshed, nil
 }
 
 func deletedInstallationPlaceholder(source *Installation, id, ownerID string, createAt int64) *Installation {
@@ -190,7 +205,7 @@ func (p *Plugin) processInstallationUpdate(pluginInstall *Installation, cloudIns
 
 	// No match could be made with the provided slice of cloud installations.
 	// Let's verify that this installation was deleted.
-	updatedInstall, err := p.cloudClient.GetInstallation(pluginInstall.ID,
+	updatedInstall, err := p.getCloudClient().GetInstallation(pluginInstall.ID,
 		&cloud.GetInstallationRequest{
 			IncludeGroupConfig: true,
 		})
@@ -198,7 +213,7 @@ func (p *Plugin) processInstallationUpdate(pluginInstall *Installation, cloudIns
 		return false, errors.Wrapf(err, "unable to get installation %s from cloud server", pluginInstall.ID)
 	}
 	if updatedInstall == nil {
-		return false, fmt.Errorf("could not find installation %s", pluginInstall.ID)
+		return false, errors.Wrapf(errInstallationNotFound, "installation %s", pluginInstall.ID)
 	}
 
 	pluginInstall.InstallationDTO = *updatedInstall

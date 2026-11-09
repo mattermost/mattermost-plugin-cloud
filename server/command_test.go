@@ -18,9 +18,12 @@ type MockClient struct {
 	mockedCloudClusterInstallations []*cloud.ClusterInstallation
 
 	overrideGetInstallationDTO *cloud.InstallationDTO
-	returnNilDNSInstalation    bool
-	returnDNSErrorOverride     error
-	execDebugPacket            func(clusterInstallationID string) ([]byte, error)
+	// returnNilGetInstallation mimics the provisioner answering 404, which the
+	// cloud client turns into (nil, nil).
+	returnNilGetInstallation bool
+	returnNilDNSInstalation  bool
+	returnDNSErrorOverride   error
+	execDebugPacket          func(clusterInstallationID string) ([]byte, error)
 
 	// Stores latest CreateInstallationRequest passed to mock
 	creationRequest *cloud.CreateInstallationRequest
@@ -65,6 +68,9 @@ func (mc *MockClient) CreateInstallation(request *cloud.CreateInstallationReques
 }
 
 func (mc *MockClient) GetInstallation(installataionID string, request *cloud.GetInstallationRequest) (*cloud.InstallationDTO, error) {
+	if mc.returnNilGetInstallation {
+		return nil, nil
+	}
 	if mc.overrideGetInstallationDTO != nil {
 		return mc.overrideGetInstallationDTO, nil
 	}
