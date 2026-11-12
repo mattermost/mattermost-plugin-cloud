@@ -83,7 +83,7 @@ func (p *Plugin) getCommand() *model.Command {
 		DisplayName:          "Mattermost Private Cloud",
 		Description:          "This command allows spinning up and down Mattermost installations using Mattermost Private Cloud.",
 		AutoComplete:         p.getConfiguration().EnableCommandAutocompletion,
-		AutoCompleteDesc:     "Available commands: create, list, update, mmcli, mmctl, delete, share, unshare, restart, hibernate, wake-up, info, import",
+		AutoCompleteDesc:     "Available commands: create, list, update, mmcli, mmctl, delete, share, unshare, restart, hibernate, wake-up, info, status, deletion-lock, deletion-unlock, import",
 		AutoCompleteHint:     "[command]",
 		AutocompleteIconData: p.appBarIconData,
 		AutocompleteData: &model.AutocompleteData{
@@ -500,6 +500,40 @@ func (p *Plugin) getCommand() *model.Command {
 				{
 					Trigger:  "info",
 					HelpText: "Show cloud plugin information",
+				},
+				{
+					Trigger:  "status",
+					HelpText: "Show the status of installations",
+				},
+				{
+					Trigger:  "deletion-lock",
+					HelpText: "Lock an installation to prevent its deletion",
+					Arguments: []*model.AutocompleteArg{
+						{
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint:    "[name]",
+								Pattern: "^[a-zA-Z0-9-]+$",
+							},
+							HelpText: "Name of the installation to lock",
+							Required: true,
+						},
+					},
+				},
+				{
+					Trigger:  "deletion-unlock",
+					HelpText: "Remove the deletion lock from an installation",
+					Arguments: []*model.AutocompleteArg{
+						{
+							Type: model.AutocompleteArgTypeText,
+							Data: &model.AutocompleteTextArg{
+								Hint:    "[name]",
+								Pattern: "^[a-zA-Z0-9-]+$",
+							},
+							HelpText: "Name of the installation to unlock",
+							Required: true,
+						},
+					},
 				},
 				{
 					Trigger:  "import",
