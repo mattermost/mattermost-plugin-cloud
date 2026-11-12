@@ -17,6 +17,7 @@ All builds go through the Mattermost plugin Makefile (`build/setup.mk` is shared
 - `make test` — runs `go test -race ./server/...` then `npm run test` in `webapp/`.
 - `make coverage` — server coverage report (opens HTML).
 - `make check-style` — `gofmt`, `go vet`, and pinned `golangci-lint` on the server, including `govet` shadow analysis; `eslint` on the webapp.
+- `make dev-start` — start a per-worktree Docker stack (Mattermost 12 and its database), then build and install the plugin. The Compose project is `mmcloud-<worktree directory name>`. Targets and variables live in `local/dev.mk`; `make dev-deploy` reinstalls the plugin, `make dev-info` shows the stack state, and `make dev-clean` deletes the stack. The stack has no provisioning server, and the plugin does not activate without a provisioning server URL, so the stack points it at `http://host.docker.internal:8075`; set `DEV_PROVISIONER_URL` to change it.
 - `make apply` — propagate `plugin.json` version/id into `server/manifest.go` and `webapp/src/manifest.js`. Run this after bumping `version` in `plugin.json`.
 
 ### Single-test invocations
