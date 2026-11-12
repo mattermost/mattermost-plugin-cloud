@@ -3,7 +3,7 @@
     "name": "Mattermost Private Cloud",
     "description": "This plugin allows spinning up and down Mattermost installations using Mattermost Private Cloud.",
     "version": "0.1.42",
-    "min_server_version": "8.1.0",
+    "min_server_version": "12.0.0",
     "server": {
         "executables": {
             "linux-amd64": "server/dist/plugin-linux-amd64",

@@ -139,7 +139,7 @@ describe('SidebarRight', () => {
         newProps.maxLockedInstallations = 2;
         render(<SidebarRight {...newProps}/>);
 
-        const lockButton = screen.getByText('Lock Deletion');
+        const lockButton = screen.getByRole('button', {name: 'Lock Deletion'});
         fireEvent.click(lockButton);
 
         expect(props.actions.deletionLockInstallation).toHaveBeenCalledWith('1');
@@ -162,12 +162,12 @@ describe('SidebarRight', () => {
         newProps.maxLockedInstallations = 1;
         render(<SidebarRight {...newProps}/>);
 
-        const lockButton = screen.getByText('Lock Deletion');
+        const lockButton = screen.getByRole('button', {name: 'Lock Deletion'});
         fireEvent.click(lockButton);
 
         expect(props.actions.deletionLockInstallation).toHaveBeenCalledWith('1');
 
-        const lockButton2 = screen.getByText('Lock Deletion');
+        const lockButton2 = screen.getByRole('button', {name: 'Lock Deletion'});
         fireEvent.click(lockButton2);
 
         expect(props.actions.deletionLockInstallation).not.toHaveBeenCalledWith('2');

@@ -13,7 +13,7 @@ All builds go through the Mattermost plugin Makefile (`build/setup.mk` is shared
 - `make` / `make all` — `check-style test dist` (full local validation).
 - `make dist` — build server binaries (linux-amd64, darwin-amd64, darwin-arm64), build webapp, bundle as `dist/<plugin-id>-<version>.tar.gz`.
 - `make deploy` — build+bundle, then push to a running Mattermost server using `build/bin/pluginctl`. Requires `MM_SERVICESETTINGS_SITEURL` + `MM_ADMIN_USERNAME` + `MM_ADMIN_PASSWORD` (or falls back to copying into a sibling `mattermost-server/` directory).
-- `make debug-deploy` — same as `deploy` but webapp is built with `--mode=none` for readable JS.
+- `make debug-deploy` — same as `deploy` but webapp is built with `--mode=development` for readable JS.
 - `make test` — runs `go test -race ./server/...` then `npm run test` in `webapp/`.
 - `make coverage` — server coverage report (opens HTML).
 - `make check-style` — `gofmt`, `go vet`, and pinned `golangci-lint` on the server, including `govet` shadow analysis; `eslint` on the webapp.
@@ -72,5 +72,8 @@ There is no persistent MCP implementation, `server/mcp/` package, `server/mcp_ad
 - Tests live next to the file they cover (`foo.go` ↔ `foo_test.go`) and use stdlib `testing` + `testify`. Cloud client is mocked, not the KV store; the harness uses `plugintest.API`.
 - Server `Logf`/log calls go through `p.API.LogError`/`LogDebug`/`LogWarn` — `fmt.Println` and friends will be dropped.
 - Webapp tests use Jest with `jsdom`. Run with `npm test` in `webapp/`.
+- The plugin requires Mattermost 12.0.0 (`min_server_version`). The host supplies React 19, ReactDOM, the JSX runtimes (`react/jsx-runtime`, `react/jsx-dev-runtime`), Redux, react-redux and prop-types as webpack externals. Their entries in `webapp/package.json` are `devDependencies` for tests only.
+- Webapp UI uses `@mattermost/compass-ui` (pinned to an exact alpha version) imported from the package root. `src/index.js` imports `@mattermost/compass-ui/styles` once. Do not add `react-bootstrap`.
+- Tooltips use `WithTooltip` from `@mattermost/shared/components/tooltip`. The host loads it at runtime through `globalThis.loadSharedDependency`, so tests mock it with `{virtual: true}`.
 - `gofmt -s`, `go vet`, and pinned `golangci-lint` are enforced by `make check-style`.
 - `.nvmrc` pins the Node version for the webapp build.
