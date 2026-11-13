@@ -44,7 +44,7 @@ describe('InstallationForm create', () => {
             />,
         );
 
-        fireEvent.change(screen.getByLabelText('Name'), {target: {value: 'my-server'}});
+        fireEvent.change(screen.getByLabelText(/^Name( \*)?$/), {target: {value: 'my-server'}});
         fireEvent.click(screen.getByRole('button', {name: 'Add variable'}));
         fireEvent.change(screen.getByLabelText('Variable name 1'), {target: {value: 'MM_FOO'}});
         fireEvent.change(screen.getByLabelText('Variable value 1'), {target: {value: 'bar'}});
@@ -77,7 +77,8 @@ describe('InstallationForm create', () => {
         );
         expect(screen.getByRole('button', {name: 'Create'})).toBeDisabled();
 
-        fireEvent.change(screen.getByLabelText('Name'), {target: {value: 'bad name!'}});
+        fireEvent.change(screen.getByLabelText(/^Name( \*)?$/), {target: {value: 'bad name!'}});
+        fireEvent.blur(screen.getByLabelText(/^Name( \*)?$/));
 
         expect(screen.getByText('Use only letters, numbers, and hyphens.')).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Create'})).toBeDisabled();
@@ -92,7 +93,7 @@ describe('InstallationForm create', () => {
                 onCancel={jest.fn()}
             />,
         );
-        fireEvent.change(screen.getByLabelText('Name'), {target: {value: 'ok'}});
+        fireEvent.change(screen.getByLabelText(/^Name( \*)?$/), {target: {value: 'ok'}});
         fireEvent.click(screen.getByRole('button', {name: 'Add variable'}));
         fireEvent.change(screen.getByLabelText('Variable value 1'), {target: {value: 'bar'}});
 
@@ -112,13 +113,13 @@ describe('InstallationForm create', () => {
                 onCancel={jest.fn()}
             />,
         );
-        fireEvent.change(screen.getByLabelText('Name'), {target: {value: 'dup'}});
+        fireEvent.change(screen.getByLabelText(/^Name( \*)?$/), {target: {value: 'dup'}});
         await act(async () => {
             fireEvent.click(screen.getByRole('button', {name: 'Create'}));
         });
 
         expect(screen.getByText('name already exists')).toBeInTheDocument();
-        expect(screen.getByLabelText('Name')).toHaveValue('dup');
+        expect(screen.getByLabelText(/^Name( \*)?$/)).toHaveValue('dup');
         await waitFor(() => expect(screen.getByRole('button', {name: 'Create'})).toBeEnabled());
     });
 });
@@ -140,13 +141,13 @@ describe('InstallationForm edit', () => {
     it('locks the fields that cannot change', () => {
         renderEdit();
 
-        expect(screen.getByLabelText('Name')).toBeDisabled();
-        expect(screen.getByRole('switch', {name: 'Pre-load test data'})).toBeDisabled();
-        expect(screen.getByRole('switch', {name: 'Pre-load test data'})).toBeChecked();
+        expect(screen.getByLabelText(/^Name( \*)?$/)).toBeDisabled();
+        expect(screen.getByRole('checkbox', {name: 'Pre-load test data'})).toBeDisabled();
+        expect(screen.getByRole('checkbox', {name: 'Pre-load test data'})).toBeChecked();
         ['Affinity', 'Database', 'Filestore'].forEach((label) => {
             expect(screen.getByRole('combobox', {name: new RegExp(label)})).toBeDisabled();
         });
-        expect(screen.getByLabelText('Version')).toBeEnabled();
+        expect(screen.getByLabelText(/^Version/)).toBeEnabled();
         expect(screen.getByRole('combobox', {name: /Size/})).toBeEnabled();
     });
 
@@ -155,17 +156,17 @@ describe('InstallationForm edit', () => {
         const apply = screen.getByRole('button', {name: 'Apply'});
         expect(apply).toBeDisabled();
 
-        fireEvent.change(screen.getByLabelText('Version'), {target: {value: '9.6.0'}});
+        fireEvent.change(screen.getByLabelText(/^Version/), {target: {value: '9.6.0'}});
         expect(apply).toBeEnabled();
 
-        fireEvent.change(screen.getByLabelText('Version'), {target: {value: '9.5.0'}});
+        fireEvent.change(screen.getByLabelText(/^Version/), {target: {value: '9.5.0'}});
         expect(apply).toBeDisabled();
     });
 
     it('sends only the changed fields', async () => {
         const onSubmit = renderEdit();
 
-        fireEvent.change(screen.getByLabelText('Version'), {target: {value: '9.6.0'}});
+        fireEvent.change(screen.getByLabelText(/^Version/), {target: {value: '9.6.0'}});
         fireEvent.change(screen.getByLabelText('Names to remove'), {target: {value: 'OLD_ONE, OLD_TWO'}});
         await act(async () => {
             fireEvent.click(screen.getByRole('button', {name: 'Apply'}));

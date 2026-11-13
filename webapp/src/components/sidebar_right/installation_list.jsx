@@ -41,11 +41,7 @@ export default function InstallationList({userID, lockedCount, maxLockedInstalla
                 </div>
             )}
             {noMatches && (
-                <EmptyState
-                    className='CloudRHS__empty'
-                    title='No matching servers'
-                    description='Try a different name, domain, or version.'
-                />
+                <p className='CloudRHS__note'>{'No matching servers. Try a different name, domain, or version.'}</p>
             )}
             {showSharedError && (
                 <EmptyState
@@ -55,11 +51,14 @@ export default function InstallationList({userID, lockedCount, maxLockedInstalla
                     action={{children: 'Retry', onClick: onRetryShared}}
                 />
             )}
-            {source.length === 0 && !showSharedError && (
+            {source.length === 0 && !showSharedError && mine && (
+                <p className='CloudRHS__note'>{'No servers yet. Add a server to get started.'}</p>
+            )}
+            {source.length === 0 && !showSharedError && !mine && (
                 <EmptyState
                     className='CloudRHS__empty'
-                    title={mine ? 'No servers yet' : 'No shared servers'}
-                    description={mine ? 'Add a server to get started.' : 'Servers that other plugin users share with you appear here.'}
+                    title='No shared servers'
+                    description='Servers that other plugin users share with you appear here.'
                 />
             )}
             <ul className='CloudRHS__list'>

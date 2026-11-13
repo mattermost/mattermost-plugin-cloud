@@ -1,6 +1,7 @@
 import React, {useRef} from 'react';
 import PropTypes from 'prop-types';
 import {Button, Icon, IconButton, TextInput} from '@mattermost/compass-ui';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import CloseIcon from '@mattermost/compass-icons/components/close';
 import PlusIcon from '@mattermost/compass-icons/components/plus';
 
@@ -52,13 +53,18 @@ export default function EnvEditor({rows, onChange, newRow, disabled}) {
                         disabled={disabled}
                         onChange={(e) => updateRow(row.id, 'value', e.target.value)}
                     />
-                    <IconButton
-                        size='small'
-                        aria-label={`Remove variable ${index + 1}`}
-                        icon={<Icon glyph={<CloseIcon/>}/>}
-                        disabled={disabled}
-                        onClick={() => removeRow(row.id)}
-                    />
+                    <WithTooltip
+                        id={`remove-variable-${row.id}`}
+                        title='Remove variable'
+                    >
+                        <IconButton
+                            size='small'
+                            aria-label={`Remove variable ${index + 1}`}
+                            icon={<Icon glyph={<CloseIcon/>}/>}
+                            disabled={disabled}
+                            onClick={() => removeRow(row.id)}
+                        />
+                    </WithTooltip>
                 </div>
             ))}
             <div>

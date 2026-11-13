@@ -25,9 +25,9 @@ export const CONFIRMATIONS = {
 
 export function getDebugMenuItems(installation, actions) {
     return [
-        {key: 'installation-logs', onClick: () => window.open(installation.InstallationLogsURL, '_blank'), label: 'Installation Logs'},
-        {key: 'provisioner-logs', onClick: () => window.open(installation.ProvisionerLogsURL, '_blank'), label: 'Provisioner Logs'},
-        {key: 'debug-packet', onClick: () => actions.getDebugPacket(installation.Name), label: 'Get Debug Packet'},
+        {key: 'installation-logs', onClick: () => window.open(installation.InstallationLogsURL, '_blank'), label: 'Installation logs'},
+        {key: 'provisioner-logs', onClick: () => window.open(installation.ProvisionerLogsURL, '_blank'), label: 'Provisioner logs'},
+        {key: 'debug-packet', onClick: () => actions.getDebugPacket(installation.Name), label: 'Get debug packet'},
     ];
 }
 
@@ -67,7 +67,6 @@ export default function useInstallationActions({installation, actions, onDeleted
         busyAction,
         busy: busyAction !== '',
         error,
-        clearError: () => setError(''),
         confirmation,
         setConfirmation,
         run,

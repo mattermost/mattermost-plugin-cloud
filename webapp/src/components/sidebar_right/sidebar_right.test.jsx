@@ -37,7 +37,7 @@ function makeProps(overrides = {}) {
     return {
         id: 'test-id',
         installs: [
-            {...baseInstall, ID: '1', Name: 'first', OwnerID: 'test-id', State: 'stable', DNSRecords: [{DomainName: 'first.example.com'}]},
+            {...baseInstall, ID: '1', Name: 'first', OwnerID: 'test-id', State: 'stable', EnvVarNames: ['ALPHA', 'ZED'], DNSRecords: [{DomainName: 'first.example.com'}]},
             {...baseInstall, ID: '2', Name: 'second', OwnerID: 'test-id', State: 'update-in-progress', DeletionLocked: true, DNSRecords: [{DomainName: 'second.example.com'}]},
             {...baseInstall, ID: '4', Name: 'sleeping', OwnerID: 'test-id', State: 'hibernating', DNSRecords: []},
         ],
@@ -149,7 +149,7 @@ describe('SidebarRight list', () => {
     it('still offers the add card when the user has no installations', async () => {
         await renderLoaded(makeProps({installs: []}));
 
-        expect(screen.getByText('No servers yet')).toBeInTheDocument();
+        expect(screen.getByText(/No servers yet/)).toBeInTheDocument();
         expect(screen.getByTestId('add-installation')).toBeInTheDocument();
     });
 
@@ -314,10 +314,10 @@ describe('SidebarRight card actions', () => {
 
         expect(card('1').getByRole('button', {name: 'Debug'})).toBeInTheDocument();
         expect(card('1').getByRole('button', {name: 'Restart'})).toBeInTheDocument();
-        expect(card('1').getByRole('button', {name: 'Lock Deletion'})).toBeInTheDocument();
-        expect(card('1').queryByRole('button', {name: 'Unlock Deletion'})).not.toBeInTheDocument();
-        expect(card('2').getByRole('button', {name: 'Unlock Deletion'})).toBeInTheDocument();
-        expect(card('2').queryByRole('button', {name: 'Lock Deletion'})).not.toBeInTheDocument();
+        expect(card('1').getByRole('button', {name: 'Lock deletion'})).toBeInTheDocument();
+        expect(card('1').queryByRole('button', {name: 'Unlock deletion'})).not.toBeInTheDocument();
+        expect(card('2').getByRole('button', {name: 'Unlock deletion'})).toBeInTheDocument();
+        expect(card('2').queryByRole('button', {name: 'Lock deletion'})).not.toBeInTheDocument();
     });
 
     it('restarts after confirmation without leaving the list', async () => {
@@ -336,7 +336,7 @@ describe('SidebarRight card actions', () => {
         const props = makeProps();
         await renderLoaded(props);
 
-        fireEvent.click(card('1').getByRole('button', {name: 'Lock Deletion'}));
+        fireEvent.click(card('1').getByRole('button', {name: 'Lock deletion'}));
 
         await waitFor(() => expect(props.actions.deletionLockInstallation).toHaveBeenCalledWith('1'));
         expect(screen.getByTestId('tab-mine')).toBeInTheDocument();
@@ -346,7 +346,7 @@ describe('SidebarRight card actions', () => {
         const props = makeProps();
         await renderLoaded(props);
 
-        fireEvent.click(card('2').getByRole('button', {name: 'Unlock Deletion'}));
+        fireEvent.click(card('2').getByRole('button', {name: 'Unlock deletion'}));
         fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', {name: 'Unlock'}));
 
         await waitFor(() => expect(props.actions.deletionUnlockInstallation).toHaveBeenCalledWith('2'));
@@ -355,7 +355,7 @@ describe('SidebarRight card actions', () => {
     it('disables locking when the limit is reached', async () => {
         await renderLoaded(makeProps({maxLockedInstallations: 1}));
 
-        expect(card('1').getByRole('button', {name: 'Lock Deletion'})).toBeDisabled();
+        expect(card('1').getByRole('button', {name: 'Lock deletion'})).toBeDisabled();
     });
 
     it('shows the error on the card that failed', async () => {
@@ -363,7 +363,7 @@ describe('SidebarRight card actions', () => {
         props.actions.deletionLockInstallation = jest.fn().mockResolvedValue({error: 'lock limit reached'});
         await renderLoaded(props);
 
-        fireEvent.click(card('1').getByRole('button', {name: 'Lock Deletion'}));
+        fireEvent.click(card('1').getByRole('button', {name: 'Lock deletion'}));
 
         expect(await card('1').findByText('lock limit reached')).toBeInTheDocument();
         expect(card('2').queryByText('lock limit reached')).not.toBeInTheDocument();
@@ -374,7 +374,7 @@ describe('SidebarRight card actions', () => {
         await renderLoaded(props);
 
         fireEvent.click(card('1').getByRole('button', {name: 'Debug'}));
-        fireEvent.click(screen.getByRole('menuitem', {name: 'Get Debug Packet'}));
+        fireEvent.click(screen.getByRole('menuitem', {name: 'Get debug packet'}));
 
         expect(props.actions.getDebugPacket).toHaveBeenCalledWith('first');
         expect(screen.getByTestId('tab-mine')).toBeInTheDocument();
@@ -386,7 +386,7 @@ describe('SidebarRight card actions', () => {
 
         expect(card('3').getByRole('button', {name: 'Debug'})).toBeInTheDocument();
         expect(card('3').getByRole('button', {name: 'Restart'})).toBeInTheDocument();
-        expect(card('3').queryByRole('button', {name: /Lock Deletion/})).not.toBeInTheDocument();
+        expect(card('3').queryByRole('button', {name: /Lock deletion/})).not.toBeInTheDocument();
 
         expect(card('5').getByRole('button', {name: 'Debug'})).toBeInTheDocument();
         expect(card('5').queryByRole('button', {name: 'Restart'})).not.toBeInTheDocument();
@@ -418,7 +418,7 @@ describe('SidebarRight card link', () => {
 
         expect(screen.getAllByRole('link')).toHaveLength(2);
         expect(screen.queryByRole('link', {name: /sleeping/})).not.toBeInTheDocument();
-        expect(screen.getByText('No URL!')).toBeInTheDocument();
+        expect(screen.getByText('No URL')).toBeInTheDocument();
     });
 
     it('does not open the detail when the link is clicked', async () => {
@@ -462,7 +462,7 @@ describe('SidebarRight search', () => {
 
         fireEvent.change(search(), {target: {value: 'nothing-like-this'}});
 
-        expect(screen.getByText('No matching servers')).toBeInTheDocument();
+        expect(screen.getByText(/No matching servers/)).toBeInTheDocument();
         expect(screen.getByTestId('add-installation')).toBeInTheDocument();
     });
 
@@ -510,7 +510,7 @@ describe('SidebarRight navigation', () => {
         await renderLoaded(makeProps());
 
         openInstallation('first');
-        expect(screen.getByRole('heading', {name: 'first'})).toBeInTheDocument();
+        expect(screen.getByText('first')).toBeInTheDocument();
         expect(screen.queryByTestId('tab-mine')).not.toBeInTheDocument();
 
         fireEvent.click(screen.getByRole('button', {name: 'Back'}));
@@ -532,7 +532,7 @@ describe('SidebarRight navigation', () => {
         await renderLoaded(props);
 
         fireEvent.click(screen.getByTestId('add-installation'));
-        fireEvent.change(screen.getByLabelText('Name'), {target: {value: 'brand-new'}});
+        fireEvent.change(screen.getByLabelText(/^Name( \*)?$/), {target: {value: 'brand-new'}});
         fireEvent.click(screen.getByRole('button', {name: 'Create'}));
 
         await waitFor(() => expect(props.actions.createInstallation).toHaveBeenCalled());
@@ -546,7 +546,7 @@ describe('SidebarRight navigation', () => {
         await renderLoaded(props);
 
         fireEvent.click(screen.getByTestId('add-installation'));
-        fireEvent.change(screen.getByLabelText('Name'), {target: {value: 'taken'}});
+        fireEvent.change(screen.getByLabelText(/^Name( \*)?$/), {target: {value: 'taken'}});
         fireEvent.click(screen.getByRole('button', {name: 'Create'}));
 
         expect(await screen.findByText('Installation name taken already exists')).toBeInTheDocument();
@@ -559,11 +559,11 @@ describe('SidebarRight navigation', () => {
 
         openInstallation('first');
         fireEvent.click(screen.getByRole('button', {name: 'Edit'}));
-        fireEvent.change(screen.getByLabelText('Version'), {target: {value: '9.6.0'}});
+        fireEvent.change(screen.getByLabelText(/^Version/), {target: {value: '9.6.0'}});
         fireEvent.click(screen.getByRole('button', {name: 'Apply'}));
 
         await waitFor(() => expect(props.actions.updateInstallation).toHaveBeenCalledWith({installation_id: '1', version: '9.6.0'}));
-        expect(await screen.findByRole('heading', {name: 'first'})).toBeInTheDocument();
+        expect(await screen.findByText('first')).toBeInTheDocument();
     });
 
     it('cancel in the form returns to the previous view', async () => {
@@ -594,6 +594,23 @@ describe('SidebarRight navigation', () => {
 });
 
 describe('SidebarRight detail actions', () => {
+    it('lists the environment variable names without values', async () => {
+        await renderLoaded(makeProps());
+
+        openInstallation('first');
+
+        expect(within(screen.getByTestId('env-var-names')).getAllByRole('listitem').map((item) => item.textContent)).toEqual(['ALPHA', 'ZED']);
+        expect(screen.getByText('Values are hidden.')).toBeInTheDocument();
+    });
+
+    it('omits the environment variables section when none are set', async () => {
+        await renderLoaded(makeProps());
+
+        openInstallation('sleeping');
+
+        expect(screen.queryByTestId('env-var-names')).not.toBeInTheDocument();
+    });
+
     it('opens the server URL', async () => {
         const open = jest.spyOn(window, 'open').mockImplementation(() => null);
         await renderLoaded(makeProps());
@@ -624,13 +641,13 @@ describe('SidebarRight detail actions', () => {
         fireEvent.click(trigger);
 
         const items = screen.getAllByRole('menuitem').map((item) => item.textContent);
-        expect(items).toEqual(['Installation Logs', 'Provisioner Logs', 'Get Debug Packet']);
+        expect(items).toEqual(['Installation logs', 'Provisioner logs', 'Get debug packet']);
 
-        fireEvent.click(screen.getByRole('menuitem', {name: 'Installation Logs'}));
+        fireEvent.click(screen.getByRole('menuitem', {name: 'Installation logs'}));
         expect(open).toHaveBeenCalledWith('https://logs.example.com/installation', '_blank');
 
         fireEvent.click(screen.getByRole('button', {name: 'Debug'}));
-        fireEvent.click(screen.getByRole('menuitem', {name: 'Get Debug Packet'}));
+        fireEvent.click(screen.getByRole('menuitem', {name: 'Get debug packet'}));
         expect(props.actions.getDebugPacket).toHaveBeenCalledWith('first');
         open.mockRestore();
     });
@@ -669,12 +686,12 @@ describe('SidebarRight detail actions', () => {
         await renderLoaded(props);
 
         openInstallation('first');
-        fireEvent.click(screen.getByRole('button', {name: 'Lock Deletion'}));
+        fireEvent.click(screen.getByRole('button', {name: 'Lock deletion'}));
         await waitFor(() => expect(props.actions.deletionLockInstallation).toHaveBeenCalledWith('1'));
 
         fireEvent.click(screen.getByRole('button', {name: 'Back'}));
         openInstallation('second');
-        fireEvent.click(screen.getByRole('button', {name: 'Unlock Deletion'}));
+        fireEvent.click(screen.getByRole('button', {name: 'Unlock deletion'}));
         fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', {name: 'Unlock'}));
         await waitFor(() => expect(props.actions.deletionUnlockInstallation).toHaveBeenCalledWith('2'));
     });
@@ -684,7 +701,7 @@ describe('SidebarRight detail actions', () => {
 
         openInstallation('first');
 
-        expect(screen.getByRole('button', {name: 'Lock Deletion'})).toBeDisabled();
+        expect(screen.getByRole('button', {name: 'Lock deletion'})).toBeDisabled();
     });
 
     it('shows the action error returned by the server', async () => {
@@ -693,7 +710,7 @@ describe('SidebarRight detail actions', () => {
         await renderLoaded(props);
 
         openInstallation('first');
-        fireEvent.click(screen.getByRole('button', {name: 'Lock Deletion'}));
+        fireEvent.click(screen.getByRole('button', {name: 'Lock deletion'}));
 
         expect(await screen.findByText('you may only have at most 2 installations locked')).toBeInTheDocument();
     });
@@ -756,5 +773,35 @@ describe('SidebarRight detail actions', () => {
 
         expect(screen.queryByRole('button', {name: 'Edit'})).not.toBeInTheDocument();
         expect(screen.queryByRole('button', {name: 'Restart'})).not.toBeInTheDocument();
+    });
+});
+
+describe('SidebarRight discard confirm', () => {
+    const openCreateForm = async () => {
+        await renderLoaded(makeProps());
+        fireEvent.click(screen.getByTestId('add-installation'));
+    };
+
+    it('leaves a form without changes at once', async () => {
+        await openCreateForm();
+
+        fireEvent.click(screen.getByRole('button', {name: 'Cancel'}));
+
+        expect(screen.getByTestId('tab-mine')).toBeInTheDocument();
+        expect(screen.queryByText('Discard changes?')).not.toBeInTheDocument();
+    });
+
+    it('asks before it discards a changed form', async () => {
+        await openCreateForm();
+        fireEvent.change(screen.getByLabelText(/^Name( \*)?$/), {target: {value: 'brand-new'}});
+
+        fireEvent.click(screen.getByRole('button', {name: 'Back'}));
+
+        expect(screen.getByText('Discard changes?')).toBeInTheDocument();
+        expect(screen.queryByTestId('tab-mine')).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('button', {name: 'Discard'}));
+
+        expect(screen.getByTestId('tab-mine')).toBeInTheDocument();
     });
 });

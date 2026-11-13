@@ -41,7 +41,7 @@ export default function InstallationDetail({
     onEdit,
     onDeleted,
 }) {
-    const {busyAction, busy, error, clearError, confirmation, setConfirmation, run, confirm} = useInstallationActions({installation, actions, onDeleted});
+    const {busyAction, busy, error, confirmation, setConfirmation, run, confirm} = useInstallationActions({installation, actions, onDeleted});
 
     const owner = isOwner(installation, userID);
     const canUpdate = canUpdateInstallation(installation, userID);
@@ -49,30 +49,25 @@ export default function InstallationDetail({
     const domain = getDomain(installation);
     const lockLimitReached = !installation.DeletionLocked && lockedCount >= maxLockedInstallations;
 
+    const envVarNames = installation.EnvVarNames || [];
     const debugMenuItems = getDebugMenuItems(installation, actions);
 
     return (
         <div className='CloudRHS__detail'>
-            {confirmation && (
-                <InstallationConfirmation
-                    installation={installation}
-                    confirmation={confirmation}
-                    onConfirm={confirm}
-                    onCancel={() => setConfirmation('')}
-                />
-            )}
+            <InstallationConfirmation
+                installation={installation}
+                confirmation={confirmation}
+                onConfirm={confirm}
+                onCancel={() => setConfirmation('')}
+            />
 
-            <div className='CloudRHS__detailHeader'>
-                <h2 className='CloudRHS__detailName'>{installation.Name}</h2>
-                <InstallationBadges installation={installation}/>
-            </div>
+            <InstallationBadges installation={installation}/>
 
             {error && (
                 <SectionNotice
                     type='danger'
                     title='The action failed'
                     description={error}
-                    onDismiss={clearError}
                 />
             )}
 
@@ -89,7 +84,7 @@ export default function InstallationDetail({
                 {canUpdate && (
                     <Button
                         size='small'
-                        emphasis='secondary'
+                        emphasis='tertiary'
                         disabled={busy || deleted}
                         leadingIcon={<Icon glyph={<PencilOutlineIcon/>}/>}
                         onClick={onEdit}
@@ -104,14 +99,14 @@ export default function InstallationDetail({
             </div>
 
             <dl className='CloudRHS__info'>
-                <InfoRow label='DNS'>{domain || 'No URL!'}</InfoRow>
+                <InfoRow label='DNS'>{domain || 'No URL'}</InfoRow>
                 <InfoRow label='Image'>{installation.Image}</InfoRow>
                 <InfoRow label={installation.Tag ? 'Tag' : 'Version'}>{getVersionLabel(installation)}</InfoRow>
                 <InfoRow label='Database'>{installation.Database}</InfoRow>
                 <InfoRow label='Filestore'>{installation.Filestore}</InfoRow>
                 <InfoRow label='Size'>{installation.Size}</InfoRow>
                 <InfoRow label='Affinity'>{installation.Affinity}</InfoRow>
-                <InfoRow label='Service Env'>{installation.ServiceEnvironment}</InfoRow>
+                <InfoRow label='Service env'>{installation.ServiceEnvironment}</InfoRow>
                 <InfoRow label='Created'>{installation.CreateAtDate}</InfoRow>
                 {installation.ScheduledDeletionTime > 0 && !installation.DeletionLocked && (
                     <InfoRow label='Deleting'>
@@ -124,6 +119,19 @@ export default function InstallationDetail({
                     </InfoRow>
                 )}
             </dl>
+
+            {envVarNames.length > 0 && (
+                <section className='CloudRHS__section'>
+                    <h3 className='CloudRHS__sectionTitle'>{'Environment variables'}</h3>
+                    <ul
+                        className='CloudRHS__envList'
+                        data-testid='env-var-names'
+                    >
+                        {envVarNames.map((name) => <li key={name}>{name}</li>)}
+                    </ul>
+                    <p className='CloudRHS__hint'>{'Values are hidden.'}</p>
+                </section>
+            )}
 
             {canUpdate && !deleted && (
                 <section className='CloudRHS__section'>
@@ -163,13 +171,13 @@ export default function InstallationDetail({
                         {owner && installation.DeletionLocked && (
                             <Button
                                 size='small'
-                                emphasis='primary'
+                                emphasis='tertiary'
                                 destructive={true}
                                 loading={busyAction === 'unlock'}
                                 disabled={busy}
                                 onClick={() => setConfirmation('unlock')}
                             >
-                                {'Unlock Deletion'}
+                                {'Unlock deletion'}
                             </Button>
                         )}
                         {owner && !installation.DeletionLocked && (
@@ -180,7 +188,7 @@ export default function InstallationDetail({
                                 disabled={busy || lockLimitReached}
                                 onClick={() => run('lock', () => actions.deletionLockInstallation(installation.ID))}
                             >
-                                {'Lock Deletion'}
+                                {'Lock deletion'}
                             </Button>
                         )}
                     </div>
@@ -215,7 +223,7 @@ export default function InstallationDetail({
                     <div className='CloudRHS__actions'>
                         <Button
                             size='small'
-                            emphasis='primary'
+                            emphasis='tertiary'
                             destructive={true}
                             loading={busyAction === 'delete'}
                             disabled={busy || installation.DeletionLocked}

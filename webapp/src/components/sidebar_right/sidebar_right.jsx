@@ -1,8 +1,8 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
-import {Button, EmptyState, Icon, Scrollbar, Spinner} from '@mattermost/compass-ui';
-import ArrowLeftIcon from '@mattermost/compass-icons/components/arrow-left';
+import {EmptyState, RightSidebarHeader, Scrollbar, Spinner} from '@mattermost/compass-ui';
 
+import ConfirmationModal from './confirmation_modal';
 import InstallationDetail from './installation_detail';
 import InstallationForm from './installation_form';
 import InstallationList, {TAB_MINE} from './installation_list';
@@ -24,6 +24,8 @@ export default function SidebarRight({id, installs, sharedInstalls, sharedError,
     const [tab, setTab] = useState(TAB_MINE);
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(true);
+    const [dirty, setDirty] = useState(false);
+    const [discardOpen, setDiscardOpen] = useState(false);
 
     const {setVisible, getCloudUserData, getSharedInstalls, getPluginConfiguration} = actions;
 
@@ -55,6 +57,17 @@ export default function SidebarRight({id, installs, sharedInstalls, sharedError,
     const push = useCallback((next) => setStack((current) => [...current, next]), []);
     const back = useCallback(() => setStack((current) => (current.length > 1 ? current.slice(0, -1) : current)), []);
     const home = useCallback(() => setStack([LIST_ROUTE]), []);
+    const requestBack = useCallback(() => {
+        if (dirty) {
+            setDiscardOpen(true);
+            return;
+        }
+        back();
+    }, [dirty, back]);
+    const discard = useCallback(() => {
+        setDiscardOpen(false);
+        back();
+    }, [back]);
 
     if (serverError) {
         return (
@@ -133,7 +146,8 @@ export default function SidebarRight({id, installs, sharedInstalls, sharedError,
                 installation={installation}
                 options={options}
                 onSubmit={onUpdate}
-                onCancel={back}
+                onCancel={requestBack}
+                onDirtyChange={setDirty}
             />
         );
         break;
@@ -144,7 +158,8 @@ export default function SidebarRight({id, installs, sharedInstalls, sharedError,
                 mode='create'
                 options={options}
                 onSubmit={onCreate}
-                onCancel={back}
+                onCancel={requestBack}
+                onDirtyChange={setDirty}
             />
         );
         break;
@@ -169,28 +184,32 @@ export default function SidebarRight({id, installs, sharedInstalls, sharedError,
         );
     }
 
+    const isForm = route.view === VIEW_EDIT || route.view === VIEW_CREATE;
+
     return (
-        <Scrollbar
-            className='SidebarRight'
-            style={{height: '100%'}}
-        >
+        <div className='SidebarRight CloudRHS'>
             {route.view !== VIEW_LIST && (
-                <div className='CloudRHS__header'>
-                    <Button
-                        type='button'
-                        emphasis='tertiary'
-                        size='small'
-                        aria-label='Back'
-                        leadingIcon={<Icon glyph={<ArrowLeftIcon/>}/>}
-                        onClick={back}
-                    >
-                        {'Back'}
-                    </Button>
-                    <span className='CloudRHS__title'>{title}</span>
-                </div>
+                <RightSidebarHeader
+                    title={title}
+                    onBack={requestBack}
+                />
             )}
-            {content}
-        </Scrollbar>
+            <div className='CloudRHS__body'>
+                {isForm ? content : (
+                    <Scrollbar style={{height: '100%'}}>
+                        {content}
+                    </Scrollbar>
+                )}
+            </div>
+            <ConfirmationModal
+                title='Discard changes?'
+                bodyText='You have unsaved changes. If you leave now, they are lost.'
+                confirmLabel='Discard'
+                visible={discardOpen}
+                onConfirm={discard}
+                onCancel={() => setDiscardOpen(false)}
+            />
+        </div>
     );
 }
 

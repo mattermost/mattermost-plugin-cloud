@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"sort"
 	"strings"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
@@ -18,6 +19,7 @@ type InstallationWebWrapper struct {
 	*Installation
 	CreateAtDate        string
 	ServiceEnvironment  string
+	EnvVarNames         []string
 	InstallationLogsURL string
 	ProvisionerLogsURL  string
 }
@@ -42,6 +44,7 @@ func CreateInstallationWebWrapper(i *Installation) (*InstallationWebWrapper, err
 		Installation:        sanitizedInstall,
 		CreateAtDate:        cloud.DateStringFromMillis(sanitizedInstall.CreateAt),
 		ServiceEnvironment:  serviceEnvironment,
+		EnvVarNames:         getInstallationEnvVarNames(i),
 		InstallationLogsURL: installationLogsURL,
 		ProvisionerLogsURL:  provisionerLogsURL,
 	}, nil
@@ -268,6 +271,29 @@ func (p *Plugin) handleGetConfig(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Write(data)
+}
+
+// getInstallationEnvVarNames returns the sorted names of the environment
+// variables set on the installation, from both MattermostEnv and PriorityEnv.
+// Values are never returned because they can hold secrets. The service
+// environment has its own field, so it is left out of the list.
+func getInstallationEnvVarNames(installation *Installation) []string {
+	names := []string{}
+	if installation == nil || installation.Installation == nil {
+		return names
+	}
+	seen := map[string]struct{}{}
+	for _, envMap := range []cloud.EnvVarMap{installation.MattermostEnv, installation.PriorityEnv} {
+		for name := range envMap {
+			if _, ok := seen[name]; ok || name == serviceEnvironmentEnvVarKey {
+				continue
+			}
+			seen[name] = struct{}{}
+			names = append(names, name)
+		}
+	}
+	sort.Strings(names)
+	return names
 }
 
 func getInstallationServiceEnvironment(installation *Installation) string {

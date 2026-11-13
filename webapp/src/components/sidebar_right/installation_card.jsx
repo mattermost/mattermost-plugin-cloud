@@ -1,6 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Button, Icon, IconButton, SectionNotice} from '@mattermost/compass-ui';
+import {Button, Icon, IconButton, SectionNotice, TileButton} from '@mattermost/compass-ui';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import ChevronRightIcon from '@mattermost/compass-icons/components/chevron-right';
 import OpenInNewIcon from '@mattermost/compass-icons/components/open-in-new';
 import PlusIcon from '@mattermost/compass-icons/components/plus';
@@ -15,7 +16,7 @@ import useInstallationActions, {getDebugMenuItems} from './use_installation_acti
 export function InstallationCard({installation, userID, lockedCount, maxLockedInstallations, actions, onSelect}) {
     const domain = getDomain(installation);
     const version = getVersionLabel(installation);
-    const {busyAction, busy, error, clearError, confirmation, setConfirmation, run, confirm} = useInstallationActions({installation, actions});
+    const {busyAction, busy, error, confirmation, setConfirmation, run, confirm} = useInstallationActions({installation, actions});
 
     const deleted = isDeleted(installation);
     const owner = isOwner(installation, userID);
@@ -27,14 +28,12 @@ export function InstallationCard({installation, userID, lockedCount, maxLockedIn
             className='CloudRHS__card'
             data-testid={'installation-card-' + installation.ID}
         >
-            {confirmation && (
-                <InstallationConfirmation
-                    installation={installation}
-                    confirmation={confirmation}
-                    onConfirm={confirm}
-                    onCancel={() => setConfirmation('')}
-                />
-            )}
+            <InstallationConfirmation
+                installation={installation}
+                confirmation={confirmation}
+                onConfirm={confirm}
+                onCancel={() => setConfirmation('')}
+            />
             <div className='CloudRHS__cardBody'>
                 <div className='CloudRHS__cardTitle'>
                     <button
@@ -49,20 +48,25 @@ export function InstallationCard({installation, userID, lockedCount, maxLockedIn
                 <InstallationBadges installation={installation}/>
                 <span className='CloudRHS__cardDomain'>
                     {domain && (
-                        <IconButton
-                            asChild={true}
-                            size='x-small'
-                            aria-label={`Open ${domain} in a new tab`}
-                            icon={<Icon glyph={<OpenInNewIcon/>}/>}
+                        <WithTooltip
+                            id={'open-' + installation.ID}
+                            title={`Open ${domain} in a new tab`}
                         >
-                            <a
-                                href={'https://' + domain}
-                                target='_blank'
-                                rel='noopener noreferrer'
-                            />
-                        </IconButton>
+                            <IconButton
+                                asChild={true}
+                                size='x-small'
+                                aria-label={`Open ${domain} in a new tab`}
+                                icon={<Icon glyph={<OpenInNewIcon/>}/>}
+                            >
+                                <a
+                                    href={'https://' + domain}
+                                    target='_blank'
+                                    rel='noopener noreferrer'
+                                />
+                            </IconButton>
+                        </WithTooltip>
                     )}
-                    <span className='CloudRHS__cardMeta'>{domain || 'No URL!'}</span>
+                    <span className='CloudRHS__cardMeta'>{domain || 'No URL'}</span>
                 </span>
                 {!deleted && (
                     <div className='CloudRHS__cardActions'>
@@ -84,13 +88,13 @@ export function InstallationCard({installation, userID, lockedCount, maxLockedIn
                         {owner && installation.DeletionLocked && (
                             <Button
                                 size='small'
-                                emphasis='primary'
+                                emphasis='tertiary'
                                 destructive={true}
                                 loading={busyAction === 'unlock'}
                                 disabled={busy}
                                 onClick={() => setConfirmation('unlock')}
                             >
-                                {'Unlock Deletion'}
+                                {'Unlock deletion'}
                             </Button>
                         )}
                         {owner && !installation.DeletionLocked && (
@@ -101,7 +105,7 @@ export function InstallationCard({installation, userID, lockedCount, maxLockedIn
                                 disabled={busy || lockLimitReached}
                                 onClick={() => run('lock', () => actions.deletionLockInstallation(installation.ID))}
                             >
-                                {'Lock Deletion'}
+                                {'Lock deletion'}
                             </Button>
                         )}
                     </div>
@@ -112,7 +116,6 @@ export function InstallationCard({installation, userID, lockedCount, maxLockedIn
                             type='danger'
                             title='The action failed'
                             description={error}
-                            onDismiss={clearError}
                         />
                     </div>
                 )}
@@ -138,18 +141,13 @@ InstallationCard.propTypes = {
 
 export function AddInstallationCard({onClick}) {
     return (
-        <button
-            type='button'
-            className='CloudRHS__card CloudRHS__card--add'
-            aria-label='Add new server'
+        <TileButton
+            className='CloudRHS__addCard'
+            icon={<Icon glyph={<PlusIcon/>}/>}
+            label='Add server'
             data-testid='add-installation'
             onClick={onClick}
-        >
-            <Icon
-                glyph={<PlusIcon/>}
-                size='64'
-            />
-        </button>
+        />
     );
 }
 

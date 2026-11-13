@@ -1,9 +1,15 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import PropTypes from 'prop-types';
 import {Button, Modal, ModalOverlay, TextInput} from '@mattermost/compass-ui';
 
 function ConfirmationModal({title, bodyText, visible, onConfirm, onCancel, confirmLabel = 'Confirm', requiredText = ''}) {
     const [typedText, setTypedText] = useState('');
+    useEffect(() => {
+        if (!visible) {
+            setTypedText('');
+        }
+    }, [visible]);
+
     const confirmDisabled = Boolean(requiredText) && typedText !== requiredText;
 
     return (
@@ -12,8 +18,11 @@ function ConfirmationModal({title, bodyText, visible, onConfirm, onCancel, confi
             onClose={onCancel}
         >
             <Modal
+                open={visible}
                 size='small'
                 title={title}
+                headerDivider={false}
+                footerDivider={false}
                 onClose={onCancel}
                 footer={(
                     <>
