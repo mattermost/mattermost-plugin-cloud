@@ -64,7 +64,7 @@ function DebugMenu({title, items}) {
 
     useEffect(() => {
         if (open && menuRef.current) {
-            menuRef.current.querySelector('[role="menuitem"]')?.focus();
+            menuRef.current.querySelector('[role="menuitem"]')?.focus({preventScroll: true});
         }
     }, [open, mounted]);
 

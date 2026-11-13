@@ -65,6 +65,10 @@ else
 $(error DEV_HOST_MODE must be orbstack or ports, not "$(DEV_HOST_MODE)")
 endif
 
+# Settings that build/custom.mk can define. The scripts and Compose read them from the environment.
+export DEV_PROVISIONER_URL DEV_WEBHOOK_SECRET DEV_INSTALLATION_DNS DEV_MATTERMOST_IMAGE DEV_ADMIN_EMAIL DEV_TEAM_NAME
+export DEV_E10_LICENSE_FILE DEV_E20_LICENSE_FILE DEV_PROFESSIONAL_LICENSE_FILE DEV_ENTERPRISE_LICENSE_FILE DEV_ENTERPRISE_ADVANCED_LICENSE_FILE
+
 export PLUGIN_ID
 DEV_COMPOSE = docker compose
 
