@@ -206,9 +206,14 @@ func (p *Plugin) getInstallation(installationID string) (*Installation, error) {
 		if install.ID == installationID {
 			// Retrieve the information we need from the installation directly from the provisioner
 			if len(install.DNSRecords) == 0 {
-				cloudInstall, err := p.cloudClient.GetInstallation(install.ID, &cloud.GetInstallationRequest{})
+				cloudInstall, err := p.getCloudClient().GetInstallation(install.ID, &cloud.GetInstallationRequest{})
 				if err != nil {
 					return nil, err
+				}
+				if cloudInstall == nil {
+					// Tracked by the plugin but unknown to this provisioning
+					// server, e.g. mid-migration between provisioning servers.
+					return nil, nil
 				}
 
 				install.DNSRecords = cloudInstall.DNSRecords
@@ -243,8 +248,9 @@ func (p *Plugin) getUpdatedSharedInstallations(hideSensitive bool) ([]*Installat
 		return nil, err
 	}
 
+	refreshed := make([]*Installation, 0, len(sharedInstalls))
 	for _, install := range sharedInstalls {
-		updatedInstall, err := p.cloudClient.GetInstallation(install.ID,
+		updatedInstall, err := p.getCloudClient().GetInstallation(install.ID,
 			&cloud.GetInstallationRequest{
 				IncludeGroupConfig: true,
 			})
@@ -252,16 +258,19 @@ func (p *Plugin) getUpdatedSharedInstallations(hideSensitive bool) ([]*Installat
 			return nil, errors.Wrapf(err, "unable to get installation %s from cloud server", install.ID)
 		}
 		if updatedInstall == nil {
-			return nil, fmt.Errorf("could not find installation %s", install.ID)
+			// Skip it rather than failing the shared list for every user.
+			p.API.LogWarn(fmt.Sprintf("Skipping shared installation %s with name %s: not found on the provisioning server", install.ID, install.Name))
+			continue
 		}
 		install.InstallationDTO = *updatedInstall
+		refreshed = append(refreshed, install)
 	}
 
 	if hideSensitive {
-		return sanitizeInstallationCopies(sharedInstalls), nil
+		return sanitizeInstallationCopies(refreshed), nil
 	}
 
-	return sharedInstalls, nil
+	return refreshed, nil
 }
 
 func (p *Plugin) getSharedInstallations() ([]*Installation, error) {

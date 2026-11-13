@@ -19,8 +19,11 @@ import (
 type Plugin struct {
 	plugin.MattermostPlugin
 
-	cloudClient  CloudClient
-	dockerClient DockerClientInterface
+	// cloudClientLock synchronizes access to cloudClient, which is replaced on
+	// configuration changes. Use getCloudClient and setCloudClient.
+	cloudClientLock sync.RWMutex
+	cloudClient     CloudClient
+	dockerClient    DockerClientInterface
 
 	mcpServerLock sync.RWMutex
 	mcpServer     *pluginmcp.Server

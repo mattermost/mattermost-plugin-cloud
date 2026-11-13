@@ -145,7 +145,7 @@ func (p *Plugin) createTestData(client *model.Client4, install *Installation) er
 		return nil
 	}
 
-	clusterInstallations, err := p.cloudClient.GetClusterInstallations(
+	clusterInstallations, err := p.getCloudClient().GetClusterInstallations(
 		&cloud.GetClusterInstallationsRequest{
 			Paging:         cloud.AllPagesNotDeleted(),
 			InstallationID: install.ID,
@@ -157,7 +157,7 @@ func (p *Plugin) createTestData(client *model.Client4, install *Installation) er
 		return errors.Errorf("got unexpected number of ClusterInstallations (%d)", len(clusterInstallations))
 	}
 
-	_, err = p.cloudClient.ExecClusterInstallationCLI(clusterInstallations[0].ID, "mmctl", []string{"sampledata", "--local"})
+	_, err = p.getCloudClient().ExecClusterInstallationCLI(clusterInstallations[0].ID, "mmctl", []string{"sampledata", "--local"})
 	if err != nil {
 		// Hitting a timeout is likely, so log and continue.
 		p.API.LogWarn(errors.Wrapf(err, "Unable to finish generating test data for cloud installation %s", install.Name).Error())

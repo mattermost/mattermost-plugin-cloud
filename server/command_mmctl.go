@@ -62,7 +62,7 @@ func (p *Plugin) runMmctlCommand(args []string, extra *model.CommandArgs) (*mode
 }
 
 func (p *Plugin) execMmctl(installationID string, subcommand []string) ([]byte, error) {
-	clusterInstallations, err := p.cloudClient.GetClusterInstallations(&cloud.GetClusterInstallationsRequest{
+	clusterInstallations, err := p.getCloudClient().GetClusterInstallations(&cloud.GetClusterInstallationsRequest{
 		InstallationID: installationID,
 		Paging:         cloud.AllPagesNotDeleted(),
 	})
@@ -75,7 +75,7 @@ func (p *Plugin) execMmctl(installationID string, subcommand []string) ([]byte, 
 	}
 
 	subcommand = append(subcommand, "--local")
-	output, err := p.cloudClient.ExecClusterInstallationCLI(clusterInstallations[0].ID, "mmctl", subcommand)
+	output, err := p.getCloudClient().ExecClusterInstallationCLI(clusterInstallations[0].ID, "mmctl", subcommand)
 	if err != nil && err.Error() == "failed with status code 504" {
 		// TODO: make this not gross.
 		// Return an error type that can be checked or allow us to pass in

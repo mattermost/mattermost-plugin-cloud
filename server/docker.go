@@ -6,11 +6,14 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/docker/distribution/manifest/schema2"
 	"github.com/pkg/errors"
 )
 
-const dockerHubURL = "https://registry.hub.docker.com"
+const (
+	dockerHubURL = "https://registry.hub.docker.com"
+
+	manifestMediaType = "application/vnd.docker.distribution.manifest.v2+json"
+)
 
 // DockerClient is a client for interacting with docker registries.
 type DockerClient struct {
@@ -45,7 +48,7 @@ func (dc *DockerClient) fetchManifest(desiredTag, repository, method string) (*h
 		return nil, errors.Wrap(err, "failed to create request")
 	}
 
-	req.Header.Set("Accept", schema2.MediaTypeManifest)
+	req.Header.Set("Accept", manifestMediaType)
 
 	// Add authentication if provided
 	if dc.username != "" && dc.password != "" {
@@ -71,7 +74,7 @@ func (dc *DockerClient) fetchManifest(desiredTag, repository, method string) (*h
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to create request")
 		}
-		req.Header.Set("Accept", schema2.MediaTypeManifest)
+		req.Header.Set("Accept", manifestMediaType)
 		req.Header.Set("Authorization", "Bearer "+token)
 
 		resp, err = client.Do(req)

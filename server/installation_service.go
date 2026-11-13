@@ -255,7 +255,7 @@ func (p *Plugin) createInstallationForUser(userID string, input CreateInstallati
 		}
 	}
 
-	cloudInstallation, err := p.cloudClient.CreateInstallation(req)
+	cloudInstallation, err := p.getCloudClient().CreateInstallation(req)
 	if err != nil {
 		if strings.Contains(err.Error(), "409") {
 			return nil, errors.Errorf("Installation name %s already exists. **NOTE**: installation names are reserved for 24 hours after deletion in order to support restoration. Please try a new name, wait 24 hours, or contact the Cloud Platform team for support.", install.Name)
@@ -287,7 +287,7 @@ func (p *Plugin) updateInstallationForUser(userID string, ref InstallationRef, i
 		return InstallationActionResult{}, err
 	}
 
-	if _, err = p.cloudClient.UpdateInstallation(installToUpdate.ID, request); err != nil {
+	if _, err = p.getCloudClient().UpdateInstallation(installToUpdate.ID, request); err != nil {
 		return InstallationActionResult{}, errors.Wrap(err, "failed to update installation")
 	}
 
@@ -333,7 +333,7 @@ func (p *Plugin) restartInstallationForUser(userID string, ref InstallationRef, 
 	patch := &cloud.PatchInstallationRequest{MattermostEnv: cloud.EnvVarMap{
 		"CLOUD_PLUGIN_RESTART": cloud.EnvVar{Value: cloud.DateTimeStringFromMillis(cloud.GetMillis())},
 	}}
-	if _, err = p.cloudClient.UpdateInstallation(installToRestart.ID, patch); err != nil {
+	if _, err = p.getCloudClient().UpdateInstallation(installToRestart.ID, patch); err != nil {
 		return InstallationActionResult{}, err
 	}
 
@@ -357,7 +357,7 @@ func (p *Plugin) hibernateInstallationForUser(userID string, ref InstallationRef
 		return InstallationActionResult{}, errors.Errorf("installation state is currently %s and must be %s to hibernate", installToHibernate.State, cloud.InstallationStateStable)
 	}
 
-	if _, err = p.cloudClient.HibernateInstallation(installToHibernate.ID); err != nil {
+	if _, err = p.getCloudClient().HibernateInstallation(installToHibernate.ID); err != nil {
 		return InstallationActionResult{}, err
 	}
 
@@ -377,7 +377,7 @@ func (p *Plugin) wakeInstallationForUser(userID string, ref InstallationRef) (In
 		return InstallationActionResult{}, errors.Errorf("installation state is currently %s and must be %s to wake up", installToWake.State, cloud.InstallationStateHibernating)
 	}
 
-	if _, err = p.cloudClient.WakeupInstallation(installToWake.ID, &cloud.PatchInstallationRequest{}); err != nil {
+	if _, err = p.getCloudClient().WakeupInstallation(installToWake.ID, &cloud.PatchInstallationRequest{}); err != nil {
 		return InstallationActionResult{}, err
 	}
 
@@ -458,12 +458,12 @@ func (p *Plugin) setDeletionLockForUser(userID string, ref InstallationRef, lock
 		if !target.DeletionLocked && maxLockedInstallations <= lockedCount {
 			return InstallationActionResult{}, fmt.Errorf("you may only have at most %d installations locked for deletion at a time", maxLockedInstallations)
 		}
-		if err = p.cloudClient.LockDeletionLockForInstallation(target.ID); err != nil {
+		if err = p.getCloudClient().LockDeletionLockForInstallation(target.ID); err != nil {
 			return InstallationActionResult{}, err
 		}
 		target.DeletionLocked = true
 	} else {
-		if err = p.cloudClient.UnlockDeletionLockForInstallation(target.ID); err != nil {
+		if err = p.getCloudClient().UnlockDeletionLockForInstallation(target.ID); err != nil {
 			return InstallationActionResult{}, err
 		}
 		target.DeletionLocked = false
@@ -499,7 +499,7 @@ func (p *Plugin) deleteInstallationForUser(userID string, ref InstallationRef, c
 		return InstallationActionResult{}, err
 	}
 
-	if err = p.cloudClient.DeleteInstallation(installToDelete.ID); err != nil {
+	if err = p.getCloudClient().DeleteInstallation(installToDelete.ID); err != nil {
 		return InstallationActionResult{}, err
 	}
 	if err = p.deleteInstallation(installToDelete.ID); err != nil {
