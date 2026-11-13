@@ -8,6 +8,7 @@ import {
     SET_SERVER_ERROR,
     RECEIVED_CONFIG,
     RECEIVED_INSTALLATION_EVENT,
+    SET_SHARED_ERROR,
 } from '../action_types';
 
 function applyInstallationState(installs, event) {
@@ -59,6 +60,17 @@ function sharedInstalls(state = [], action) {
     }
 }
 
+function sharedError(state = '', action) {
+    switch (action.type) {
+    case SET_SHARED_ERROR:
+        return action.error;
+    case RECEIVED_SHARED_INSTALLS:
+        return '';
+    default:
+        return state;
+    }
+}
+
 function pluginConfiguration(state = {}, action) {
     switch (action.type) {
     case RECEIVED_CONFIG:
@@ -98,6 +110,7 @@ function serverError(state = '', action) {
 export default combineReducers({
     cloudUserInstalls,
     sharedInstalls,
+    sharedError,
     rhsPluginAction,
     isRhsVisible,
     serverError,

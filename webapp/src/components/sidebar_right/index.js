@@ -23,7 +23,7 @@ import {
     deletionUnlockInstallation,
 } from '../../actions';
 
-import {installsForUser, sharedInstalls, serverError, pluginConfiguration} from '../../selectors';
+import {installsForUser, sharedInstalls, sharedError, serverError, pluginConfiguration} from '../../selectors';
 
 import SidebarRight from './sidebar_right.jsx';
 
@@ -34,6 +34,7 @@ function mapStateToProps(state) {
         id,
         installs: installsForUser(state, id),
         sharedInstalls: sharedInstalls(state),
+        sharedError: sharedError(state),
         serverError: serverError(state) || '',
         maxLockedInstallations: parseInt(config.DeletionLockInstallationsAllowedPerPerson, 10),
         options: config.Options,

@@ -19,6 +19,7 @@ import {
     SET_SERVER_ERROR,
     RECEIVED_CONFIG,
     RECEIVED_INSTALLATION_EVENT,
+    SET_SHARED_ERROR,
 } from '../action_types';
 
 const CLOUD_USER_GET_TIMEOUT_MILLISECONDS = 1000 * 60; // 1 minute
@@ -104,18 +105,18 @@ export function getCloudUserData(userID) {
     };
 }
 
+// A failed shared list must not hide the user's own installations, so it has its own error state.
 export function getSharedInstalls() {
-    return async (dispatch, getState) => {
+    return async (dispatch) => {
         const data = await fetchOrError(() => Client.getSharedInstalls());
 
         if (data && data.error) {
-            dispatch(setServerError(`Status: ${data.error.status}, Message: ${data.error.message}`));
+            const message = data.error.message ? String(data.error.message).trim() : '';
+            dispatch({
+                type: SET_SHARED_ERROR,
+                error: message || `Status: ${data.error.status}`,
+            });
             return data;
-        }
-
-        // Clear server error
-        if (serverError(getState())) {
-            dispatch(setServerError(''));
         }
 
         dispatch({

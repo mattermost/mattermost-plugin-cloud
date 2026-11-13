@@ -8,6 +8,7 @@ export const installsForUser = (state, id) => {
 };
 export const rawInstallsEntry = (state, id) => (getPluginState(state).cloudUserInstalls || {})[id];
 export const sharedInstalls = (state) => getPluginState(state).sharedInstalls || [];
+export const sharedError = (state) => getPluginState(state).sharedError || '';
 export const pluginConfiguration = (state) => getPluginState(state).pluginConfiguration || {};
 
 export const getShowRHSAction = (state) => getPluginState(state).rhsPluginAction;

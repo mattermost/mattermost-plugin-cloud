@@ -8,7 +8,7 @@ import {matchesQuery} from './installation_utils';
 export const TAB_MINE = 'mine';
 export const TAB_SHARED = 'shared';
 
-export default function InstallationList({userID, lockedCount, maxLockedInstallations, actions, installs, sharedInstalls, tab, onTabChange, query, onQueryChange, onSelect, onAdd}) {
+export default function InstallationList({userID, lockedCount, maxLockedInstallations, actions, installs, sharedInstalls, sharedError = '', onRetryShared, tab, onTabChange, query, onQueryChange, onSelect, onAdd}) {
     const tabs = [
         {key: TAB_MINE, label: 'Mine', countBadge: installs.length, buttonProps: {'data-testid': 'tab-mine'}},
         {key: TAB_SHARED, label: 'Shared', countBadge: sharedInstalls.length, buttonProps: {'data-testid': 'tab-shared'}},
@@ -18,6 +18,7 @@ export default function InstallationList({userID, lockedCount, maxLockedInstalla
     const source = mine ? installs : sharedInstalls;
     const visible = source.filter((installation) => matchesQuery(installation, query));
     const noMatches = source.length > 0 && visible.length === 0;
+    const showSharedError = !mine && sharedError !== '' && source.length === 0;
 
     return (
         <div>
@@ -46,7 +47,15 @@ export default function InstallationList({userID, lockedCount, maxLockedInstalla
                     description='Try a different name, domain, or version.'
                 />
             )}
-            {source.length === 0 && (
+            {showSharedError && (
+                <EmptyState
+                    className='CloudRHS__empty'
+                    title='Could not load shared servers'
+                    description={sharedError}
+                    action={{children: 'Retry', onClick: onRetryShared}}
+                />
+            )}
+            {source.length === 0 && !showSharedError && (
                 <EmptyState
                     className='CloudRHS__empty'
                     title={mine ? 'No servers yet' : 'No shared servers'}
@@ -83,6 +92,8 @@ InstallationList.propTypes = {
     actions: PropTypes.object.isRequired,
     installs: PropTypes.array.isRequired,
     sharedInstalls: PropTypes.array.isRequired,
+    sharedError: PropTypes.string,
+    onRetryShared: PropTypes.func.isRequired,
     tab: PropTypes.oneOf([TAB_MINE, TAB_SHARED]).isRequired,
     onTabChange: PropTypes.func.isRequired,
     query: PropTypes.string.isRequired,

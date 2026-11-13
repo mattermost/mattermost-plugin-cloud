@@ -1,4 +1,4 @@
-import {RECEIVED_INSTALLATION_EVENT, RECEIVED_SHARED_INSTALLS, RECEIVED_USER_INSTALLS} from '../action_types';
+import {RECEIVED_INSTALLATION_EVENT, RECEIVED_SHARED_INSTALLS, RECEIVED_USER_INSTALLS, SET_SHARED_ERROR} from '../action_types';
 
 import reducer from './index';
 
@@ -33,5 +33,21 @@ describe('installation event reducer', () => {
 
         expect(() => reducer(state, event())).not.toThrow();
         expect(reducer(state, event()).cloudUserInstalls.broken).toEqual({last_try: 1});
+    });
+});
+
+describe('shared error reducer', () => {
+    it('stores the error and clears it when the shared list loads', () => {
+        let state = reducer({}, {type: SET_SHARED_ERROR, error: 'Not authorized'});
+        expect(state.sharedError).toBe('Not authorized');
+
+        state = reducer(state, {type: RECEIVED_SHARED_INSTALLS, data: []});
+        expect(state.sharedError).toBe('');
+    });
+
+    it('is separate from the global server error', () => {
+        const state = reducer({}, {type: SET_SHARED_ERROR, error: 'Not authorized'});
+
+        expect(state.serverError).toBe('');
     });
 });

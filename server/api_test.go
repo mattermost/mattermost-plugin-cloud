@@ -47,10 +47,9 @@ func TestDeletionLockHandlers(t *testing.T) {
 		assert.Equal(t, "target-id", cloudClient.unlockedInstallationID)
 	})
 
-	t.Run("wrong owner keeps existing internal error behavior", func(t *testing.T) {
+	t.Run("user without the installation gets a bad request with the reason", func(t *testing.T) {
 		target := serviceTestInstall("target-id", "Target", "owner")
-		plugin, _, api := newServiceTestPlugin(t, []*Installation{target})
-		api.On("LogError", mock.AnythingOfType("string")).Return(nil)
+		plugin, _, _ := newServiceTestPlugin(t, []*Installation{target})
 
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/deletion-lock", strings.NewReader(`{"installation_id":"target-id"}`))
 		req.Header.Set("Mattermost-User-ID", "other")
@@ -58,8 +57,38 @@ func TestDeletionLockHandlers(t *testing.T) {
 
 		plugin.handleDeletionLock(rec, req)
 
-		require.Equal(t, http.StatusInternalServerError, rec.Code)
-		assert.Contains(t, rec.Body.String(), "Internal server error")
+		require.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Contains(t, rec.Body.String(), "no installations found for the given User ID")
+	})
+
+	t.Run("lock of an unknown installation is a bad request", func(t *testing.T) {
+		target := serviceTestInstall("target-id", "Target", "owner")
+		plugin, cloudClient, _ := newServiceTestPlugin(t, []*Installation{target})
+		cloudClient.mockedCloudInstallationsDTO = serviceDTOs(target)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/deletion-lock", strings.NewReader(`{"installation_id":"missing-id"}`))
+		req.Header.Set("Mattermost-User-ID", "owner")
+		rec := httptest.NewRecorder()
+
+		plugin.handleDeletionLock(rec, req)
+
+		require.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Contains(t, rec.Body.String(), "installation to be locked not found")
+	})
+
+	t.Run("unlock of an unknown installation is a bad request", func(t *testing.T) {
+		target := serviceTestInstall("target-id", "Target", "owner")
+		plugin, cloudClient, _ := newServiceTestPlugin(t, []*Installation{target})
+		cloudClient.mockedCloudInstallationsDTO = serviceDTOs(target)
+
+		req := httptest.NewRequest(http.MethodPost, "/api/v1/deletion-unlock", strings.NewReader(`{"installation_id":"missing-id"}`))
+		req.Header.Set("Mattermost-User-ID", "owner")
+		rec := httptest.NewRecorder()
+
+		plugin.handleDeletionUnlock(rec, req)
+
+		require.Equal(t, http.StatusBadRequest, rec.Code)
+		assert.Contains(t, rec.Body.String(), "installation to be unlocked not found")
 	})
 }
 

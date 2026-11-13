@@ -1,6 +1,8 @@
 import Client from '../client';
 
-import {createInstallation, deleteInstallation, deletionLockInstallation, refreshInstallations} from './index';
+import {SET_SHARED_ERROR, SET_SERVER_ERROR, RECEIVED_SHARED_INSTALLS} from '../action_types';
+
+import {createInstallation, deleteInstallation, deletionLockInstallation, getSharedInstalls, refreshInstallations} from './index';
 
 jest.mock('mattermost-redux/client', () => ({Client4: {}}));
 jest.mock('mattermost-redux/selectors/entities/channels', () => ({getCurrentChannel: jest.fn()}));
@@ -73,5 +75,32 @@ describe('installation actions', () => {
 
         expect(Client.getUserInstalls).not.toHaveBeenCalled();
         expect(Client.getSharedInstalls).toHaveBeenCalled();
+    });
+
+    describe('getSharedInstalls', () => {
+        it('records a failure as a shared error and leaves the global server error alone', async () => {
+            Client.getSharedInstalls.mockRejectedValue({message: 'Not authorized\n', status_code: 401});
+
+            const result = await getSharedInstalls()(dispatch, getState);
+
+            expect(result.error).toBeDefined();
+            expect(dispatch).toHaveBeenCalledWith({type: SET_SHARED_ERROR, error: 'Not authorized'});
+            expect(dispatch).not.toHaveBeenCalledWith(expect.objectContaining({type: SET_SERVER_ERROR}));
+        });
+
+        it('falls back to the status when the error has no message', async () => {
+            Client.getSharedInstalls.mockRejectedValue({status_code: 500});
+
+            await getSharedInstalls()(dispatch, getState);
+
+            expect(dispatch).toHaveBeenCalledWith({type: SET_SHARED_ERROR, error: 'Status: 500'});
+        });
+
+        it('stores the list on success', async () => {
+            const result = await getSharedInstalls()(dispatch, getState);
+
+            expect(result).toEqual({data: [{ID: 'b'}]});
+            expect(dispatch).toHaveBeenCalledWith({type: RECEIVED_SHARED_INSTALLS, data: [{ID: 'b'}]});
+        });
     });
 });

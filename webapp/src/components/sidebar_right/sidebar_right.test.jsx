@@ -271,6 +271,41 @@ describe('SidebarRight card content', () => {
     });
 });
 
+describe('SidebarRight shared load failure', () => {
+    it('keeps the Mine list and reports the failure in the Shared tab', async () => {
+        const props = makeProps({sharedInstalls: [], sharedError: 'Not authorized'});
+        await renderLoaded(props);
+
+        expect(screen.getByText('first')).toBeInTheDocument();
+        expect(screen.queryByText('Received a server error')).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByTestId('tab-shared'));
+
+        expect(screen.getByText('Could not load shared servers')).toBeInTheDocument();
+        expect(screen.getByText('Not authorized')).toBeInTheDocument();
+        expect(screen.queryByText('No shared servers')).not.toBeInTheDocument();
+    });
+
+    it('retries loading the shared list', async () => {
+        const props = makeProps({sharedInstalls: [], sharedError: 'Not authorized'});
+        await renderLoaded(props);
+        props.actions.getSharedInstalls.mockClear();
+
+        fireEvent.click(screen.getByTestId('tab-shared'));
+        fireEvent.click(screen.getByRole('button', {name: 'Retry'}));
+
+        expect(props.actions.getSharedInstalls).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows no error state while shared servers are listed', async () => {
+        await renderLoaded(makeProps({sharedError: ''}));
+
+        fireEvent.click(screen.getByTestId('tab-shared'));
+
+        expect(screen.queryByText('Could not load shared servers')).not.toBeInTheDocument();
+    });
+});
+
 describe('SidebarRight card actions', () => {
     const card = (id) => within(screen.getByTestId('installation-card-' + id));
 

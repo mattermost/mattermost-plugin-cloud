@@ -296,6 +296,9 @@ func isInstallationUserError(err error) bool {
 		"does not match installation name",
 		"you may only have at most",
 		"is read-only",
+		"installation to be locked not found",
+		"installation to be unlocked not found",
+		"no installations found for the given User ID",
 	} {
 		if strings.Contains(errText, fragment) {
 			return true

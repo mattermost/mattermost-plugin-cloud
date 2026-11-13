@@ -19,7 +19,7 @@ const LIST_ROUTE = {view: VIEW_LIST};
 // Fallback for when provisioner webhooks do not reach the plugin, for example when none is registered.
 export const POLL_INTERVAL_MILLISECONDS = 15000;
 
-export default function SidebarRight({id, installs, sharedInstalls, serverError, maxLockedInstallations, options, actions}) {
+export default function SidebarRight({id, installs, sharedInstalls, sharedError, serverError, maxLockedInstallations, options, actions}) {
     const [stack, setStack] = useState([LIST_ROUTE]);
     const [tab, setTab] = useState(TAB_MINE);
     const [query, setQuery] = useState('');
@@ -157,6 +157,8 @@ export default function SidebarRight({id, installs, sharedInstalls, serverError,
                 actions={actions}
                 installs={installs}
                 sharedInstalls={sharedInstalls}
+                sharedError={sharedError}
+                onRetryShared={actions.getSharedInstalls}
                 tab={tab}
                 onTabChange={setTab}
                 query={query}
@@ -196,6 +198,7 @@ SidebarRight.propTypes = {
     id: PropTypes.string.isRequired,
     installs: PropTypes.array.isRequired,
     sharedInstalls: PropTypes.array.isRequired,
+    sharedError: PropTypes.string,
     serverError: PropTypes.string.isRequired,
     maxLockedInstallations: PropTypes.number,
     options: PropTypes.object,
