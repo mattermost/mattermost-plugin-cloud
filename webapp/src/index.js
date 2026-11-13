@@ -1,3 +1,5 @@
+import '@mattermost/compass-ui/styles';
+
 import UserAttribute from './components/user_attribute';
 import Reducer from './reducers';
 import {id as pluginId} from './manifest';

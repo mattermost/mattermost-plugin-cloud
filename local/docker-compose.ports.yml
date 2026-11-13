@@ -1,0 +1,6 @@
+# Host access without OrbStack: publish the port on 127.0.0.1.
+# local/dev.mk adds this file to COMPOSE_FILE when the Docker engine is not OrbStack.
+services:
+  mattermost:
+    ports:
+      - "127.0.0.1:${DEV_PORT_MATTERMOST:?run through make dev-start}:8065"

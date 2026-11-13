@@ -3,7 +3,7 @@ import React, {useEffect} from 'react';
 
 import PropTypes from 'prop-types';
 import {makeStyleFromTheme, changeOpacity} from 'mattermost-redux/utils/theme_utils';
-import {Tooltip, OverlayTrigger} from 'react-bootstrap';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 const SidebarLeft = ({id, installs, actions, showRHS, theme}) => {
     useEffect(() => {
@@ -14,9 +14,10 @@ const SidebarLeft = ({id, installs, actions, showRHS, theme}) => {
 
     return (
         <div className='CloudPlugin__SidebarLeft'>
-            <OverlayTrigger
-                placement={'right'}
-                overlay={<Tooltip id='yourCloudInstallationsToolTip'>{'Your Cloud installations'}</Tooltip>}
+            <WithTooltip
+                id='yourCloudInstallationsToolTip'
+                title='Your Cloud installations'
+                forcedPlacement='right'
             >
                 <a
                     data-testid={'yourCloudInstallationsTestId'}
@@ -28,7 +29,7 @@ const SidebarLeft = ({id, installs, actions, showRHS, theme}) => {
                     <i className='fa fa-cloud'/>
                     {' ' + installs.length}
                 </a>
-            </OverlayTrigger>
+            </WithTooltip>
         </div>
     );
 };
