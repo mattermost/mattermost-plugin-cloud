@@ -89,7 +89,7 @@ jq -n \
 		professionallicense: $professional,
 		enterpriselicense: $enterprise,
 		enterpriseadvancedlicense: $enterpriseadvanced
-	}}}}' >"$config_file"
+	}}}} | .PluginSettings.Plugins[$id] |= with_entries(select(.value != ""))' >"$config_file"
 
 # The Mattermost image has no shell, so the patch file is copied in instead of piped.
 chmod 644 "$config_file"

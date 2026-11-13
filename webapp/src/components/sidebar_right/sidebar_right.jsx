@@ -78,6 +78,7 @@ export default class SidebarRight extends React.PureComponent {
                 <Button
                     emphasis='primary'
                     size='small'
+                    disabled={!installation.DNSRecords?.length}
                     onClick={() => window.open('https://' + installation.DNSRecords[0].DomainName, '_blank')}
                 >{'Open'}
                 </Button>

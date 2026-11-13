@@ -19,6 +19,8 @@ services:
     # The Mattermost enterprise image is published for linux/amd64 only. Docker emulates it on Apple silicon.
     image: ${DEV_MATTERMOST_IMAGE:-mattermost/mattermost-enterprise-edition:12.0}
     platform: linux/amd64
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     depends_on:
       postgres:
         condition: service_healthy
