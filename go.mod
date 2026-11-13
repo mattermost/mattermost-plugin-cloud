@@ -4,7 +4,6 @@ go 1.26.2
 
 require (
 	github.com/blang/semver/v4 v4.0.0
-	github.com/docker/distribution v2.8.3+incompatible
 	github.com/mattermost/mattermost-cloud v0.89.2-0.20250512140757-52f9b3635604
 	github.com/mattermost/mattermost-plugin-agents v0.0.0-20260508170706-18844c90064e
 	github.com/mattermost/mattermost/server/public v0.3.1-0.20260402155910-d9d71af83e3f
@@ -19,7 +18,6 @@ require (
 	github.com/aws/aws-sdk-go v1.44.317 // indirect
 	github.com/beevik/etree v1.6.0 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
-	github.com/distribution/reference v0.6.0 // indirect
 	github.com/dyatlov/go-opengraph/opengraph v0.0.0-20220524092352-606d7b1e5f8a // indirect
 	github.com/emicklei/go-restful/v3 v3.12.1 // indirect
 	github.com/fatih/color v1.19.0 // indirect
@@ -63,8 +61,6 @@ require (
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
 	github.com/oklog/run v1.2.0 // indirect
-	github.com/opencontainers/go-digest v1.0.0 // indirect
-	github.com/opencontainers/image-spec v1.1.1 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/philhofer/fwd v1.2.0 // indirect
