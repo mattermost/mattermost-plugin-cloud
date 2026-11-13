@@ -127,18 +127,7 @@ func (p *Plugin) handleInstallationCreate(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	install, err := p.createInstallationForUser(userID, CreateInstallationInput{
-		Name:      req.Name,
-		Version:   req.Version,
-		Size:      req.Size,
-		License:   req.License,
-		Affinity:  req.Affinity,
-		Database:  req.Database,
-		Filestore: req.Filestore,
-		Image:     req.Image,
-		TestData:  req.TestData,
-		Env:       req.Env,
-	})
+	install, err := p.createInstallationForUser(userID, CreateInstallationInput(req))
 	if err != nil {
 		p.writeInstallationError(w, "create installation", err)
 		return
