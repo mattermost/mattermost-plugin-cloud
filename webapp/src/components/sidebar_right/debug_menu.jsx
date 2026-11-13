@@ -60,6 +60,12 @@ function DebugMenu({title, items}) {
         };
     }, [open, close]);
 
+    useEffect(() => {
+        if (open) {
+            menuRef.current?.querySelector('[role="menuitem"]')?.focus({preventScroll: true});
+        }
+    }, [open]);
+
     const toggle = () => {
         if (!open && triggerRef.current) {
             setStyle(getMenuStyle(triggerRef.current, items.length));

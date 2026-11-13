@@ -48,7 +48,10 @@ wait_for() {
 license() {
 	local path=${!1:-}
 	if [ -n "$path" ]; then
-		cat "$path"
+		cat "$path" || {
+			echo "Cannot read $1=$path" >&2
+			return 1
+		}
 	fi
 }
 
@@ -68,6 +71,11 @@ mmctl team users add "$TEAM_NAME" "$ADMIN_USER" >/dev/null
 # The plugin does not activate without a provisioning server URL. The stack has none, so the default is a
 # server that runs on the host. Licenses are needed only to create installations.
 echo "==> Plugin settings"
+e10_license=$(license DEV_E10_LICENSE_FILE)
+e20_license=$(license DEV_E20_LICENSE_FILE)
+professional_license=$(license DEV_PROFESSIONAL_LICENSE_FILE)
+enterprise_license=$(license DEV_ENTERPRISE_LICENSE_FILE)
+enterprise_advanced_license=$(license DEV_ENTERPRISE_ADVANCED_LICENSE_FILE)
 config_file=$(mktemp)
 trap 'rm -f "$config_file"' EXIT
 jq -n \
@@ -75,11 +83,11 @@ jq -n \
 	--arg url "${DEV_PROVISIONER_URL:-http://host.docker.internal:8075}" \
 	--arg secret "${DEV_WEBHOOK_SECRET:-dev-webhook-secret}" \
 	--arg dns "${DEV_INSTALLATION_DNS:-dev.cloud.mattermost.com}" \
-	--arg e10 "$(license DEV_E10_LICENSE_FILE)" \
-	--arg e20 "$(license DEV_E20_LICENSE_FILE)" \
-	--arg professional "$(license DEV_PROFESSIONAL_LICENSE_FILE)" \
-	--arg enterprise "$(license DEV_ENTERPRISE_LICENSE_FILE)" \
-	--arg enterpriseadvanced "$(license DEV_ENTERPRISE_ADVANCED_LICENSE_FILE)" \
+	--arg e10 "$e10_license" \
+	--arg e20 "$e20_license" \
+	--arg professional "$professional_license" \
+	--arg enterprise "$enterprise_license" \
+	--arg enterpriseadvanced "$enterprise_advanced_license" \
 	'{PluginSettings: {Plugins: {($id): {
 		provisioningserverurl: $url,
 		provisioningserverwebhooksecret: $secret,

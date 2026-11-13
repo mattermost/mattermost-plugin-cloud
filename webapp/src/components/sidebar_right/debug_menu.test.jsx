@@ -41,6 +41,19 @@ describe('DebugMenu', () => {
         expect(screen.getByRole('button', {name: 'Debug'})).toHaveAttribute('aria-expanded', 'true');
     });
 
+    it('moves focus to the first item when the menu opens', () => {
+        render(
+            <DebugMenu
+                title='Debug'
+                items={items}
+            />,
+        );
+
+        fireEvent.click(screen.getByRole('button', {name: 'Debug'}));
+
+        expect(screen.getByRole('menuitem', {name: 'Installation Logs'})).toHaveFocus();
+    });
+
     it('runs the item action and closes the menu', () => {
         render(
             <DebugMenu
