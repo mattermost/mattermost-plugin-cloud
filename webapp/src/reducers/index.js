@@ -1,6 +1,32 @@
 import {combineReducers} from 'redux';
 
-import {RECEIVED_USER_INSTALLS, RECEIVED_SHARED_INSTALLS, RECEIVED_SHOW_RHS_ACTION, SET_RHS_VISIBLE, SET_SERVER_ERROR, RECEIVED_CONFIG} from '../action_types';
+import {
+    RECEIVED_USER_INSTALLS,
+    RECEIVED_SHARED_INSTALLS,
+    RECEIVED_SHOW_RHS_ACTION,
+    SET_RHS_VISIBLE,
+    SET_SERVER_ERROR,
+    RECEIVED_CONFIG,
+    RECEIVED_INSTALLATION_EVENT,
+    SET_SHARED_ERROR,
+} from '../action_types';
+
+function applyInstallationState(installs, event) {
+    if (!Array.isArray(installs)) {
+        return installs;
+    }
+
+    let changed = false;
+    const next = installs.map((install) => {
+        if (install.ID !== event.installationID || install.State === event.state) {
+            return install;
+        }
+        changed = true;
+        return {...install, State: event.state};
+    });
+
+    return changed ? next : installs;
+}
 
 function cloudUserInstalls(state = {}, action) {
     switch (action.type) {
@@ -8,6 +34,15 @@ function cloudUserInstalls(state = {}, action) {
         const nextState = {...state};
         nextState[action.userID] = action.data;
         return nextState;
+    }
+    case RECEIVED_INSTALLATION_EVENT: {
+        const nextState = {};
+        let changed = false;
+        Object.keys(state).forEach((userID) => {
+            nextState[userID] = applyInstallationState(state[userID], action.event);
+            changed = changed || nextState[userID] !== state[userID];
+        });
+        return changed ? nextState : state;
     }
     default:
         return state;
@@ -18,6 +53,19 @@ function sharedInstalls(state = [], action) {
     switch (action.type) {
     case RECEIVED_SHARED_INSTALLS:
         return action.data;
+    case RECEIVED_INSTALLATION_EVENT:
+        return applyInstallationState(state, action.event);
+    default:
+        return state;
+    }
+}
+
+function sharedError(state = '', action) {
+    switch (action.type) {
+    case SET_SHARED_ERROR:
+        return action.error;
+    case RECEIVED_SHARED_INSTALLS:
+        return '';
     default:
         return state;
     }
@@ -62,6 +110,7 @@ function serverError(state = '', action) {
 export default combineReducers({
     cloudUserInstalls,
     sharedInstalls,
+    sharedError,
     rhsPluginAction,
     isRhsVisible,
     serverError,

@@ -1,5 +1,5 @@
 import React from 'react';
-import {render, screen, fireEvent} from '@testing-library/react';
+import {render, screen, fireEvent, waitFor} from '@testing-library/react';
 
 import DebugMenu from './debug_menu';
 
@@ -7,8 +7,8 @@ describe('DebugMenu', () => {
     const onLogs = jest.fn();
     const onPacket = jest.fn();
     const items = [
-        {key: 'logs', label: 'Installation Logs', onClick: onLogs},
-        {key: 'packet', label: 'Get Debug Packet', onClick: onPacket},
+        {key: 'logs', label: 'Installation logs', onClick: onLogs},
+        {key: 'packet', label: 'Get debug packet', onClick: onPacket},
     ];
 
     beforeEach(() => {
@@ -51,10 +51,10 @@ describe('DebugMenu', () => {
 
         fireEvent.click(screen.getByRole('button', {name: 'Debug'}));
 
-        expect(screen.getByRole('menuitem', {name: 'Installation Logs'})).toHaveFocus();
+        expect(screen.getByRole('menuitem', {name: 'Installation logs'})).toHaveFocus();
     });
 
-    it('runs the item action and closes the menu', () => {
+    it('runs the item action and closes the menu', async () => {
         render(
             <DebugMenu
                 title='Debug'
@@ -63,13 +63,13 @@ describe('DebugMenu', () => {
         );
 
         fireEvent.click(screen.getByRole('button', {name: 'Debug'}));
-        fireEvent.click(screen.getByRole('menuitem', {name: 'Get Debug Packet'}));
+        fireEvent.click(screen.getByRole('menuitem', {name: 'Get debug packet'}));
 
         expect(onPacket).toHaveBeenCalledTimes(1);
-        expect(screen.queryByRole('menuitem')).toBeNull();
+        await waitFor(() => expect(screen.queryAllByRole('menuitem')).toHaveLength(0));
     });
 
-    it('closes the menu when Escape is pressed', () => {
+    it('closes the menu when Escape is pressed', async () => {
         render(
             <DebugMenu
                 title='Debug'
@@ -80,11 +80,11 @@ describe('DebugMenu', () => {
         fireEvent.click(screen.getByRole('button', {name: 'Debug'}));
         fireEvent.keyDown(document, {key: 'Escape'});
 
-        expect(screen.queryByRole('menuitem')).toBeNull();
+        await waitFor(() => expect(screen.queryAllByRole('menuitem')).toHaveLength(0));
         expect(onLogs).not.toHaveBeenCalled();
     });
 
-    it('closes the menu when the user clicks outside', () => {
+    it('closes the menu when the user clicks outside', async () => {
         render(
             <div>
                 <DebugMenu
@@ -99,6 +99,6 @@ describe('DebugMenu', () => {
         fireEvent.mouseDown(screen.getByText('outside'));
         fireEvent.click(screen.getByText('outside'));
 
-        expect(screen.queryByRole('menuitem')).toBeNull();
+        await waitFor(() => expect(screen.queryAllByRole('menuitem')).toHaveLength(0));
     });
 });

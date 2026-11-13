@@ -18,6 +18,22 @@ export default class Client {
 
     getPluginConfiguration = async () => this.doGet(`${this.url}/config`);
 
+    createInstallation = async (body) => this.doPost(`${this.url}/installations/create`, JSON.stringify(body));
+
+    updateInstallation = async (body) => this.doPost(`${this.url}/installations/update`, JSON.stringify(body));
+
+    restartInstallation = async (installationID) => this.installationAction('restart', {installation_id: installationID});
+
+    hibernateInstallation = async (installationID) => this.installationAction('hibernate', {installation_id: installationID});
+
+    wakeInstallation = async (installationID) => this.installationAction('wake', {installation_id: installationID});
+
+    deleteInstallation = async (installationID, confirmName) => this.installationAction('delete', {installation_id: installationID, confirm_name: confirmName});
+
+    shareInstallation = async (installationID, shared, allowUpdates) => this.installationAction('share', {installation_id: installationID, shared, allow_updates: allowUpdates});
+
+    installationAction = async (action, body) => this.doPost(`${this.url}/installations/${action}`, JSON.stringify(body));
+
     fetchJSON = async (url, options) => {
         const {data} = await this.doFetchWithResponse(url, {
             headers: {

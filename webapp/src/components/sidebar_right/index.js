@@ -5,35 +5,60 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 
-import {telemetry, setRhsVisible, getCloudUserData, getSharedInstalls, restartInstallation, getDebugPacket, deletionLockInstallation, deletionUnlockInstallation, getPluginConfiguration} from '../../actions';
+import {
+    setRhsVisible,
+    getCloudUserData,
+    getSharedInstalls,
+    getPluginConfiguration,
+    refreshInstallations,
+    getDebugPacket,
+    createInstallation,
+    updateInstallation,
+    restartInstallation,
+    hibernateInstallation,
+    wakeInstallation,
+    deleteInstallation,
+    shareInstallation,
+    deletionLockInstallation,
+    deletionUnlockInstallation,
+} from '../../actions';
 
-import {installsForUser, sharedInstalls, serverError, pluginConfiguration} from '../../selectors';
+import {installsForUser, sharedInstalls, sharedError, serverError, pluginConfiguration} from '../../selectors';
 
 import SidebarRight from './sidebar_right.jsx';
 
 function mapStateToProps(state) {
     const id = getCurrentUserId(state);
+    const config = pluginConfiguration(state);
     return {
         id,
         installs: installsForUser(state, id),
         sharedInstalls: sharedInstalls(state),
-        serverError: serverError(state),
-        maxLockedInstallations: parseInt(pluginConfiguration(state).DeletionLockInstallationsAllowedPerPerson, 10),
+        sharedError: sharedError(state),
+        serverError: serverError(state) || '',
+        maxLockedInstallations: parseInt(config.DeletionLockInstallationsAllowedPerPerson, 10),
+        options: config.Options,
     };
 }
 
 function mapDispatchToProps(dispatch) {
     return {
         actions: bindActionCreators({
-            telemetry,
+            setVisible: setRhsVisible,
             getCloudUserData,
             getSharedInstalls,
-            setVisible: setRhsVisible,
-            restartInstallation,
+            getPluginConfiguration,
+            refreshInstallations,
             getDebugPacket,
+            createInstallation,
+            updateInstallation,
+            restartInstallation,
+            hibernateInstallation,
+            wakeInstallation,
+            deleteInstallation,
+            shareInstallation,
             deletionLockInstallation,
             deletionUnlockInstallation,
-            getPluginConfiguration,
         }, dispatch),
     };
 }

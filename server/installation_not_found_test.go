@@ -141,6 +141,7 @@ func TestProcessWebhookEventInstallationNotFound(t *testing.T) {
 		api := &plugintest.API{}
 		api.On("KVGet", mock.AnythingOfType("string")).Return(installationBytes, nil)
 		api.On("LogDebug", mock.AnythingOfType("string")).Return(nil)
+		api.On("PublishWebSocketEvent", websocketEventInstallationUpdated, mock.Anything, mock.Anything).Return()
 		plugin.SetAPI(api)
 
 		require.NotPanics(t, func() { plugin.processWebhookEvent(payload) })
@@ -156,6 +157,7 @@ func TestProcessWebhookEventInstallationNotFound(t *testing.T) {
 		api.On("KVGet", mock.AnythingOfType("string")).Return([]byte("not json"), nil)
 		api.On("LogDebug", mock.AnythingOfType("string")).Return(nil)
 		api.On("LogError", mock.AnythingOfType("string"), "installation", "id3").Return(nil)
+		api.On("LogError", mock.AnythingOfType("string")).Return(nil)
 		plugin.SetAPI(api)
 
 		require.NotPanics(t, func() { plugin.processWebhookEvent(payload) })

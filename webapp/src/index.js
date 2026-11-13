@@ -8,10 +8,14 @@ import {getPluginServerRoute, setShowRHSAction, telemetry} from './actions/index
 import ChannelHeaderButton from './components/channel_header_button';
 import SidebarRight from './components/sidebar_right';
 import SidebarLeft from './components/sidebar_left';
+import {INSTALLATION_UPDATED_EVENT, createInstallationEventHandler, createReconnectHandler} from './websocket';
 
 class Plugin {
     async initialize(registry, store) {
         registry.registerReducer(Reducer);
+
+        registry.registerWebSocketEventHandler(INSTALLATION_UPDATED_EVENT, createInstallationEventHandler(store));
+        registry.registerReconnectHandler(createReconnectHandler(store));
 
         registry.registerPopoverUserAttributesComponent(UserAttribute);
         registry.registerBottomTeamSidebarComponent(SidebarLeft);
