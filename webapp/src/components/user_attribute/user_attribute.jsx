@@ -4,7 +4,10 @@ import PropTypes from 'prop-types';
 export default class UserAttribute extends React.PureComponent {
     static propTypes = {
         id: PropTypes.string.isRequired,
-        installs: PropTypes.array.isRequired,
+        installs: PropTypes.oneOfType([
+            PropTypes.array,
+            PropTypes.object,
+        ]),
         serverError: PropTypes.string.isRequired,
         actions: PropTypes.shape({
             getCloudUserData: PropTypes.func.isRequired,
@@ -18,7 +21,7 @@ export default class UserAttribute extends React.PureComponent {
     render() {
         const installs = this.props.installs;
 
-        if (installs.length === 0 || this.props.serverError) {
+        if (!Array.isArray(installs) || installs.length === 0 || this.props.serverError) {
             return null;
         }
 

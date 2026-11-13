@@ -34,6 +34,21 @@ describe('UserAttribute', () => {
         expect(screen.queryByText('Cloud Servers')).toBeNull();
     });
 
+    it('renders null when installs is a throttle object', () => {
+        const props = {
+            id: '123',
+            installs: {last_try: Date.now()},
+            serverError: '',
+            actions: {
+                getCloudUserData: jest.fn(),
+            },
+        };
+
+        render(<UserAttribute {...props}/>);
+
+        expect(screen.queryByText('Cloud Servers')).toBeNull();
+    });
+
     it('renders the list of installations', () => {
         const props = {
             id: '123',
