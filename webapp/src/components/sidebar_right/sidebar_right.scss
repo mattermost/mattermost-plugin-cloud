@@ -1,0 +1,288 @@
+.CloudRHS__loading {
+    display: flex;
+    justify-content: center;
+    padding: 48px 0;
+}
+
+.CloudRHS__empty {
+    padding: 32px 24px;
+}
+
+.CloudRHS__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+}
+
+.CloudRHS__title {
+    overflow: hidden;
+    font-size: 14px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.CloudRHS__tabs {
+    padding: 0 16px;
+}
+
+.CloudRHS__search {
+    padding: 12px 16px 0;
+}
+
+.CloudRHS__list {
+    margin: 0;
+    padding: 0 16px 16px;
+    list-style: none;
+
+    li {
+        margin-top: 12px;
+    }
+}
+
+.CloudRHS__card {
+    position: relative;
+    display: flex;
+    width: 100%;
+    align-items: center;
+    padding: 16px;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    border-radius: 8px;
+    background: var(--center-channel-bg);
+    color: var(--center-channel-color);
+    cursor: pointer;
+    text-align: left;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+    }
+}
+
+.CloudRHS__card--add:focus-visible {
+    outline: 2px solid var(--button-bg);
+    outline-offset: 2px;
+}
+
+.CloudRHS__card--add {
+    min-height: 120px;
+    justify-content: center;
+    border-style: dashed;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+
+    &:hover {
+        color: var(--button-bg);
+    }
+}
+
+.CloudRHS__cardBody {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.CloudRHS__cardTitle {
+    display: flex;
+    min-width: 0;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.CloudRHS__cardVersion {
+    overflow: hidden;
+    min-width: 0;
+    flex-shrink: 1;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.CloudRHS__cardSelect {
+    overflow: hidden;
+    min-width: 0;
+    flex-shrink: 0;
+    max-width: 70%;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &::after {
+        position: absolute;
+        border-radius: 8px;
+        content: '';
+        inset: 0;
+    }
+
+    &:focus-visible {
+        outline: none;
+    }
+
+    &:focus-visible::after {
+        outline: 2px solid var(--button-bg);
+        outline-offset: 2px;
+    }
+}
+
+.CloudRHS__cardActions {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.CloudRHS__cardError {
+    position: relative;
+    z-index: 1;
+}
+
+.CloudRHS__cardDomain {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 4px;
+}
+
+.CloudRHS__cardMeta {
+    overflow: hidden;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 12px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.CloudRHS__cardChevron {
+    display: flex;
+    flex-shrink: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+}
+
+.CloudRHS__badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.CloudRHS__detail,
+.CloudRHS__form {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px;
+}
+
+.CloudRHS__detailHeader {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.CloudRHS__detailName {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.CloudRHS__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.CloudRHS__info {
+    display: grid;
+    margin: 0;
+    font-size: 12px;
+    gap: 6px 12px;
+    grid-template-columns: 90px 1fr;
+}
+
+.CloudRHS__infoLabel {
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-weight: 400;
+}
+
+.CloudRHS__infoValue {
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.CloudRHS__deletion--urgent {
+    color: var(--error-text);
+    font-weight: 700;
+}
+
+.CloudRHS__section {
+    display: flex;
+    flex-direction: column;
+    padding-top: 16px;
+    border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    gap: 12px;
+}
+
+.CloudRHS__sectionTitle {
+    margin: 0;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.CloudRHS__hint {
+    margin: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+    font-size: 12px;
+}
+
+.CloudRHS__fieldset {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    padding: 0;
+    border: 0;
+    margin: 0;
+    gap: 12px;
+
+    legend {
+        padding: 0;
+        margin-bottom: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        text-transform: uppercase;
+    }
+}
+
+.CloudRHS__envEditor {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.CloudRHS__envRow {
+    display: grid;
+    align-items: center;
+    gap: 8px;
+    grid-template-columns: 1fr 1fr auto;
+}
+
+.CloudRHS__formActions {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 8px;
+    gap: 8px;
+}

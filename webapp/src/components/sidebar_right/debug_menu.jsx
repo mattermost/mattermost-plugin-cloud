@@ -1,7 +1,8 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {createPortal} from 'react-dom';
 import PropTypes from 'prop-types';
-import {Button, MenuItem, PopoverMenu, useOutsideClose} from '@mattermost/compass-ui';
+import {Button, Icon, MenuItem, PopoverMenu, useOutsideClose} from '@mattermost/compass-ui';
+import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
 
 const MENU_WIDTH = 240;
 const MENU_ITEM_HEIGHT = 40;
@@ -76,6 +77,7 @@ function DebugMenu({title, items}) {
                 size='small'
                 aria-haspopup='menu'
                 aria-expanded={open}
+                trailingIcon={<Icon glyph={<ChevronDownIcon/>}/>}
                 onClick={toggle}
             >
                 {title}

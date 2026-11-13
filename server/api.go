@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	cloud "github.com/mattermost/mattermost-cloud/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -77,6 +78,10 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 	case "/api/v1/config":
 		p.handleGetConfig(w, r)
 	default:
+		if action, ok := strings.CutPrefix(path, "/api/v1/installations/"); ok {
+			p.handleInstallationAction(w, r, action)
+			return
+		}
 		http.NotFound(w, r)
 	}
 }
@@ -195,10 +200,9 @@ func (p *Plugin) handleDeletionLock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = p.setDeletionLockForUser(userID, InstallationRef{ID: req.InstallationID}, true)
+	result, err := p.setDeletionLockForUser(userID, InstallationRef{ID: req.InstallationID}, true)
 	if err != nil {
-		p.API.LogError(errors.Wrap(err, "Unable to lock for deletion").Error())
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		p.writeInstallationError(w, "lock for deletion", err)
 		return
 	}
 
@@ -208,6 +212,7 @@ func (p *Plugin) handleDeletionLock(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+	p.publishInstallationEvent(summaryEvent(result.Installation))
 	w.WriteHeader(http.StatusCreated)
 	w.Write(j)
 }
@@ -230,10 +235,9 @@ func (p *Plugin) handleDeletionUnlock(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err = p.setDeletionLockForUser(userID, InstallationRef{ID: req.InstallationID}, false)
+	result, err := p.setDeletionLockForUser(userID, InstallationRef{ID: req.InstallationID}, false)
 	if err != nil {
-		p.API.LogError(errors.Wrap(err, "Unable to unlock for deletion").Error())
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		p.writeInstallationError(w, "unlock for deletion", err)
 		return
 	}
 
@@ -243,6 +247,7 @@ func (p *Plugin) handleDeletionUnlock(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
+	p.publishInstallationEvent(summaryEvent(result.Installation))
 	w.WriteHeader(http.StatusCreated)
 	w.Write(j)
 }

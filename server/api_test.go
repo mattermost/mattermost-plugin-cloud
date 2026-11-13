@@ -14,7 +14,8 @@ import (
 func TestDeletionLockHandlers(t *testing.T) {
 	t.Run("lock returns created with request body", func(t *testing.T) {
 		target := serviceTestInstall("target-id", "Target", "owner")
-		plugin, cloudClient, _ := newServiceTestPlugin(t, []*Installation{target})
+		plugin, cloudClient, api := newServiceTestPlugin(t, []*Installation{target})
+		api.On("PublishWebSocketEvent", websocketEventInstallationUpdated, mock.Anything, mock.Anything).Return()
 		cloudClient.mockedCloudInstallationsDTO = serviceDTOs(target)
 
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/deletion-lock", strings.NewReader(`{"installation_id":"target-id"}`))
@@ -31,7 +32,8 @@ func TestDeletionLockHandlers(t *testing.T) {
 	t.Run("unlock returns created with request body", func(t *testing.T) {
 		target := serviceTestInstall("target-id", "Target", "owner")
 		target.DeletionLocked = true
-		plugin, cloudClient, _ := newServiceTestPlugin(t, []*Installation{target})
+		plugin, cloudClient, api := newServiceTestPlugin(t, []*Installation{target})
+		api.On("PublishWebSocketEvent", websocketEventInstallationUpdated, mock.Anything, mock.Anything).Return()
 		cloudClient.mockedCloudInstallationsDTO = serviceDTOs(target)
 
 		req := httptest.NewRequest(http.MethodPost, "/api/v1/deletion-unlock", strings.NewReader(`{"installation_id":"target-id"}`))
