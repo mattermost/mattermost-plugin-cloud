@@ -2,7 +2,10 @@ import {id as pluginId} from './manifest';
 
 const getPluginState = (state) => state['plugins-' + pluginId] || {};
 
-export const installsForUser = (state, id) => getPluginState(state).cloudUserInstalls[id] || [];
+export const installsForUser = (state, id) => {
+    const installs = getPluginState(state).cloudUserInstalls[id];
+    return Array.isArray(installs) ? installs : [];
+};
 export const sharedInstalls = (state) => getPluginState(state).sharedInstalls || [];
 export const pluginConfiguration = (state) => getPluginState(state).pluginConfiguration;
 
