@@ -34,7 +34,7 @@ func (p *Plugin) runImportCommand(args []string, extra *model.CommandArgs) (*mod
 	}
 	name := splitDNS[0]
 
-	cloudInstall, err := p.cloudClient.GetInstallationByDNS(hostname, nil)
+	cloudInstall, err := p.getCloudClient().GetInstallationByDNS(hostname, nil)
 	if err != nil {
 		return nil, false, errors.Wrap(err, "failed to get installation by DNS")
 	}
@@ -55,7 +55,7 @@ func (p *Plugin) runImportCommand(args []string, extra *model.CommandArgs) (*mod
 
 	if cloudInstall.OwnerID != extra.UserId {
 		cloudInstall.OwnerID = extra.UserId
-		_, err = p.cloudClient.UpdateInstallation(cloudInstall.ID, &cloud.PatchInstallationRequest{
+		_, err = p.getCloudClient().UpdateInstallation(cloudInstall.ID, &cloud.PatchInstallationRequest{
 			OwnerID: &cloudInstall.OwnerID,
 		})
 		if err != nil {
