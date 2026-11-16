@@ -255,7 +255,7 @@ func (p *Plugin) getUpdatedSharedInstallations(hideSensitive bool) ([]*Installat
 				IncludeGroupConfig: true,
 			})
 		if err != nil {
-			return nil, errors.Wrapf(err, "unable to get installation %s from cloud server", install.ID)
+			return nil, errors.Wrapf(&provisionerError{err: err}, "unable to get installation %s from cloud server", install.ID)
 		}
 		if updatedInstall == nil {
 			// Skip it rather than failing the shared list for every user.
