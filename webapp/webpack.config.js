@@ -59,6 +59,17 @@ module.exports = {
                 },
             },
             {
+
+                // Compass UI ships ES modules that import bare specifiers like 'react/jsx-runtime'.
+                test: /\.m?js$/,
+                include: /node_modules[\\/]@mattermost[\\/]compass-ui/,
+                resolve: {fullySpecified: false},
+            },
+            {
+                test: /\.css$/,
+                use: ['style-loader', 'css-loader'],
+            },
+            {
                 test: /\.scss$/,
                 use: [
                     'style-loader',
@@ -77,14 +88,29 @@ module.exports = {
             },
         ],
     },
-    externals: {
-        react: 'React',
-        'react-dom': 'ReactDOM',
-        redux: 'Redux',
-        'react-redux': 'ReactRedux',
-        'prop-types': 'PropTypes',
-        'react-bootstrap': 'ReactBootstrap',
-    },
+
+    // Libraries the Mattermost web app exposes on window. Mattermost 12 also exposes the
+    // React JSX runtimes, so JSX from this plugin and from bundled dependencies uses the host React.
+    externals: [
+        {
+            react: 'React',
+            'react-dom': 'ReactDOM',
+            'react-dom/client': 'ReactDOM',
+            'react/jsx-runtime': 'ReactJSXRuntime',
+            'react/jsx-dev-runtime': 'ReactJSXDevRuntime',
+            redux: 'Redux',
+            'react-redux': 'ReactRedux',
+            'prop-types': 'PropTypes',
+        },
+
+        // @mattermost/shared components (for example WithTooltip) load from the host on demand.
+        ({request}, callback) => {
+            if ((/^@mattermost\/shared\//).test(request)) {
+                return callback(null, `promise globalThis.loadSharedDependency('${request}')`);
+            }
+            return callback();
+        },
+    ],
     output: {
         devtoolNamespace: PLUGIN_ID,
         path: path.join(__dirname, '/dist'),

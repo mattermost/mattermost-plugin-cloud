@@ -1,36 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Scrollbars} from 'react-custom-scrollbars-2';
-import {Button, Label, DropdownButton, MenuItem} from 'react-bootstrap';
+import {Button, Scrollbar, Tag} from '@mattermost/compass-ui';
 
 import ConfirmationModal from './confirmation_modal';
-
-export function renderView(props) {
-    return (
-        <div
-            {...props}
-            className='scrollbar--view'
-        />
-    );
-}
-
-export function renderThumbHorizontal(props) {
-    return (
-        <div
-            {...props}
-            className='scrollbar--horizontal'
-        />
-    );
-}
-
-export function renderThumbVertical(props) {
-    return (
-        <div
-            {...props}
-            className='scrollbar--vertical'
-        />
-    );
-}
+import DebugMenu from './debug_menu';
 
 export default class SidebarRight extends React.PureComponent {
     static propTypes = {
@@ -80,25 +53,19 @@ export default class SidebarRight extends React.PureComponent {
     }
 
     installationButtons(installation, shared) {
-        const dropdownButtonItems = [
-            {onClick: () => window.open(installation.InstallationLogsURL, '_blank'), buttonText: 'Installation Logs'},
-            {onClick: () => window.open(installation.ProvisionerLogsURL, '_blank'), buttonText: 'Provisioner Logs'},
-            {onClick: () => this.handleGetDebugPacket(installation.Name), buttonText: 'Get Debug Packet'},
+        const debugMenuItems = [
+            {key: 'installation-logs', onClick: () => window.open(installation.InstallationLogsURL, '_blank'), label: 'Installation Logs'},
+            {key: 'provisioner-logs', onClick: () => window.open(installation.ProvisionerLogsURL, '_blank'), label: 'Provisioner Logs'},
+            {key: 'debug-packet', onClick: () => this.handleGetDebugPacket(installation.Name), label: 'Get Debug Packet'},
         ];
-        const menuItems = dropdownButtonItems.map((menuItem, index) => (
-            <MenuItem
-                key={'debug-menu-' + installation.ID + '-' + index}
-                onClick={menuItem.onClick}
-            >{menuItem.buttonText}
-            </MenuItem>
-        ));
         let actionButtons;
         if (!shared) {
             actionButtons = [
                 <Button
                     data-testid={'restart-' + installation.ID}
                     key={'restart-' + installation.ID}
-                    className='btn btn-tertiary btn-sm'
+                    emphasis='tertiary'
+                    size='small'
                     onClick={() => this.handleRestartButtonClick(installation)}
                 >{'Restart'}
                 </Button>,
@@ -107,19 +74,18 @@ export default class SidebarRight extends React.PureComponent {
         }
 
         return (
-            <div>
+            <div style={style.actions}>
                 <Button
-                    className='btn btn-primary btn-sm'
+                    emphasis='primary'
+                    size='small'
+                    disabled={!installation.DNSRecords?.length}
                     onClick={() => window.open('https://' + installation.DNSRecords[0].DomainName, '_blank')}
                 >{'Open'}
                 </Button>
-                <DropdownButton
-                    style={style.dropdownButton}
-                    className='btn btn-tertiary btn-sm'
+                <DebugMenu
                     title='Debug'
-                >
-                    {menuItems}
-                </DropdownButton>
+                    items={debugMenuItems}
+                />
                 {actionButtons}
             </div>
         );
@@ -166,7 +132,10 @@ export default class SidebarRight extends React.PureComponent {
         if (deletionLockedInstallationsIds.includes(installation.ID)) {
             return (
                 <Button
-                    className='btn btn-danger btn-sm'
+                    key={'unlock-' + installation.ID}
+                    emphasis='primary'
+                    destructive={true}
+                    size='small'
                     onClick={() => this.handleDeletionUnlockButtonClick(installation)}
                 >{'Unlock Deletion'}
                 </Button>
@@ -175,7 +144,9 @@ export default class SidebarRight extends React.PureComponent {
 
         return (
             <Button
-                className='btn btn-tertiary btn-sm'
+                key={'lock-' + installation.ID}
+                emphasis='tertiary'
+                size='small'
                 disabled={deletionLockedInstallationsIds.length >= this.props.maxLockedInstallations}
                 onClick={async () => {
                     await this.props.actions.deletionLockInstallation(installation.ID);
@@ -205,30 +176,46 @@ export default class SidebarRight extends React.PureComponent {
                     <div style={style.nameText}><b>{installation.Name}</b></div>
                 </div>
                 <div style={style.header}>
-                    <Label style={installation.State === 'stable' ? style.stable : style.inProgress}>
-                        <b>{installation.State}</b>
-                        <span
-                            style={style.badgeIcon}
-                            className={installation.State === 'stable' ? 'fa fa-check' : 'fa fa-spinner'}
-                        />
-                    </Label>
+                    <Tag
+                        type={installation.State === 'stable' ? 'success' : 'warning'}
+                        casing='title-case'
+                        label={(
+                            <>
+                                {installation.State}
+                                <span
+                                    style={style.badgeIcon}
+                                    className={installation.State === 'stable' ? 'fa fa-check' : 'fa fa-spinner'}
+                                />
+                            </>
+                        )}
+                    />
                     {installation.DeletionLocked &&
-                    <Label style={style.stable}>
-                        <b>deletion locked</b>
-                        <span
-                            style={style.badgeIcon}
-                            className='fa fa-lock'
-                        />
-                    </Label>
+                    <Tag
+                        type='info'
+                        label={(
+                            <>
+                                {'deletion locked'}
+                                <span
+                                    style={style.badgeIcon}
+                                    className='fa fa-lock'
+                                />
+                            </>
+                        )}
+                    />
                     }
                     {installation.Shared &&
-                    <Label style={style.stable}>
-                        {installation.AllowSharedUpdates ? 'shared-updates' : 'shared'}
-                        <span
-                            style={style.badgeIcon}
-                            className='fa fa-users'
-                        />
-                    </Label>
+                    <Tag
+                        type='info'
+                        label={(
+                            <>
+                                {installation.AllowSharedUpdates ? 'shared-updates' : 'shared'}
+                                <span
+                                    style={style.badgeIcon}
+                                    className='fa fa-users'
+                                />
+                            </>
+                        )}
+                    />
                     }
                 </div>
                 <div style={style.installinfo}>
@@ -356,37 +343,34 @@ export default class SidebarRight extends React.PureComponent {
                                 onCancel={this.state.confirmationModal.onCancel}
                             />
                     }
-                    <Scrollbars
-                        autoHide={true}
-                        autoHideTimeout={500}
-                        autoHideDuration={500}
-                        renderThumbHorizontal={renderThumbHorizontal}
-                        renderThumbVertical={renderThumbVertical}
-                        renderView={renderView}
+                    <Scrollbar
                         className='SidebarRight'
+                        style={style.scrollbar}
                     >
                         <div style={style.container}>
                             <div style={style.serverTypeSelect}>
                                 {serverType.map((type, idx) => (
                                     <Button
                                         key={idx}
-                                        className={this.state.serverTypeValue === type.value ? 'btn btn-tertiary' : 'btn btn-quaternary'}
-                                        value={type.value}
-                                        onClick={(e) => this.setServerTypeValue(e.currentTarget.value)}
+                                        type='button'
+                                        emphasis={this.state.serverTypeValue === type.value ? 'tertiary' : 'quaternary'}
+                                        aria-pressed={this.state.serverTypeValue === type.value}
+                                        leadingIcon={<i className={type.icon}/>}
+                                        trailingIcon={(
+                                            <Tag
+                                                type='info-dim'
+                                                label={String(type.count)}
+                                            />
+                                        )}
+                                        onClick={() => this.setServerTypeValue(type.value)}
                                     >
-                                        <i className={type.icon}/>
                                         {type.name}
-                                        <span
-                                            style={style.serverCountBadge}
-                                            className='badge'
-                                        >{type.count}
-                                        </span>
                                     </Button>
                                 ))}
                             </div>
                             {content}
                         </div>
-                    </Scrollbars>
+                    </Scrollbar>
                 </>
             </React.Fragment>
         );
@@ -447,7 +431,17 @@ const style = {
     },
     header: {
         display: 'flex',
+        flexWrap: 'wrap',
+        gap: '8px',
         marginBottom: '10px',
+    },
+    actions: {
+        display: 'flex',
+        flexWrap: 'wrap',
+        gap: '8px',
+    },
+    scrollbar: {
+        height: '100%',
     },
     installinfo: {
         fontSize: '12px',
@@ -457,34 +451,17 @@ const style = {
         marginBottom: '5px',
         fontSize: '16px',
     },
-    stable: {
-        fontSize: '12px',
-        color: 'var(--center-channel-bg)',
-        backgroundColor: 'var(--online-indicator)',
-        marginRight: '10px',
-    },
-    inProgress: {
-        fontSize: '12px',
-        color: 'var(--center-channel-bg)',
-        backgroundColor: 'var(--away-indicator)',
-        marginRight: '10px',
-    },
     sidebarMessage: {
         margin: 'auto',
         width: '50%',
         marginTop: '50px',
         textAlign: 'center',
     },
-    dropdownButton: {
-        margin: '0 8px',
-    },
     serverTypeSelect: {
+        display: 'flex',
+        gap: '8px',
         padding: '15px',
         borderBottom: '1px solid rgba(var(--center-channel-color-rgb), 0.1)',
-    },
-    serverCountBadge: {
-        color: 'var(--mention-color)',
-        backgroundColor: 'var(--mention-bg)',
     },
     badgeIcon: {
         marginLeft: '4px',

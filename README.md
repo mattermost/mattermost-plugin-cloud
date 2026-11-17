@@ -10,6 +10,33 @@ This plugin allows for the creation and management of Mattermost kubernetes inst
 
 ## Developing
 
+### Local stack (Docker)
+
+`make dev-start` starts Mattermost 12 and its database with Docker Compose, builds this plugin, and installs it. The stack has no provisioning server. The plugin connects to one on the host.
+
+```
+make dev-start
+```
+
+Each worktree gets its own stack. The Compose project is `mmcloud-<worktree directory name>`, so stacks of different worktrees do not clash.
+
+| Command | Action |
+| - | - |
+| `make dev-start` | Create the stack, configure it, and install the plugin. |
+| `make dev-deploy` | Build and install the plugin again after a code change. |
+| `make dev-info` | Show the stack name, the address, the login, and the state. |
+| `make dev-clean` | Delete the containers, volumes, and networks of the stack. |
+
+Notes:
+
+- **Address:** With OrbStack, open `http://mattermost.<project>.orb.local:8065`. With another Docker engine, the stack publishes one port on `127.0.0.1`. `make dev-info` prints the address.
+- **Login:** `admin` / `Sysadmin123!`. The team is `dev`.
+- **Provisioning server:** The stack has none, and the plugin does not activate without a provisioning server URL. The plugin uses `http://host.docker.internal:8075`, a server on your host. Set `DEV_PROVISIONER_URL` to use another URL. To create installations, set `DEV_WEBHOOK_SECRET` and the license files `DEV_E10_LICENSE_FILE`, `DEV_E20_LICENSE_FILE`, `DEV_PROFESSIONAL_LICENSE_FILE`, `DEV_ENTERPRISE_LICENSE_FILE` or `DEV_ENTERPRISE_ADVANCED_LICENSE_FILE`.
+- **Image:** The Mattermost image is `linux/amd64` only. Docker emulates it on Apple silicon, so the first start is slow.
+- **Settings:** `local/dev.mk` lists all variables.
+
+### Manual setup
+
 1. Run a Mattermost server and web app locally, see https://developers.mattermost.com/contribute/server/developer-setup/ and https://developers.mattermost.com/contribute/webapp/developer-setup/
 2. Log in to create the system admin account
 3. Run a cloud provisioning server locally, see https://github.com/mattermost/mattermost-cloud#developing

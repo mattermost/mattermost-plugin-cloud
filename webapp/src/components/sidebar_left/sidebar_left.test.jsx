@@ -9,10 +9,10 @@ jest.mock('mattermost-redux/utils/theme_utils', () => ({
     changeOpacity: jest.fn((color, opacity) => color),
 }));
 
-jest.mock('react-bootstrap', () => ({
-    Tooltip: jest.fn(({children}) => children),
-    OverlayTrigger: jest.fn(({children}) => children),
-}));
+// The Mattermost web app provides this module at runtime.
+jest.mock('@mattermost/shared/components/tooltip', () => ({
+    WithTooltip: jest.fn(({children}) => children),
+}), {virtual: true});
 
 describe('SidebarLeft', () => {
     const id = 'user123';
