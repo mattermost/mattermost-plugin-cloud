@@ -805,3 +805,63 @@ describe('SidebarRight discard confirm', () => {
         expect(screen.getByTestId('tab-mine')).toBeInTheDocument();
     });
 });
+
+describe('SidebarRight slow submissions', () => {
+    const deferred = () => {
+        let resolve;
+        const promise = new Promise((done) => {
+            resolve = done;
+        });
+        return {promise, resolve};
+    };
+
+    it('keeps a newer edit form when an older update finishes', async () => {
+        const slow = deferred();
+        const props = makeProps();
+        props.actions.updateInstallation = jest.fn().mockReturnValue(slow.promise);
+        await renderLoaded(props);
+
+        openInstallation('first');
+        fireEvent.click(screen.getByRole('button', {name: 'Edit'}));
+        fireEvent.change(screen.getByLabelText(/^Version/), {target: {value: '9.6.0'}});
+        fireEvent.click(screen.getByRole('button', {name: 'Apply'}));
+        await waitFor(() => expect(props.actions.updateInstallation).toHaveBeenCalled());
+
+        fireEvent.click(screen.getByRole('button', {name: 'Back'}));
+        fireEvent.click(screen.getByRole('button', {name: 'Discard'}));
+        fireEvent.click(screen.getByRole('button', {name: 'Back'}));
+        openInstallation('second');
+        fireEvent.click(screen.getByRole('button', {name: 'Edit'}));
+        fireEvent.change(screen.getByLabelText(/^Version/), {target: {value: '9.7.0'}});
+
+        await act(async () => {
+            slow.resolve({data: {}});
+        });
+
+        expect(screen.getByText('Edit second')).toBeInTheDocument();
+        expect(screen.getByLabelText(/^Version/)).toHaveValue('9.7.0');
+    });
+
+    it('keeps a newer form when an older create finishes', async () => {
+        const slow = deferred();
+        const props = makeProps();
+        props.actions.createInstallation = jest.fn().mockReturnValue(slow.promise);
+        await renderLoaded(props);
+
+        fireEvent.click(screen.getByTestId('add-installation'));
+        fireEvent.change(screen.getByLabelText(/^Name( \*)?$/), {target: {value: 'brand-new'}});
+        fireEvent.click(screen.getByRole('button', {name: 'Create'}));
+        await waitFor(() => expect(props.actions.createInstallation).toHaveBeenCalled());
+
+        fireEvent.click(screen.getByRole('button', {name: 'Back'}));
+        fireEvent.click(screen.getByRole('button', {name: 'Discard'}));
+        fireEvent.click(screen.getByTestId('add-installation'));
+        fireEvent.change(screen.getByLabelText(/^Name( \*)?$/), {target: {value: 'second-try'}});
+
+        await act(async () => {
+            slow.resolve({data: {}});
+        });
+
+        expect(screen.getByLabelText(/^Name( \*)?$/)).toHaveValue('second-try');
+    });
+});

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import PropTypes from 'prop-types';
 import {EmptyState, RightSidebarHeader, Scrollbar, Spinner} from '@mattermost/compass-ui';
 
@@ -26,6 +26,8 @@ export default function SidebarRight({id, installs, sharedInstalls, sharedError,
     const [loading, setLoading] = useState(true);
     const [dirty, setDirty] = useState(false);
     const [discardOpen, setDiscardOpen] = useState(false);
+    const stackRef = useRef(stack);
+    stackRef.current = stack;
 
     const {setVisible, getCloudUserData, getSharedInstalls, getPluginConfiguration} = actions;
 
@@ -103,9 +105,13 @@ export default function SidebarRight({id, installs, sharedInstalls, sharedError,
         );
     }
 
+    // A submission can finish after the user left its form. Each route is a new object, so identity tells whether the form is still open.
+    const isOpen = (origin) => stackRef.current[stackRef.current.length - 1] === origin;
+
     const onCreate = async (payload) => {
+        const origin = route;
         const result = await actions.createInstallation(payload);
-        if (!result.error) {
+        if (!result.error && isOpen(origin)) {
             setTab(TAB_MINE);
             home();
         }
@@ -113,8 +119,9 @@ export default function SidebarRight({id, installs, sharedInstalls, sharedError,
     };
 
     const onUpdate = async (payload) => {
+        const origin = route;
         const result = await actions.updateInstallation(payload);
-        if (!result.error) {
+        if (!result.error && isOpen(origin)) {
             back();
         }
         return result;

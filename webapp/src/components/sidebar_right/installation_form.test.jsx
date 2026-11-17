@@ -125,6 +125,31 @@ describe('InstallationForm create', () => {
 });
 
 describe('InstallationForm edit', () => {
+    it('does not send an untouched version after a refresh changed it', async () => {
+        const onSubmit = jest.fn().mockResolvedValue({data: {}});
+        const renderForm = (current) => (
+            <InstallationForm
+                mode='edit'
+                installation={current}
+                options={options}
+                onSubmit={onSubmit}
+                onCancel={jest.fn()}
+            />
+        );
+        const {rerender} = render(renderForm(installation));
+
+        rerender(renderForm({...installation, Tag: '9.9.9'}));
+        fireEvent.click(screen.getByRole('button', {name: 'Add variable'}));
+        fireEvent.change(screen.getByLabelText('Variable name 1'), {target: {value: 'NEW_FLAG'}});
+        fireEvent.change(screen.getByLabelText('Variable value 1'), {target: {value: '1'}});
+        await act(async () => {
+            fireEvent.click(screen.getByRole('button', {name: 'Apply'}));
+        });
+
+        expect(onSubmit).toHaveBeenCalledTimes(1);
+        expect(onSubmit.mock.calls[0][0]).toEqual({installation_id: installation.ID, set_env: {NEW_FLAG: '1'}});
+    });
+
     const renderEdit = (onSubmit = jest.fn().mockResolvedValue({data: {}})) => {
         render(
             <InstallationForm

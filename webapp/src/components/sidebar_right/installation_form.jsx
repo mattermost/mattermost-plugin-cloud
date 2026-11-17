@@ -57,18 +57,20 @@ function initialValues(mode, installation, options) {
     };
 }
 
-// Builds the update request. Only fields that differ from the installation are sent.
-export function buildUpdatePayload(installation, values, envRows, clearEnvText) {
+// Builds the update request. A field is sent only when the user edited it and it differs from the installation.
+// A background refresh can change the installation after the form opened. Untouched fields must not undo that change.
+export function buildUpdatePayload(installation, values, envRows, clearEnvText, initial) {
     const payload = {installation_id: installation.ID};
     const version = values.version.trim();
+    const edited = (field) => !initial || values[field] !== initial[field];
 
-    if (version && version !== getVersionLabel(installation)) {
+    if (edited('version') && version && version !== getVersionLabel(installation)) {
         payload.version = version;
     }
-    if (values.size && values.size !== installation.Size) {
+    if (edited('size') && values.size && values.size !== installation.Size) {
         payload.size = values.size;
     }
-    if (values.image && values.image !== installation.Image) {
+    if (edited('image') && values.image && values.image !== installation.Image) {
         payload.image = values.image;
     }
     if (values.license) {
@@ -132,7 +134,7 @@ export default function InstallationForm({mode, installation, options, onSubmit,
 
     let hasChanges;
     if (editing) {
-        hasChanges = Object.keys(buildUpdatePayload(installation, values, envRows, clearEnvText)).length > 1;
+        hasChanges = Object.keys(buildUpdatePayload(installation, values, envRows, clearEnvText, initial)).length > 1;
     } else {
         hasChanges = values.name.trim() !== '' && values.version.trim() !== '';
     }
@@ -160,7 +162,7 @@ export default function InstallationForm({mode, installation, options, onSubmit,
 
         setBusy(true);
         setError('');
-        const payload = editing ? buildUpdatePayload(installation, values, envRows, clearEnvText) : buildCreatePayload(values, envRows);
+        const payload = editing ? buildUpdatePayload(installation, values, envRows, clearEnvText, initial) : buildCreatePayload(values, envRows);
         const result = await onSubmit(payload);
         if (result && result.error) {
             setError(result.error);
