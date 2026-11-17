@@ -98,15 +98,21 @@ export function getCloudUserData(userID) {
             return {};
         }
 
-        const data = await Client.getUserInstalls(userID);
+        let data;
+        try {
+            data = await Client.getUserInstalls(userID);
+        } catch (error) {
+            data = {error: {status: error.status_code, message: error.message}};
+        }
+
         if (data && data.error) {
-            if (data.error.status === 404) {
-                dispatch({
-                    type: RECEIVED_USER_INSTALLS,
-                    userID,
-                    data: {last_try: Date.now()},
-                });
-            }
+            // Keep the last known installs (consumers expect an array) and only
+            // stamp the retry throttle on them.
+            dispatch({
+                type: RECEIVED_USER_INSTALLS,
+                userID,
+                data: Object.assign(Array.isArray(installs) ? [...installs] : [], {last_try: Date.now()}),
+            });
             dispatch(setServerError(`Status: ${data.error.status}, Message: ${data.error.message}`));
             return data;
         }
@@ -128,7 +134,12 @@ export function getCloudUserData(userID) {
 
 export function getSharedInstalls() {
     return async (dispatch, getState) => {
-        const data = await Client.getSharedInstalls();
+        let data;
+        try {
+            data = await Client.getSharedInstalls();
+        } catch (error) {
+            data = {error: {status: error.status_code, message: error.message}};
+        }
 
         if (data && data.error) {
             dispatch(setServerError(`Status: ${data.error.status}, Message: ${data.error.message}`));

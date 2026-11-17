@@ -112,6 +112,11 @@ func (p *Plugin) handleUserInstalls(w http.ResponseWriter, r *http.Request) {
 	installsForUser, err := p.getUpdatedInstallsForUserWithSensitive(req.UserID)
 	if err != nil {
 		p.API.LogError(errors.Wrap(err, "Unable to getUpdatedInstallsForUserWithSensitive").Error())
+		var provErr *provisionerError
+		if errors.As(err, &provErr) {
+			http.Error(w, "Provisioning server unavailable", http.StatusBadGateway)
+			return
+		}
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
@@ -153,6 +158,11 @@ func (p *Plugin) handleSharedInstalls(w http.ResponseWriter, r *http.Request) {
 	sharedInstalls, err := p.getUpdatedSharedInstallations(false)
 	if err != nil {
 		p.API.LogError(errors.Wrap(err, "Unable to getUpdatedSharedInstallations").Error())
+		var provErr *provisionerError
+		if errors.As(err, &provErr) {
+			http.Error(w, "Provisioning server unavailable", http.StatusBadGateway)
+			return
+		}
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return
 	}
