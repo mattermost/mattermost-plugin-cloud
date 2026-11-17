@@ -14,6 +14,15 @@ import (
 // installation the plugin still tracks in its KV store.
 var errInstallationNotFound = errors.New("installation not found on the provisioning server")
 
+// provisionerError marks a failed request to the provisioning server, for
+// example when the server cannot be reached.
+type provisionerError struct {
+	err error
+}
+
+func (e *provisionerError) Error() string { return e.err.Error() }
+func (e *provisionerError) Unwrap() error { return e.err }
+
 type listConfig struct {
 	Shared bool
 }
@@ -127,7 +136,7 @@ func (p *Plugin) getUpdatedInstallsForUser(userID string, options installationRe
 		Paging:             cloud.AllPagesNotDeleted(),
 	})
 	if err != nil {
-		return nil, errors.Wrap(err, "unable to get installations from cloud server")
+		return nil, errors.Wrap(&provisionerError{err: err}, "unable to get installations from cloud server")
 	}
 
 	var deleted bool
@@ -210,7 +219,7 @@ func (p *Plugin) processInstallationUpdate(pluginInstall *Installation, cloudIns
 			IncludeGroupConfig: true,
 		})
 	if err != nil {
-		return false, errors.Wrapf(err, "unable to get installation %s from cloud server", pluginInstall.ID)
+		return false, errors.Wrapf(&provisionerError{err: err}, "unable to get installation %s from cloud server", pluginInstall.ID)
 	}
 	if updatedInstall == nil {
 		return false, errors.Wrapf(errInstallationNotFound, "installation %s", pluginInstall.ID)
