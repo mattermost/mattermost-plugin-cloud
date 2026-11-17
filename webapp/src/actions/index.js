@@ -79,13 +79,12 @@ export function getCloudUserData(userID) {
 
         const data = await fetchOrError(() => Client.getUserInstalls(userID));
         if (data && data.error) {
-            if (data.error.status === 404) {
-                dispatch({
-                    type: RECEIVED_USER_INSTALLS,
-                    userID,
-                    data: {last_try: Date.now()},
-                });
-            }
+            // Keep the last known installs (consumers expect an array) and only stamp the retry throttle on them.
+            dispatch({
+                type: RECEIVED_USER_INSTALLS,
+                userID,
+                data: Object.assign(Array.isArray(installs) ? [...installs] : [], {last_try: Date.now()}),
+            });
             dispatch(setServerError(`Status: ${data.error.status}, Message: ${data.error.message}`));
             return data;
         }

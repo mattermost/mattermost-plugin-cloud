@@ -1,8 +1,8 @@
 import Client from '../client';
 
-import {SET_SHARED_ERROR, SET_SERVER_ERROR, RECEIVED_SHARED_INSTALLS} from '../action_types';
+import {SET_SHARED_ERROR, SET_SERVER_ERROR, RECEIVED_SHARED_INSTALLS, RECEIVED_USER_INSTALLS} from '../action_types';
 
-import {createInstallation, deleteInstallation, deletionLockInstallation, getSharedInstalls, refreshInstallations} from './index';
+import {createInstallation, deleteInstallation, deletionLockInstallation, getCloudUserData, getSharedInstalls, refreshInstallations} from './index';
 
 jest.mock('mattermost-redux/client', () => ({Client4: {}}));
 jest.mock('mattermost-redux/selectors/entities/channels', () => ({getCurrentChannel: jest.fn()}));
@@ -75,6 +75,20 @@ describe('installation actions', () => {
 
         expect(Client.getUserInstalls).not.toHaveBeenCalled();
         expect(Client.getSharedInstalls).toHaveBeenCalled();
+    });
+
+    describe('getCloudUserData', () => {
+        it.each([404, 500, 502])('stores an array with last_try and sets the server error on %i', async (status) => {
+            Client.getUserInstalls.mockRejectedValue({status_code: status, message: 'boom'});
+
+            const result = await getCloudUserData('me')(dispatch, getState);
+
+            expect(result).toEqual({error: {status, message: 'boom'}});
+            const received = dispatch.mock.calls.map((c) => c[0]).find((a) => a.type === RECEIVED_USER_INSTALLS);
+            expect(Array.isArray(received.data)).toBe(true);
+            expect(received.data.last_try).toEqual(expect.any(Number));
+            expect(dispatch).toHaveBeenCalledWith({type: SET_SERVER_ERROR, error: `Status: ${status}, Message: boom`});
+        });
     });
 
     describe('getSharedInstalls', () => {
