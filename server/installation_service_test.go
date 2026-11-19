@@ -55,6 +55,7 @@ func TestInstallationServiceSanitizeAndSummary(t *testing.T) {
 	assert.NotContains(t, string(wrapperJSON), "super-secret-license")
 	assert.NotContains(t, string(wrapperJSON), "secret-value")
 	assert.NotContains(t, string(wrapperJSON), "safe-value")
+	assert.Equal(t, []string{"SAFE", "SECRET"}, wrapper.EnvVarNames)
 
 	placeholderSummary, err := installationSummary(&Installation{Name: "Deleted [ DELETED ]"}, true)
 	require.NoError(t, err)
@@ -539,4 +540,21 @@ func serviceDTOs(installs ...*Installation) []*cloud.InstallationDTO {
 		})
 	}
 	return dtos
+}
+
+func TestGetInstallationEnvVarNames(t *testing.T) {
+	assert.Equal(t, []string{}, getInstallationEnvVarNames(nil))
+	assert.Equal(t, []string{}, getInstallationEnvVarNames(&Installation{}))
+
+	install := serviceTestInstall("install-id", "OwnerInstall", "owner")
+	install.MattermostEnv = cloud.EnvVarMap{
+		"ZED":                       cloud.EnvVar{Value: "z"},
+		"ALPHA":                     cloud.EnvVar{Value: "a"},
+		serviceEnvironmentEnvVarKey: cloud.EnvVar{Value: "dev"},
+	}
+	install.PriorityEnv = cloud.EnvVarMap{
+		"ZED": cloud.EnvVar{Value: "override"},
+		"MID": cloud.EnvVar{Value: "m"},
+	}
+	assert.Equal(t, []string{"ALPHA", "MID", "ZED"}, getInstallationEnvVarNames(install))
 }

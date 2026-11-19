@@ -83,6 +83,8 @@ func (p *Plugin) processWebhookEvent(payload *cloud.WebhookPayload) {
 
 		return
 	case cloud.TypeInstallation:
+		p.publishInstallationWebhookEvent(payload.ID, payload.NewState)
+
 		err = p.handleInstallationWebhook(payload)
 		if err != nil {
 			p.API.LogError(err.Error())

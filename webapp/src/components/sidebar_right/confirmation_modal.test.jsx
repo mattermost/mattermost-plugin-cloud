@@ -80,4 +80,27 @@ describe('DeletionUnlockConfirmationModal', () => {
         expect(screen.queryByText(title)).toBeNull();
         expect(screen.queryByText(bodyText)).toBeNull();
     });
+
+    it('requires the typed text before the confirm button is enabled', () => {
+        render(
+            <ConfirmationModal
+                title='title'
+                bodyText='text'
+                visible={true}
+                confirmLabel='Delete'
+                requiredText='my-server'
+                onConfirm={mockOnConfirm}
+                onCancel={mockOnCancel}
+            />,
+        );
+
+        const confirm = screen.getByRole('button', {name: 'Delete'});
+        expect(confirm).toBeDisabled();
+
+        fireEvent.change(screen.getByLabelText('Type my-server to confirm'), {target: {value: 'my-serve'}});
+        expect(confirm).toBeDisabled();
+
+        fireEvent.change(screen.getByLabelText('Type my-server to confirm'), {target: {value: 'my-server'}});
+        expect(confirm).toBeEnabled();
+    });
 });

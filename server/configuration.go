@@ -110,11 +110,67 @@ func (c *configuration) ProvisioningServerAuthIsValid() bool {
 // ConfigResponse is a struct representing a sanitized configuration object, intended to be passed to the front-end for usage
 type ConfigResponse struct {
 	DeletionLockInstallationsAllowedPerPerson string
+	Options                                   InstallationOptions
+}
+
+// InstallationOptions lists the values the webapp offers in the installation
+// create and update forms.
+type InstallationOptions struct {
+	Sizes      []string
+	Licenses   []string
+	Images     []string
+	Affinities []string
+	Databases  []string
+	Filestores []string
+
+	DefaultSize      string
+	DefaultVersion   string
+	DefaultLicense   string
+	DefaultImage     string
+	DefaultAffinity  string
+	DefaultDatabase  string
+	DefaultFilestore string
 }
 
 func (c *configuration) ToConfigResponse() *ConfigResponse {
+	defaultDatabase := c.DefaultDatabase
+	if defaultDatabase == "" {
+		defaultDatabase = cloud.InstallationDatabaseMultiTenantRDSPostgresPGBouncer
+	}
+	defaultFilestore := c.DefaultFilestore
+	if defaultFilestore == "" {
+		defaultFilestore = cloud.InstallationFilestoreBifrost
+	}
+
 	return &ConfigResponse{
 		DeletionLockInstallationsAllowedPerPerson: c.DeletionLockInstallationsAllowedPerPerson,
+		Options: InstallationOptions{
+			Sizes:    append([]string{}, validInstallationSizes...),
+			Licenses: append([]string{}, validLicenseOptions...),
+			Images:   append([]string{}, dockerRepoWhitelist...),
+			Affinities: []string{
+				cloud.InstallationAffinityMultiTenant,
+				cloud.InstallationAffinityIsolated,
+			},
+			Databases: []string{
+				cloud.InstallationDatabaseMultiTenantRDSPostgresPGBouncer,
+				cloud.InstallationDatabasePerseus,
+				cloud.InstallationDatabaseMysqlOperator,
+			},
+			Filestores: []string{
+				cloud.InstallationFilestoreBifrost,
+				cloud.InstallationFilestoreMultiTenantAwsS3,
+				cloud.InstallationFilestoreAwsS3,
+				cloud.InstallationFilestoreMinioOperator,
+			},
+			DefaultSize:      validInstallationSizes[0],
+			DefaultVersion:   "latest",
+			DefaultLicense:   licenseOptionEnterprise,
+			DefaultImage:     defaultImage,
+			DefaultAffinity:  cloud.InstallationAffinityMultiTenant,
+			DefaultDatabase:  defaultDatabase,
+			DefaultFilestore: defaultFilestore,
+		},
 	}
 }
 

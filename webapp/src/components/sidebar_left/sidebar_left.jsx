@@ -19,7 +19,8 @@ const SidebarLeft = ({id, installs, actions, showRHS, theme}) => {
                 title='Your Cloud installations'
                 forcedPlacement='right'
             >
-                <a
+                <button
+                    type='button'
                     data-testid={'yourCloudInstallationsTestId'}
                     style={style}
                     onClick={() => {
@@ -28,7 +29,7 @@ const SidebarLeft = ({id, installs, actions, showRHS, theme}) => {
                 >
                     <i className='fa fa-cloud'/>
                     {' ' + installs.length}
-                </a>
+                </button>
             </WithTooltip>
         </div>
     );
@@ -48,6 +49,11 @@ const getStyle = makeStyleFromTheme((theme) => {
     return {
         color: changeOpacity(theme.sidebarText, 0.6),
         display: 'block',
+        padding: 0,
+        border: 'none',
+        background: 'none',
+        cursor: 'pointer',
+        textAlign: 'left',
         marginBottom: '10px',
         width: '100%',
     };

@@ -4,6 +4,9 @@ import (
 	"net/http"
 	"testing"
 
+	cloud "github.com/mattermost/mattermost-cloud/model"
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 )
 
@@ -67,4 +70,22 @@ func TestAuthenticateWebhook(t *testing.T) {
 
 		require.NoError(t, plugin.authenticateWebhook(request))
 	})
+}
+
+func TestProcessWebhookEventPublishesInstallationState(t *testing.T) {
+	install := serviceTestInstall("install-id", "Install", "owner")
+	plugin, _, api := newServiceTestPlugin(t, []*Installation{install})
+	api.On("LogDebug", mock.Anything).Return()
+	api.On("PublishWebSocketEvent", websocketEventInstallationUpdated, mock.Anything, mock.Anything).Return()
+
+	plugin.processWebhookEvent(&cloud.WebhookPayload{
+		Type:     cloud.TypeInstallation,
+		ID:       "install-id",
+		OldState: cloud.InstallationStateUpdateRequested,
+		NewState: cloud.InstallationStateUpdateInProgress,
+	})
+
+	api.AssertCalled(t, "PublishWebSocketEvent", websocketEventInstallationUpdated,
+		map[string]any{"installation_id": "install-id", "owner_id": "owner", "state": cloud.InstallationStateUpdateInProgress, "shared": false},
+		&model.WebsocketBroadcast{UserId: "owner"})
 }

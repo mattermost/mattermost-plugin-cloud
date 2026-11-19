@@ -3,79 +3,57 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 
 import Client from '../client';
 
 import {id as pluginId} from '../manifest';
 
-import {installsForUser, serverError} from 'selectors';
+import {rawInstallsEntry} from '../selectors';
 
 import {
     RECEIVED_USER_INSTALLS,
     RECEIVED_SHARED_INSTALLS,
     RECEIVED_SHOW_RHS_ACTION,
     SET_RHS_VISIBLE,
-    SET_SERVER_ERROR,
+    SET_LIST_ERROR,
+    SET_CONFIG_ERROR,
     RECEIVED_CONFIG,
+    RECEIVED_INSTALLATION_EVENT,
+    SET_SHARED_ERROR,
 } from '../action_types';
 
 const CLOUD_USER_GET_TIMEOUT_MILLISECONDS = 1000 * 60; // 1 minute
 
-export function setServerError(errorString) {
-    return {
-        type: SET_SERVER_ERROR,
-        error: errorString,
-    };
+// The client throws on HTTP errors. Callers expect {error: {status, message}}.
+async function fetchOrError(call) {
+    try {
+        return await call();
+    } catch (error) {
+        return {error: {status: error && error.status_code, message: error && error.message}};
+    }
 }
 
-export function deletionLockInstallation(installationID) {
-    return async (dispatch, getState) => {
-        const data = await Client.deletionLockInstallation(installationID);
+// Responses for one list can arrive out of order. Only the newest request may update the store.
+const latestRequest = {mine: 0, shared: 0};
 
-        if (data.error) {
-            dispatch(setServerError(`Status: ${data.error.status}, Message: ${data.error.message}`));
-            return data;
-        }
-
-        // Clear server error
-        if (serverError(getState())) {
-            dispatch(setServerError(''));
-        }
-
-        return {data};
-    };
+function startRequest(list) {
+    latestRequest[list] += 1;
+    return latestRequest[list];
 }
 
-export function deletionUnlockInstallation(installationID) {
-    return async (dispatch, getState) => {
-        const data = await Client.deletionUnlockInstallation(installationID);
+const isLatestRequest = (list, ticket) => latestRequest[list] === ticket;
 
-        if (data.error) {
-            dispatch(setServerError(`Status: ${data.error.status}, Message: ${data.error.message}`));
-            return data;
-        }
-
-        // Clear server error
-        if (serverError(getState())) {
-            dispatch(setServerError(''));
-        }
-
-        return {data};
-    };
-}
+export const deletionLockInstallation = (installationID) => installationMutation(() => Client.deletionLockInstallation(installationID));
+export const deletionUnlockInstallation = (installationID) => installationMutation(() => Client.deletionUnlockInstallation(installationID));
 
 export function getPluginConfiguration() {
-    return async (dispatch, getState) => {
-        const data = await Client.getPluginConfiguration();
+    return async (dispatch) => {
+        const data = await fetchOrError(() => Client.getPluginConfiguration());
 
-        if (data.error) {
-            dispatch(setServerError(`Status: ${data.error.status}, Message: ${data.error.message}`));
+        if (data && data.error) {
+            dispatch({type: SET_CONFIG_ERROR, error: `Status: ${data.error.status}, Message: ${data.error.message}`});
             return data;
-        }
-
-        // Clear server error
-        if (serverError(getState())) {
-            dispatch(setServerError(''));
         }
 
         dispatch({
@@ -93,33 +71,26 @@ export function getCloudUserData(userID) {
             return {};
         }
 
-        const installs = installsForUser(getState(), userID);
+        const installs = rawInstallsEntry(getState(), userID);
         if (installs && installs.last_try && Date.now() - installs.last_try < CLOUD_USER_GET_TIMEOUT_MILLISECONDS) {
             return {};
         }
 
-        let data;
-        try {
-            data = await Client.getUserInstalls(userID);
-        } catch (error) {
-            data = {error: {status: error.status_code, message: error.message}};
+        const ticket = startRequest('mine');
+        const data = await fetchOrError(() => Client.getUserInstalls(userID));
+        if (!isLatestRequest('mine', ticket)) {
+            return data && data.error ? data : {data};
         }
 
         if (data && data.error) {
-            // Keep the last known installs (consumers expect an array) and only
-            // stamp the retry throttle on them.
+            // Keep the last known installs (consumers expect an array) and only stamp the retry throttle on them.
             dispatch({
                 type: RECEIVED_USER_INSTALLS,
                 userID,
                 data: Object.assign(Array.isArray(installs) ? [...installs] : [], {last_try: Date.now()}),
             });
-            dispatch(setServerError(`Status: ${data.error.status}, Message: ${data.error.message}`));
+            dispatch({type: SET_LIST_ERROR, error: `Status: ${data.error.status}, Message: ${data.error.message}`});
             return data;
-        }
-
-        // Clear server error
-        if (serverError(getState())) {
-            dispatch(setServerError(''));
         }
 
         dispatch({
@@ -132,23 +103,22 @@ export function getCloudUserData(userID) {
     };
 }
 
+// A failed shared list must not hide the user's own installations, so it has its own error state.
 export function getSharedInstalls() {
-    return async (dispatch, getState) => {
-        let data;
-        try {
-            data = await Client.getSharedInstalls();
-        } catch (error) {
-            data = {error: {status: error.status_code, message: error.message}};
+    return async (dispatch) => {
+        const ticket = startRequest('shared');
+        const data = await fetchOrError(() => Client.getSharedInstalls());
+        if (!isLatestRequest('shared', ticket)) {
+            return data && data.error ? data : {data};
         }
 
         if (data && data.error) {
-            dispatch(setServerError(`Status: ${data.error.status}, Message: ${data.error.message}`));
+            const message = data.error.message ? String(data.error.message).trim() : '';
+            dispatch({
+                type: SET_SHARED_ERROR,
+                error: message || `Status: ${data.error.status}`,
+            });
             return data;
-        }
-
-        // Clear server error
-        if (serverError(getState())) {
-            dispatch(setServerError(''));
         }
 
         dispatch({
@@ -157,6 +127,74 @@ export function getSharedInstalls() {
         });
 
         return {data};
+    };
+}
+
+const errorMessage = (error) => {
+    const message = error && error.message ? String(error.message).trim() : '';
+    return message || 'Unexpected error';
+};
+
+export function refreshInstallations({mine = true, shared = true} = {}) {
+    return async (dispatch, getState) => {
+        const userID = getCurrentUserId(getState());
+
+        // Background refreshes ignore failures. The next event or the next explicit load retries.
+        const tasks = [];
+        if (mine && userID) {
+            const ticket = startRequest('mine');
+            tasks.push(Client.getUserInstalls(userID).then((data) => {
+                if (isLatestRequest('mine', ticket)) {
+                    dispatch({type: RECEIVED_USER_INSTALLS, userID, data});
+                }
+            }));
+        }
+        if (shared) {
+            const ticket = startRequest('shared');
+            tasks.push(Client.getSharedInstalls().then((data) => {
+                if (isLatestRequest('shared', ticket)) {
+                    dispatch({type: RECEIVED_SHARED_INSTALLS, data});
+                }
+            }));
+        }
+
+        await Promise.all(tasks.map((task) => task.catch(() => null)));
+    };
+}
+
+// Runs a mutation, then reloads the lists. Resolves to {data} or {error: string}.
+function installationMutation(call) {
+    return async (dispatch) => {
+        let data;
+        try {
+            data = await call();
+        } catch (error) {
+            return {error: errorMessage(error)};
+        }
+
+        await dispatch(refreshInstallations());
+        return {data};
+    };
+}
+
+export const createInstallation = (input) => installationMutation(() => Client.createInstallation(input));
+export const updateInstallation = (input) => installationMutation(() => Client.updateInstallation(input));
+export const restartInstallation = (installationID) => installationMutation(() => Client.restartInstallation(installationID));
+export const hibernateInstallation = (installationID) => installationMutation(() => Client.hibernateInstallation(installationID));
+export const wakeInstallation = (installationID) => installationMutation(() => Client.wakeInstallation(installationID));
+export const deleteInstallation = (installationID, confirmName) => installationMutation(() => Client.deleteInstallation(installationID, confirmName));
+export const shareInstallation = (installationID, shared, allowUpdates) => installationMutation(() => Client.shareInstallation(installationID, shared, allowUpdates));
+
+// Patches the state of a known installation right away. Callers reload the lists afterwards.
+export function receivedInstallationEvent(data) {
+    return {
+        type: RECEIVED_INSTALLATION_EVENT,
+        event: {
+            installationID: data.installation_id,
+            ownerID: data.owner_id,
+            state: data.state,
+            shared: Boolean(data.shared),
+        },
     };
 }
 
@@ -198,10 +236,6 @@ export function executeCommand(command) {
 
         return {data: null};
     };
-}
-
-export function restartInstallation(name) {
-    return executeCommand(`/cloud restart ${name}`);
 }
 
 export function getDebugPacket(name) {
