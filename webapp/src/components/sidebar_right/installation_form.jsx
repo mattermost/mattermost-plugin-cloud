@@ -112,6 +112,7 @@ export default function InstallationForm({mode, installation, options, onSubmit,
     const [initial] = useState(() => initialValues(mode, installation, config));
     const [values, setValues] = useState(initial);
     const [nameTouched, setNameTouched] = useState(false);
+    const [versionTouched, setVersionTouched] = useState(false);
     const [envRows, setEnvRows] = useState([]);
     const [clearEnvText, setClearEnvText] = useState('');
     const [busy, setBusy] = useState(false);
@@ -130,6 +131,8 @@ export default function InstallationForm({mode, installation, options, onSubmit,
 
     const nameInvalid = !editing && values.name !== '' && !NAME_PATTERN.test(values.name);
     const showNameError = nameInvalid && nameTouched;
+    const versionMissing = values.version.trim() === '';
+    const showVersionError = versionMissing && versionTouched;
     const envInvalid = envRows.some((row) => row.value !== '' && row.key.trim() === '');
 
     let hasChanges;
@@ -152,7 +155,7 @@ export default function InstallationForm({mode, installation, options, onSubmit,
         }
     }, [onDirtyChange]);
 
-    const canSubmit = hasChanges && !nameInvalid && !envInvalid && !busy;
+    const canSubmit = hasChanges && !nameInvalid && !versionMissing && !envInvalid && !busy;
 
     const submit = async (e) => {
         e.preventDefault();
@@ -215,7 +218,10 @@ export default function InstallationForm({mode, installation, options, onSubmit,
                                 label={requiredLabel('Version')}
                                 required={true}
                                 value={values.version}
+                                invalid={showVersionError}
+                                message={showVersionError ? 'Enter a version.' : ''}
                                 onChange={(e) => setValue('version')(e.target.value)}
+                                onBlur={() => setVersionTouched(true)}
                             />
                         </fieldset>
 
@@ -237,6 +243,18 @@ export default function InstallationForm({mode, installation, options, onSubmit,
                                 value={values.license}
                                 onChange={setValue('license')}
                             />
+                            {editing && values.license !== '' && (
+                                <div>
+                                    <Button
+                                        type='button'
+                                        emphasis='tertiary'
+                                        size='small'
+                                        onClick={() => setValue('license')('')}
+                                    >
+                                        {'Keep current license'}
+                                    </Button>
+                                </div>
+                            )}
                             <Select
                                 label='Image'
                                 options={selectOptions.images}

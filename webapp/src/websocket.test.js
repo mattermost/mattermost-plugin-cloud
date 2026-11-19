@@ -19,12 +19,14 @@ jest.mock('mattermost-redux/selectors/entities/common', () => ({
 describe('installation websocket handler', () => {
     let store;
     let visible;
+    let sharedInstalls;
 
     beforeEach(() => {
         jest.useFakeTimers();
         refreshInstallations.mockClear();
         visible = true;
-        store = {dispatch: jest.fn(), getState: () => ({'plugins-com.mattermost.cloud': {isRhsVisible: visible}})};
+        sharedInstalls = [];
+        store = {dispatch: jest.fn(), getState: () => ({'plugins-com.mattermost.cloud': {isRhsVisible: visible, sharedInstalls}})};
     });
 
     afterEach(() => {
@@ -60,6 +62,16 @@ describe('installation websocket handler', () => {
         jest.advanceTimersByTime(100);
 
         expect(refreshInstallations).toHaveBeenCalledWith({mine: false, shared: true});
+    });
+
+    it('reloads the shared list when the owner unshares an installation in that list', () => {
+        const handle = createInstallationEventHandler(store, 100);
+        sharedInstalls = [{ID: 'a'}];
+
+        handle(message({installation_id: 'a', owner_id: 'me', state: 'stable', shared: false}));
+        jest.advanceTimersByTime(100);
+
+        expect(refreshInstallations).toHaveBeenCalledWith({mine: true, shared: true});
     });
 
     it('coalesces a burst of events into one reload', () => {

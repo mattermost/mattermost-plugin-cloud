@@ -91,6 +91,42 @@ describe('installation actions', () => {
         });
     });
 
+    describe('out-of-order responses', () => {
+        const deferred = () => {
+            let resolve;
+            const promise = new Promise((done) => {
+                resolve = done;
+            });
+            return {promise, resolve};
+        };
+
+        it('drops a shared list response that a newer request superseded', async () => {
+            const slow = deferred();
+            Client.getSharedInstalls.mockReturnValueOnce(slow.promise).mockResolvedValueOnce([{ID: 'new'}]);
+
+            const first = getSharedInstalls()(dispatch, getState);
+            await refreshInstallations({mine: false, shared: true})(dispatch, getState);
+            slow.resolve([{ID: 'old'}]);
+            await first;
+
+            const received = dispatch.mock.calls.map((c) => c[0]).filter((a) => a.type === RECEIVED_SHARED_INSTALLS);
+            expect(received).toEqual([{type: RECEIVED_SHARED_INSTALLS, data: [{ID: 'new'}]}]);
+        });
+
+        it('drops a user list response that a newer request superseded', async () => {
+            const slow = deferred();
+            Client.getUserInstalls.mockReturnValueOnce(slow.promise).mockResolvedValueOnce([{ID: 'new'}]);
+
+            const first = getCloudUserData('me')(dispatch, getState);
+            await refreshInstallations({mine: true, shared: false})(dispatch, getState);
+            slow.resolve([{ID: 'old'}]);
+            await first;
+
+            const received = dispatch.mock.calls.map((c) => c[0]).filter((a) => a.type === RECEIVED_USER_INSTALLS);
+            expect(received).toEqual([{type: RECEIVED_USER_INSTALLS, userID: 'me', data: [{ID: 'new'}]}]);
+        });
+    });
+
     describe('getSharedInstalls', () => {
         it('records a failure as a shared error and leaves the global server error alone', async () => {
             Client.getSharedInstalls.mockRejectedValue({message: 'Not authorized\n', status_code: 401});

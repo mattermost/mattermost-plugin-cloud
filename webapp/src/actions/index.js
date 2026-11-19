@@ -33,6 +33,16 @@ async function fetchOrError(call) {
     }
 }
 
+// Responses for one list can arrive out of order. Only the newest request may update the store.
+const latestRequest = {mine: 0, shared: 0};
+
+function startRequest(list) {
+    latestRequest[list] += 1;
+    return latestRequest[list];
+}
+
+const isLatestRequest = (list, ticket) => latestRequest[list] === ticket;
+
 export function setServerError(errorString) {
     return {
         type: SET_SERVER_ERROR,
@@ -77,7 +87,12 @@ export function getCloudUserData(userID) {
             return {};
         }
 
+        const ticket = startRequest('mine');
         const data = await fetchOrError(() => Client.getUserInstalls(userID));
+        if (!isLatestRequest('mine', ticket)) {
+            return data && data.error ? data : {data};
+        }
+
         if (data && data.error) {
             // Keep the last known installs (consumers expect an array) and only stamp the retry throttle on them.
             dispatch({
@@ -107,7 +122,11 @@ export function getCloudUserData(userID) {
 // A failed shared list must not hide the user's own installations, so it has its own error state.
 export function getSharedInstalls() {
     return async (dispatch) => {
+        const ticket = startRequest('shared');
         const data = await fetchOrError(() => Client.getSharedInstalls());
+        if (!isLatestRequest('shared', ticket)) {
+            return data && data.error ? data : {data};
+        }
 
         if (data && data.error) {
             const message = data.error.message ? String(data.error.message).trim() : '';
@@ -139,13 +158,19 @@ export function refreshInstallations({mine = true, shared = true} = {}) {
         // Background refreshes ignore failures. The next event or the next explicit load retries.
         const tasks = [];
         if (mine && userID) {
+            const ticket = startRequest('mine');
             tasks.push(Client.getUserInstalls(userID).then((data) => {
-                dispatch({type: RECEIVED_USER_INSTALLS, userID, data});
+                if (isLatestRequest('mine', ticket)) {
+                    dispatch({type: RECEIVED_USER_INSTALLS, userID, data});
+                }
             }));
         }
         if (shared) {
+            const ticket = startRequest('shared');
             tasks.push(Client.getSharedInstalls().then((data) => {
-                dispatch({type: RECEIVED_SHARED_INSTALLS, data});
+                if (isLatestRequest('shared', ticket)) {
+                    dispatch({type: RECEIVED_SHARED_INSTALLS, data});
+                }
             }));
         }
 

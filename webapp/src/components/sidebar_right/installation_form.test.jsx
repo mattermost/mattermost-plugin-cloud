@@ -188,6 +188,34 @@ describe('InstallationForm edit', () => {
         expect(apply).toBeDisabled();
     });
 
+    it('blocks Apply and shows an error when the version is cleared', () => {
+        renderEdit();
+        const version = screen.getByLabelText(/^Version/);
+
+        fireEvent.change(screen.getByLabelText('Names to remove'), {target: {value: 'OLD_ONE'}});
+        expect(screen.getByRole('button', {name: 'Apply'})).toBeEnabled();
+        fireEvent.change(version, {target: {value: ''}});
+        fireEvent.blur(version);
+
+        expect(screen.getByRole('button', {name: 'Apply'})).toBeDisabled();
+        expect(screen.getByText('Enter a version.')).toBeInTheDocument();
+    });
+
+    it('lets the license return to keep current', () => {
+        const onSubmit = renderEdit();
+        expect(screen.queryByRole('button', {name: 'Keep current license'})).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByRole('combobox', {name: /License/}));
+        fireEvent.pointerUp(screen.getByRole('option', {name: 'professional'}));
+        expect(screen.getByRole('button', {name: 'Apply'})).toBeEnabled();
+
+        fireEvent.click(screen.getByRole('button', {name: 'Keep current license'}));
+
+        expect(screen.getByRole('button', {name: 'Apply'})).toBeDisabled();
+        expect(screen.queryByRole('button', {name: 'Keep current license'})).not.toBeInTheDocument();
+        expect(onSubmit).not.toHaveBeenCalled();
+    });
+
     it('sends only the changed fields', async () => {
         const onSubmit = renderEdit();
 

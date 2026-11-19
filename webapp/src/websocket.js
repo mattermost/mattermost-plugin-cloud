@@ -2,7 +2,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 
 import {receivedInstallationEvent, refreshInstallations} from './actions';
 import {id as pluginId} from './manifest';
-import {isRhsVisible} from './selectors';
+import {isRhsVisible, sharedInstalls} from './selectors';
 
 export const INSTALLATION_UPDATED_EVENT = `custom_${pluginId}_installation_updated`;
 
@@ -33,7 +33,10 @@ export function createInstallationEventHandler(store, delay = REFRESH_DELAY_MILL
 
         const isOwner = data.owner_id === getCurrentUserId(store.getState());
         pending.mine = pending.mine || isOwner;
-        pending.shared = pending.shared || Boolean(data.shared) || !isOwner;
+
+        // An unshare event reports shared: false, but the shared list still holds the installation until it reloads.
+        const inSharedList = sharedInstalls(store.getState()).some((item) => item.ID === data.installation_id);
+        pending.shared = pending.shared || Boolean(data.shared) || !isOwner || inSharedList;
 
         if (timer === null) {
             timer = setTimeout(flush, delay);
