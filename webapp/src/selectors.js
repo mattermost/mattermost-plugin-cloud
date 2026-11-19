@@ -13,4 +13,5 @@ export const pluginConfiguration = (state) => getPluginState(state).pluginConfig
 
 export const getShowRHSAction = (state) => getPluginState(state).rhsPluginAction;
 export const isRhsVisible = (state) => getPluginState(state).isRhsVisible;
-export const serverError = (state) => getPluginState(state).serverError;
+export const listError = (state) => getPluginState(state).listError || '';
+export const configError = (state) => getPluginState(state).configError || '';

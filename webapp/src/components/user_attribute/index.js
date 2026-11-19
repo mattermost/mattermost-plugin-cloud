@@ -3,7 +3,7 @@ import {bindActionCreators} from 'redux';
 
 import {getCloudUserData} from '../../actions';
 
-import {installsForUser, serverError} from 'selectors';
+import {installsForUser, listError} from 'selectors';
 
 import UserAttribute from './user_attribute.jsx';
 
@@ -13,7 +13,7 @@ function mapStateToProps(state, ownProps) {
     return {
         id,
         installs: installsForUser(state, id),
-        serverError: serverError(state),
+        serverError: listError(state),
     };
 }
 

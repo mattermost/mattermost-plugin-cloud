@@ -1,8 +1,8 @@
 import Client from '../client';
 
-import {SET_SHARED_ERROR, SET_SERVER_ERROR, RECEIVED_SHARED_INSTALLS, RECEIVED_USER_INSTALLS} from '../action_types';
+import {SET_SHARED_ERROR, SET_LIST_ERROR, SET_CONFIG_ERROR, RECEIVED_SHARED_INSTALLS, RECEIVED_USER_INSTALLS} from '../action_types';
 
-import {createInstallation, deleteInstallation, deletionLockInstallation, getCloudUserData, getSharedInstalls, refreshInstallations} from './index';
+import {createInstallation, deleteInstallation, deletionLockInstallation, getCloudUserData, getPluginConfiguration, getSharedInstalls, refreshInstallations} from './index';
 
 jest.mock('mattermost-redux/client', () => ({Client4: {}}));
 jest.mock('mattermost-redux/selectors/entities/channels', () => ({getCurrentChannel: jest.fn()}));
@@ -17,6 +17,7 @@ jest.mock('../client', () => ({
         deletionLockInstallation: jest.fn(),
         getUserInstalls: jest.fn(),
         getSharedInstalls: jest.fn(),
+        getPluginConfiguration: jest.fn(),
     },
 }));
 
@@ -87,7 +88,7 @@ describe('installation actions', () => {
             const received = dispatch.mock.calls.map((c) => c[0]).find((a) => a.type === RECEIVED_USER_INSTALLS);
             expect(Array.isArray(received.data)).toBe(true);
             expect(received.data.last_try).toEqual(expect.any(Number));
-            expect(dispatch).toHaveBeenCalledWith({type: SET_SERVER_ERROR, error: `Status: ${status}, Message: boom`});
+            expect(dispatch).toHaveBeenCalledWith({type: SET_LIST_ERROR, error: `Status: ${status}, Message: boom`});
         });
     });
 
@@ -127,6 +128,17 @@ describe('installation actions', () => {
         });
     });
 
+    describe('getPluginConfiguration', () => {
+        it('records a failure as a config error and leaves the list error alone', async () => {
+            Client.getPluginConfiguration.mockRejectedValue({message: 'boom', status_code: 500});
+
+            await getPluginConfiguration()(dispatch, getState);
+
+            expect(dispatch).toHaveBeenCalledWith({type: SET_CONFIG_ERROR, error: 'Status: 500, Message: boom'});
+            expect(dispatch).not.toHaveBeenCalledWith(expect.objectContaining({type: SET_LIST_ERROR}));
+        });
+    });
+
     describe('getSharedInstalls', () => {
         it('records a failure as a shared error and leaves the global server error alone', async () => {
             Client.getSharedInstalls.mockRejectedValue({message: 'Not authorized\n', status_code: 401});
@@ -135,7 +147,7 @@ describe('installation actions', () => {
 
             expect(result.error).toBeDefined();
             expect(dispatch).toHaveBeenCalledWith({type: SET_SHARED_ERROR, error: 'Not authorized'});
-            expect(dispatch).not.toHaveBeenCalledWith(expect.objectContaining({type: SET_SERVER_ERROR}));
+            expect(dispatch).not.toHaveBeenCalledWith(expect.objectContaining({type: SET_LIST_ERROR}));
         });
 
         it('falls back to the status when the error has no message', async () => {

@@ -5,7 +5,8 @@ import {
     RECEIVED_SHARED_INSTALLS,
     RECEIVED_SHOW_RHS_ACTION,
     SET_RHS_VISIBLE,
-    SET_SERVER_ERROR,
+    SET_LIST_ERROR,
+    SET_CONFIG_ERROR,
     RECEIVED_CONFIG,
     RECEIVED_INSTALLATION_EVENT,
     SET_SHARED_ERROR,
@@ -98,10 +99,24 @@ function isRhsVisible(state = false, action) {
     }
 }
 
-function serverError(state = '', action) {
+// The personal list and the plugin configuration load separately, so each keeps its own error.
+function listError(state = '', action) {
     switch (action.type) {
-    case SET_SERVER_ERROR:
+    case SET_LIST_ERROR:
         return action.error;
+    case RECEIVED_USER_INSTALLS:
+        return '';
+    default:
+        return state;
+    }
+}
+
+function configError(state = '', action) {
+    switch (action.type) {
+    case SET_CONFIG_ERROR:
+        return action.error;
+    case RECEIVED_CONFIG:
+        return '';
     default:
         return state;
     }
@@ -113,6 +128,7 @@ export default combineReducers({
     sharedError,
     rhsPluginAction,
     isRhsVisible,
-    serverError,
+    listError,
+    configError,
     pluginConfiguration,
 });

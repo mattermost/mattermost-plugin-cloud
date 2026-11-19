@@ -9,14 +9,15 @@ import Client from '../client';
 
 import {id as pluginId} from '../manifest';
 
-import {rawInstallsEntry, serverError} from '../selectors';
+import {rawInstallsEntry} from '../selectors';
 
 import {
     RECEIVED_USER_INSTALLS,
     RECEIVED_SHARED_INSTALLS,
     RECEIVED_SHOW_RHS_ACTION,
     SET_RHS_VISIBLE,
-    SET_SERVER_ERROR,
+    SET_LIST_ERROR,
+    SET_CONFIG_ERROR,
     RECEIVED_CONFIG,
     RECEIVED_INSTALLATION_EVENT,
     SET_SHARED_ERROR,
@@ -43,28 +44,16 @@ function startRequest(list) {
 
 const isLatestRequest = (list, ticket) => latestRequest[list] === ticket;
 
-export function setServerError(errorString) {
-    return {
-        type: SET_SERVER_ERROR,
-        error: errorString,
-    };
-}
-
 export const deletionLockInstallation = (installationID) => installationMutation(() => Client.deletionLockInstallation(installationID));
 export const deletionUnlockInstallation = (installationID) => installationMutation(() => Client.deletionUnlockInstallation(installationID));
 
 export function getPluginConfiguration() {
-    return async (dispatch, getState) => {
+    return async (dispatch) => {
         const data = await fetchOrError(() => Client.getPluginConfiguration());
 
         if (data && data.error) {
-            dispatch(setServerError(`Status: ${data.error.status}, Message: ${data.error.message}`));
+            dispatch({type: SET_CONFIG_ERROR, error: `Status: ${data.error.status}, Message: ${data.error.message}`});
             return data;
-        }
-
-        // Clear server error
-        if (serverError(getState())) {
-            dispatch(setServerError(''));
         }
 
         dispatch({
@@ -100,13 +89,8 @@ export function getCloudUserData(userID) {
                 userID,
                 data: Object.assign(Array.isArray(installs) ? [...installs] : [], {last_try: Date.now()}),
             });
-            dispatch(setServerError(`Status: ${data.error.status}, Message: ${data.error.message}`));
+            dispatch({type: SET_LIST_ERROR, error: `Status: ${data.error.status}, Message: ${data.error.message}`});
             return data;
-        }
-
-        // Clear server error
-        if (serverError(getState())) {
-            dispatch(setServerError(''));
         }
 
         dispatch({

@@ -1,4 +1,4 @@
-import {RECEIVED_INSTALLATION_EVENT, RECEIVED_SHARED_INSTALLS, RECEIVED_USER_INSTALLS, SET_SHARED_ERROR} from '../action_types';
+import {RECEIVED_INSTALLATION_EVENT, RECEIVED_SHARED_INSTALLS, RECEIVED_USER_INSTALLS, RECEIVED_CONFIG, SET_CONFIG_ERROR, SET_LIST_ERROR, SET_SHARED_ERROR} from '../action_types';
 
 import reducer from './index';
 
@@ -45,9 +45,40 @@ describe('shared error reducer', () => {
         expect(state.sharedError).toBe('');
     });
 
-    it('is separate from the global server error', () => {
+    it('is separate from the list error', () => {
         const state = reducer({}, {type: SET_SHARED_ERROR, error: 'Not authorized'});
 
-        expect(state.serverError).toBe('');
+        expect(state.listError).toBe('');
+    });
+});
+
+describe('list and config errors', () => {
+    it('clears the list error when any personal list load succeeds, including a background refresh', () => {
+        let state = reducer({}, {type: SET_LIST_ERROR, error: 'Status: 500, Message: boom'});
+        expect(state.listError).toBe('Status: 500, Message: boom');
+
+        state = reducer(state, {type: RECEIVED_USER_INSTALLS, userID: 'me', data: []});
+        expect(state.listError).toBe('');
+    });
+
+    it('keeps a config error when the personal list loads', () => {
+        let state = reducer({}, {type: SET_CONFIG_ERROR, error: 'config failed'});
+        state = reducer(state, {type: RECEIVED_USER_INSTALLS, userID: 'me', data: []});
+
+        expect(state.configError).toBe('config failed');
+    });
+
+    it('keeps a list error when the config loads', () => {
+        let state = reducer({}, {type: SET_LIST_ERROR, error: 'list failed'});
+        state = reducer(state, {type: RECEIVED_CONFIG, data: {}});
+
+        expect(state.listError).toBe('list failed');
+    });
+
+    it('clears the config error when the config loads', () => {
+        let state = reducer({}, {type: SET_CONFIG_ERROR, error: 'config failed'});
+        state = reducer(state, {type: RECEIVED_CONFIG, data: {}});
+
+        expect(state.configError).toBe('');
     });
 });
